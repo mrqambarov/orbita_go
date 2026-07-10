@@ -1,0 +1,25 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy using SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 94.237.82.143
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            cd /var/www/orbita_go
+            git pull
+            # Agar backend o'zgargan bo'lsa, backendni qayta ishga tushiradi
+            if git diff --name-only HEAD@{1} HEAD | grep -q "^backend/"; then
+              docker compose restart backend
+            fi
