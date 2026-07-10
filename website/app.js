@@ -8,7 +8,7 @@
 // Auto-detect API base: use localhost only in dev environment
 const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
     ? 'http://localhost:3000'
-    : '';
+    : 'https://api.orbitago.uz';
 const KOSONSOY = [40.9983, 71.1522]; // Default center: Kosonsoy
 
 let GLOBAL_TAXI_PRICES = {

@@ -2,7 +2,7 @@
    Orbita Go Admin Panel — admin.js (Real-time and Authenticated v4.0)
    ========================================================================== */
 
-const API = 'http://localhost:3000';
+const API = 'https://api.orbitago.uz';
 const DEMO_USER = 'admin';
 const DEMO_PASS = 'admin123';
 const ADMIN_SECRET = 'orbita-admin-secret-2026';
