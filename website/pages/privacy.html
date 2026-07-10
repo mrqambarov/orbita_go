@@ -1,0 +1,118 @@
+﻿<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maxfiylik Siyosati — Orbita Go</title>
+    <meta name="description" content="Orbita Go ilovasi foydalanuvchi ma'lumotlarini qanday to'plashi, saqlashi va himoya qilishi haqida.">
+    <link rel="stylesheet" href="page.css">
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <style>
+        .legal-content{max-width:820px;margin:0 auto;padding:0 24px 100px}
+        .legal-content h2{font-size:20px;font-weight:800;color:var(--text-primary);margin:44px 0 12px;padding-bottom:10px;border-bottom:1px solid var(--border-color)}
+        .legal-content p{color:var(--text-secondary);font-size:15px;line-height:1.85;margin-bottom:12px}
+        .legal-content ul{color:var(--text-secondary);font-size:15px;line-height:1.85;padding-left:22px;margin-bottom:12px;display:flex;flex-direction:column;gap:6px}
+        .legal-content strong{color:var(--text-primary)}
+        .legal-note{background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.2);border-radius:16px;padding:18px 22px;margin:0 0 30px;color:var(--text-secondary);font-size:14px;line-height:1.7}
+        .legal-note strong{color:var(--success-light)}
+        .legal-date{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.04);border:1px solid var(--border-color);padding:8px 18px;border-radius:12px;color:var(--text-hint);font-size:13px;font-weight:600;margin-bottom:30px}
+        .privacy-highlight{background:rgba(16,185,129,.04);border:1px solid rgba(16,185,129,.12);border-radius:14px;padding:14px 18px;margin:12px 0;font-size:14px;color:var(--text-secondary);display:flex;align-items:flex-start;gap:10px}
+        .privacy-highlight ion-icon{color:var(--success-light);font-size:20px;flex-shrink:0;margin-top:2px}
+        .contact-box{background:rgba(99,102,241,.06);border:1px solid rgba(99,102,241,.2);border-radius:22px;padding:28px;margin-top:36px;display:flex;flex-direction:column;gap:12px}
+        .contact-box h3{font-size:18px;font-weight:800;margin-bottom:4px}
+        .contact-row{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--text-secondary)}
+        .contact-row ion-icon{color:var(--primary-light);font-size:18px;flex-shrink:0}
+        .contact-row a{color:var(--primary-light)}
+    </style>
+</head>
+<body>
+<header class="page-header">
+    <div class="container page-header-inner">
+        <a href="../index.html" class="back-btn"><ion-icon name="arrow-back-outline"></ion-icon><span>Bosh sahifa</span></a>
+        <a href="../index.html" class="page-logo">
+            <div class="page-logo-icon"><ion-icon name="rocket-outline"></ion-icon></div>
+            <span>Orbita<span><span>Go</span></span></span>
+        </a>
+        <a href="../index.html#download" class="page-header-cta"><ion-icon name="download-outline"></ion-icon><span>Yuklab olish</span></a>
+    </div>
+</header>
+
+<section class="page-hero">
+    <div class="page-hero-glow" style="background:radial-gradient(circle,rgba(16,185,129,.12),transparent 70%)"></div>
+    <div class="container">
+        <div class="page-hero-badge" style="background:rgba(16,185,129,.08);border-color:rgba(16,185,129,.25);color:var(--success-light)"><span class="page-hero-badge-dot" style="background:var(--success-light);box-shadow:0 0 10px var(--success-light)"></span>Maxfiylik</div>
+        <h1>Maxfiylik <span>Siyosati</span></h1>
+        <p class="page-hero-desc">Ma'lumotlaringiz qanday saqlanishi va himoya qilinishi haqida batafsil ma'lumot.</p>
+    </div>
+</section>
+
+<main class="legal-content">
+    <div class="legal-date"><ion-icon name="calendar-outline"></ion-icon> Oxirgi yangilanish: 1 Iyul 2026</div>
+    <div class="legal-note"><strong>🔒 Xavfsizligingiz bizning ustuvorligimiz.</strong> Orbita Go sizning shaxsiy ma'lumotlaringizni uchinchi shaxslarga sotmaydi va ularsiz ulashmaydi.</div>
+
+    <h2>1. Qanday ma'lumotlar to'planadi?</h2>
+    <p>Orbita Go quyidagi ma'lumotlarni to'plashi mumkin:</p>
+    <ul>
+        <li><strong>Ro'yxatdan o'tish:</strong> Ism, familiya, telefon raqami, email;</li>
+        <li><strong>Profil:</strong> Ixtiyoriy ravishda qo'shiladigan rasm va qo'shimcha ma'lumotlar;</li>
+        <li><strong>Joylashuv:</strong> Taksi buyurtmasi vaqtida — GPS koordinatalar;</li>
+        <li><strong>Qadam ma'lumotlari:</strong> Orbita Walk dasturida — bosgan qadamlar soni;</li>
+        <li><strong>To'lov:</strong> Tranzaksiya ID (to'liq karta raqami saqlanmaydi);</li>
+        <li><strong>Qurilma:</strong> Qurilma modeli, OS versiyasi, ilovadan foydalanish statistikasi.</li>
+    </ul>
+
+    <h2>2. Ma'lumotlar nima uchun ishlatiladi?</h2>
+    <div class="privacy-highlight"><ion-icon name="checkmark-circle-outline"></ion-icon><span>Taksi xizmatini taqdim etish va haydovchi bilan bog'lash uchun</span></div>
+    <div class="privacy-highlight"><ion-icon name="checkmark-circle-outline"></ion-icon><span>Qadam va musobaqa statistikasini hisoblash uchun</span></div>
+    <div class="privacy-highlight"><ion-icon name="checkmark-circle-outline"></ion-icon><span>Ilovani yaxshilash va xatolarni tuzatish uchun</span></div>
+    <div class="privacy-highlight"><ion-icon name="checkmark-circle-outline"></ion-icon><span>Muhim yangilanishlar va bildirishnomalar yuborish uchun</span></div>
+
+    <h2>3. Ma'lumotlar kim bilan ulashiladi?</h2>
+    <p>Orbita Go shaxsiy ma'lumotlaringizni <strong>hech qachon uchinchi shaxslarga sotmaydi</strong>. Biroq quyidagi hollarda ulashilishi mumkin:</p>
+    <ul>
+        <li><strong>Haydovchilar bilan:</strong> Faqat safar vaqtida — ism va telefon raqami (safar tugagach o'chadi);</li>
+        <li><strong>Texnik hamkorlar:</strong> Xizmat sifatini ta'minlash uchun ishonchli texnologik hamkorlar;</li>
+        <li><strong>Huquqiy talablar:</strong> Sud yoki davlat organlarining qonuniy talabi bo'lganda.</li>
+    </ul>
+
+    <h2>4. Joylashuv ma'lumotlari</h2>
+    <p>GPS joylashuv faqat taksi buyurtmasi vaqtida yoqiladi va safar tugagach saqlanmaydi. Walk dasturi uchun esa faqat umumiy qadam soni (joylashuv emas) hisoblanadi.</p>
+
+    <h2>5. Ma'lumotlar xavfsizligi</h2>
+    <ul>
+        <li>Barcha ma'lumotlar AES-256 shifrlash bilan himoyalangan;</li>
+        <li>Serverlar O'zbekistonda joylashgan va mahalliy qonunlarga muvofiq ishlaydi;</li>
+        <li>To'lov ma'lumotlari sertifikatlangan to'lov tizimi orqali qayta ishlanadi;</li>
+        <li>Parollar shifrlangan (hash) holatda saqlanadi — xodimlar ham ko'ra olmaydi.</li>
+    </ul>
+
+    <h2>6. Cookie va kuzatish</h2>
+    <p>Orbita Go veb-saytida foydalanuvchi tajribasini yaxshilash uchun minimal cookie fayllardan foydalaniladi. Analitika uchun anonimlashtrilgan ma'lumotlar ishlatiladi.</p>
+
+    <h2>7. Ma'lumotlarni o'chirish</h2>
+    <p>Siz istalgan vaqtda hisobingizni o'chirishni so'rashingiz mumkin. Hisob o'chirilgandan so'ng barcha shaxsiy ma'lumotlar 30 kun ichida serverlardan butunlay o'chiriladi.</p>
+
+    <h2>8. Bolalar maxfiyligi</h2>
+    <p>Orbita Go xizmatlari 18 yoshdan kichik shaxslarga mo'ljallanmagan. 18 yoshdan kichik bolalar ma'lumotlarini bilmasdan to'plagan bo'lsak, darhol o'chirib tashlaymiz.</p>
+
+    <h2>9. Siyosatni o'zgartirish</h2>
+    <p>Maxfiylik siyosatiga kiritilgan muhim o'zgarishlar haqida foydalanuvchilar ilovadagi bildirishnoma orqali xabardor qilinadi.</p>
+
+    <h2>10. Bog'lanish</h2>
+    <div class="contact-box">
+        <h3>Ma'lumotlaringiz haqida savol bormi?</h3>
+        <div class="contact-row"><ion-icon name="call-outline"></ion-icon><span>Telefon: <a href="tel:+998500303555">+998 (50) 030-35-55</a></span></div>
+        <div class="contact-row"><ion-icon name="mail-outline"></ion-icon><span><a href="mailto:privacy@orbitago.uz">privacy@orbitago.uz</a></span></div>
+        <div class="contact-row"><ion-icon name="location-outline"></ion-icon><span>Kosonsoy tumani, Namangan, O'zbekiston</span></div>
+        <div class="contact-row"><ion-icon name="time-outline"></ion-icon><span>07:00 — 24:00, har kuni</span></div>
+    </div>
+</main>
+
+<footer class="page-footer">
+    <div class="container">
+        <p>© 2026 Orbita Go. Barcha huquqlar himoyalangan. | <a href="terms.html">Foydalanish shartlari</a> | <a href="../index.html">Bosh sahifa</a></p>
+    </div>
+</footer>
+</body>
+</html>

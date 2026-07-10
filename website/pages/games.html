@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orbita Games — O'yna va Yut</title>
+    <meta name="description" content="Orbita Games — Virtual bog' o'stiring, haftalik turnirlarda g'alaba qozing va real pul yutuqlari oling.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <link rel="stylesheet" href="page.css?v=1.0.2">
+    <style>
+        .page-hero { background: radial-gradient(ellipse at top center, rgba(217,70,239,0.12) 0%, transparent 60%); }
+        .page-hero-glow { background: radial-gradient(circle, rgba(217,70,239,0.15), transparent 70%); }
+        .games-hero-icon {
+            font-size: 90px; display: block; text-align: center; margin-bottom: 20px;
+            filter: drop-shadow(0 0 30px rgba(217,70,239,0.5));
+            animation: float 4s ease-in-out infinite;
+        }
+        /* Garden preview */
+        .garden-preview {
+            background: var(--surface); border: 1px solid rgba(217,70,239,0.2);
+            border-radius: 28px; padding: 36px; text-align: center;
+            position: relative; overflow: hidden;
+        }
+        .garden-preview::before {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(circle at center, rgba(217,70,239,0.06), transparent 70%);
+        }
+        .tree-display { font-size: 64px; margin-bottom: 12px; animation: pulse 3s ease-in-out infinite; }
+        .tree-level { display: inline-flex; align-items: center; gap: 8px; background: rgba(217,70,239,0.1); border: 1px solid rgba(217,70,239,0.2); border-radius: 30px; padding: 6px 16px; color: var(--purple-light); font-weight: 700; font-size: 13px; margin-bottom: 20px; }
+        .tree-progress-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; }
+        .tree-progress-bar { background: rgba(255,255,255,0.05); border-radius: 10px; height: 8px; overflow: hidden; }
+        .tree-progress-fill { height: 100%; background: linear-gradient(90deg, var(--purple), var(--primary-light)); border-radius: 10px; width: 72%; }
+        /* Prize grid */
+        .prize-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+        .prize-card {
+            background: var(--surface); border: 1px solid var(--border-color);
+            border-radius: 22px; padding: 28px 22px; text-align: center;
+            transition: var(--transition); position: relative;
+        }
+        .prize-card:hover { border-color: rgba(217,70,239,0.4); transform: translateY(-5px); }
+        .prize-medal { font-size: 44px; margin-bottom: 10px; }
+        .prize-place { font-size: 13px; color: var(--text-secondary); font-weight: 700; margin-bottom: 4px; }
+        .prize-amount { font-size: 28px; font-weight: 900; font-family: 'Outfit', sans-serif; }
+        .prize-card:nth-child(1) .prize-amount { color: var(--yellow); }
+        .prize-card:nth-child(2) .prize-amount { color: #cbd5e1; }
+        .prize-card:nth-child(3) .prize-amount { color: #fb923c; }
+        /* Countdown */
+        .countdown-display {
+            display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 32px;
+        }
+        .cd-block { background: var(--surface); border: 1px solid rgba(217,70,239,0.2); border-radius: 18px; padding: 20px 28px; text-align: center; min-width: 80px; }
+        .cd-number { font-size: 36px; font-weight: 900; font-family: 'Outfit', monospace; color: var(--purple-light); }
+        .cd-label { font-size: 10px; color: var(--text-hint); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+        /* Games list */
+        .games-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .game-card {
+            background: var(--surface); border: 1px solid var(--border-color);
+            border-radius: 24px; padding: 28px; display: flex; gap: 20px; align-items: flex-start;
+            transition: var(--transition);
+        }
+        .game-card:hover { border-color: rgba(217,70,239,0.35); transform: translateY(-4px); }
+        .game-icon-wrap { width: 56px; height: 56px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; }
+        .game-card h3 { font-size: 17px; font-weight: 800; margin-bottom: 6px; }
+        .game-card p { color: var(--text-secondary); font-size: 13px; line-height: 1.65; }
+        .game-tag { display: inline-flex; align-items: center; gap: 5px; background: rgba(217,70,239,0.1); border: 1px solid rgba(217,70,239,0.2); color: var(--purple-light); font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 8px; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 10px; }
+    </style>
+    <script src="../translations.js?v=1.0.2"></script>
+</head>
+<body>
+
+    <header class="page-header">
+        <div class="container page-header-inner">
+            <a href="../index.html" class="back-btn">
+                <ion-icon name="arrow-back-outline"></ion-icon>
+                <span data-i18n="sub.back">Orqaga</span>
+            </a>
+            <!-- Language switcher for subpages -->
+            <div class="lang-switcher">
+                <button class="lang-btn" data-lang="uz">UZ</button>
+                <button class="lang-btn" data-lang="ru">RU</button>
+                <button class="lang-btn" data-lang="en">EN</button>
+            </div>
+            <div class="page-logo">
+                <div class="page-logo-icon"><ion-icon name="rocket-outline"></ion-icon></div>
+                <span>Orbita<span>Go</span></span>
+            </div>
+            <a href="../index.html#download" class="page-header-cta">
+                <ion-icon name="download-outline"></ion-icon>
+                <span data-i18n="nav.download">Yuklab olish</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="page-hero">
+        <div class="page-hero-glow"></div>
+        <div class="container">
+            <div class="page-hero-badge reveal" data-i18n="feat.games.title" style="color:var(--purple-light); border-color:rgba(217,70,239,0.3); background:rgba(217,70,239,0.08);">
+                Orbita Games
+            </div>
+            <ion-icon name="game-controller" class="games-hero-icon" style="color:var(--purple-light);"></ion-icon>
+            <h1 class="reveal" data-i18n="sub.games.title">O'yana va <span>Haqiqiy Pul Yut</span></h1>
+            <p class="page-hero-desc reveal" data-i18n="sub.games.desc">Virtual bog' o'stiring, do'stlaringizni sug'oring, haftalik turnirlarda bellashing va real pul mukofotlari qo'lga kiriting.</p>
+            <div class="page-hero-actions reveal">
+                <a href="../index.html#leaderboard" class="btn btn-primary" style="background: linear-gradient(135deg, var(--purple), var(--primary));">
+                    <ion-icon name="trophy"></ion-icon>
+                    <span>Peshqadamlarni ko'ring</span>
+                </a>
+                <a href="../index.html#download" class="btn btn-outline">
+                    <ion-icon name="logo-google-playstore"></ion-icon>
+                    <span>O'yinni boshlash</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="section" style="padding-top:0;">
+        <div class="container">
+            <div class="stats-row">
+                <div class="stat-card reveal" style="--delay:0s"><h2>12.5K</h2><p>Virtual daraxtlar</p></div>
+                <div class="stat-card reveal" style="--delay:0.1s"><h2>5,000+</h2><p>Haftalik o'yinchilar</p></div>
+                <div class="stat-card reveal" style="--delay:0.2s"><h2>270K</h2><p>Haftalik mukofot (UZS)</p></div>
+                <div class="stat-card reveal" style="--delay:0.3s"><h2>7 ta</h2><p>Mini-o'yin turlari</p></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Virtual bog' -->
+    <section class="section">
+        <div class="container">
+            <div class="info-split">
+                <div class="info-text reveal">
+                    <div class="section-badge" style="color:var(--purple-light); border-color:rgba(217,70,239,0.2); background:rgba(217,70,239,0.07);">Virtual Bog'</div>
+                    <h2>O'z <span>daraxtingizni</span> o'stiring</h2>
+                    <p>Har kuni sug'orish, taksi safarlari va qadam bosish orqali daraxtingiz o'sib boradi. Daraxt qancha baland bo'lsa, shuncha ko'proq ball ishlaysiz.</p>
+                    <div class="info-checklist">
+                        <div class="info-check"><ion-icon name="checkmark-circle"></ion-icon> Kunlik sug'orish — bepul ball</div>
+                        <div class="info-check"><ion-icon name="checkmark-circle"></ion-icon> Do'stlar sug'organda ham ball olasiz</div>
+                        <div class="info-check"><ion-icon name="checkmark-circle"></ion-icon> 10 ta daraxt darajasi (Lvl 1–10)</div>
+                        <div class="info-check"><ion-icon name="checkmark-circle"></ion-icon> Maxsus noyob teri va ko'rinishlar</div>
+                        <div class="info-check"><ion-icon name="checkmark-circle"></ion-icon> Ko'proq daraxt = ko'proq haftalik ball</div>
+                    </div>
+                </div>
+                <div class="info-visual reveal" style="border-color: rgba(217,70,239,0.15);">
+                    <div class="visual-icon" style="color: var(--purple-light);"><ion-icon name="leaf"></ion-icon></div>
+                    <div class="garden-preview" style="background:transparent; border:none;">
+                        <div class="tree-display">🌳</div>
+                        <div class="tree-level"><ion-icon name="sparkles"></ion-icon> Daraja 7 — Katta Eman</div>
+                        <div class="tree-progress-label">Keyingi darajagacha: 72%</div>
+                        <div class="tree-progress-bar"><div class="tree-progress-fill"></div></div>
+                        <p style="font-size:13px; color:var(--text-hint); margin-top:12px;">+450 ball / kun</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Haftalik turnir -->
+    <section class="section" style="background: rgba(10,8,30,0.3); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="section-badge" style="color:var(--purple-light); border-color:rgba(217,70,239,0.2); background:rgba(217,70,239,0.07);">Musobaqa</div>
+                <h2>Haftalik <span>Turnir Mukofotlari</span></h2>
+                <p>Har dushanba yangi turnir boshlanadi. Eng ko'p ball to'playotgan o'yinchilar mukofot oladi.</p>
+            </div>
+            <div class="prize-grid">
+                <div class="prize-card reveal" style="--delay:0s; border-color: rgba(251,191,36,0.2);">
+                    <div class="prize-medal">🥇</div>
+                    <div class="prize-place">1-o'rin</div>
+                    <div class="prize-amount">150,000 UZS</div>
+                    <p style="color:var(--text-hint); font-size:12px; margin-top:8px;">+ Premium avatar va maxsus teg</p>
+                </div>
+                <div class="prize-card reveal" style="--delay:0.15s; border-color: rgba(148,163,184,0.2);">
+                    <div class="prize-medal">🥈</div>
+                    <div class="prize-place">2-o'rin</div>
+                    <div class="prize-amount">80,000 UZS</div>
+                    <p style="color:var(--text-hint); font-size:12px; margin-top:8px;">+ Maxsus daraxt teri</p>
+                </div>
+                <div class="prize-card reveal" style="--delay:0.3s; border-color: rgba(249,115,22,0.2);">
+                    <div class="prize-medal">🥉</div>
+                    <div class="prize-place">3-o'rin</div>
+                    <div class="prize-amount">40,000 UZS</div>
+                    <p style="color:var(--text-hint); font-size:12px; margin-top:8px;">+ 2x ball kuchaytirgich (7 kun)</p>
+                </div>
+            </div>
+            <div class="countdown-display">
+                <div class="cd-block reveal"><div class="cd-number" id="cd-d">04</div><div class="cd-label">Kun</div></div>
+                <div class="cd-block reveal" style="--delay:0.1s"><div class="cd-number" id="cd-h">12</div><div class="cd-label">Soat</div></div>
+                <div class="cd-block reveal" style="--delay:0.2s"><div class="cd-number" id="cd-m">36</div><div class="cd-label">Daqiqa</div></div>
+                <div class="cd-block reveal" style="--delay:0.3s"><div class="cd-number" id="cd-s">08</div><div class="cd-label">Soniya</div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Playable Game Demo Section -->
+    <section class="section" id="demo-game-section" style="background: rgba(10,8,30,0.15); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="section-badge" style="color:var(--purple-light); border-color:rgba(217,70,239,0.2); background:rgba(217,70,239,0.07);">Rocket Rush</div>
+                <h2>Saytda <span>o'ynab ko'ring</span></h2>
+                <p>Brauzeringizning o'zida Rocket Rush o'yinini sinab ko'ring. Koinot kemasini boshqaring va meteoritlardan qoching.</p>
+            </div>
+            
+            <div class="game-demo-container reveal" style="max-width: 500px; margin: 40px auto 0; background: var(--surface); border: 1px solid rgba(217,70,239,0.25); border-radius: 24px; padding: 24px; text-align: center; box-shadow: 0 20px 40px rgba(217,70,239,0.08);">
+                <div style="position: relative; width: 100%; height: 350px; background: #02000c; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);" id="canvas-wrapper">
+                    <canvas id="game-canvas" width="400" height="350" style="display: block; width: 100%; height: 100%;"></canvas>
+                    
+                    <!-- Game Over / Start Overlay -->
+                    <div id="game-overlay" style="position: absolute; inset: 0; background: rgba(3,0,20,0.85); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; z-index: 10;">
+                        <ion-icon name="rocket-outline" style="font-size: 54px; color: var(--purple-light); filter: drop-shadow(0 0 10px var(--purple));"></ion-icon>
+                        <h3 id="overlay-title" style="font-size: 20px; color: #fff;">Rocket Rush Demo</h3>
+                        <button class="btn btn-primary" id="btn-start-game" style="background: linear-gradient(135deg, var(--purple), var(--primary)); padding: 10px 24px; border-radius: 12px; font-weight: bold; border: none; cursor: pointer; color: #fff;">Start Game</button>
+                    </div>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; color: var(--text-secondary); font-size: 13px;">
+                    <span>Ball: <strong id="game-score" style="color: var(--purple-light); font-size: 15px;">0</strong></span>
+                    <span>Boshqarish: <strong>⬅️ ➡️ o'q tugmalari</strong></span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Peshqadamlar -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="section-badge" style="color:var(--purple-light); border-color:rgba(217,70,239,0.2); background:rgba(217,70,239,0.07);">Haftanint Eng Zorlari</div>
+                <h2>Joriy Hafta <span>Peshqadamlari</span></h2>
+            </div>
+            <div class="lb-card reveal">
+                <div class="lb-head">
+                    <span>Rank</span><span>O'yinchi</span><span>Ball</span>
+                </div>
+                <div id="games-lb">
+                    <div class="lb-loading"><div class="spinner"></div><span>Yuklanmoqda...</span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- O'yinlar katalogi -->
+    <section class="section" style="background: rgba(10,8,30,0.3); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="section-badge" style="color:var(--purple-light); border-color:rgba(217,70,239,0.2); background:rgba(217,70,239,0.07);">Mini-O'yinlar</div>
+                <h2>Barcha <span>o'yin turlari</span></h2>
+            </div>
+            <div class="games-list">
+                <div class="game-card reveal" style="--delay:0s">
+                    <div class="game-icon-wrap bg-purple"><ion-icon name="rocket"></ion-icon></div>
+                    <div>
+                        <h3>Rocket Rush</h3>
+                        <p>Raketa boshqarib meteoroidlardan qoching. Har 100 ball — 500 UZS evaziga.</p>
+                        <div class="game-tag"><ion-icon name="flame"></ion-icon> Eng mashhur</div>
+                    </div>
+                </div>
+                <div class="game-card reveal" style="--delay:0.1s">
+                    <div class="game-icon-wrap bg-green"><ion-icon name="leaf"></ion-icon></div>
+                    <div>
+                        <h3>Virtual Bog'</h3>
+                        <p>Daraxt o'stiring, sug'oring va do'stlar bilan hamkorlikda eko-ekotizim quring.</p>
+                        <div class="game-tag"><ion-icon name="star"></ion-icon> Asosiy o'yin</div>
+                    </div>
+                </div>
+                <div class="game-card reveal" style="--delay:0.2s">
+                    <div class="game-icon-wrap bg-yellow"><ion-icon name="car-sport"></ion-icon></div>
+                    <div>
+                        <h3>Taksi Simulator</h3>
+                        <p>Virtual shahar bo'ylab yo'lovchi tashib, daromad va tajriba ball to'plang.</p>
+                        <div class="game-tag">Yangi</div>
+                    </div>
+                </div>
+                <div class="game-card reveal" style="--delay:0.3s">
+                    <div class="game-icon-wrap bg-cyan"><ion-icon name="walk"></ion-icon></div>
+                    <div>
+                        <h3>Qadam Musobaqasi</h3>
+                        <p>Do'stlaringiz bilan haftalik qadam musobaqasida bellashing. G'olib kupon oladi.</p>
+                        <div class="game-tag"><ion-icon name="people"></ion-icon> Multiplayer</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+        <div class="cta-glow" style="background: radial-gradient(circle, rgba(217,70,239,0.1), transparent 70%);"></div>
+        <div class="container">
+            <h2>G'oliblar qatoriga <span>qo'shiling</span></h2>
+            <p>Bepul ilovani yuklab oling va bugunoq haftalik turnirda ishtirok eting!</p>
+            <div class="cta-buttons">
+                <a href="../index.html#download" class="cta-store-btn">
+                    <ion-icon name="logo-google-playstore"></ion-icon>
+                    <div><span>Yuklab oling</span><strong>Google Play</strong></div>
+                </a>
+                <a href="../index.html#download" class="cta-store-btn">
+                    <ion-icon name="logo-apple"></ion-icon>
+                    <div><span>Yuklab oling</span><strong>App Store</strong></div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="page-footer">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+            <p>&copy; 2026 Orbita Go · <a href="../index.html" data-i18n="sub.back">Bosh sahifaga qaytish</a></p>
+            <div class="system-status-indicator" style="margin-top: 0;">
+                <span class="status-dot status-checking"></span>
+                <span class="status-text" id="system-status-text">Tizim holati tekshirilmoqda...</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const API = 'http://localhost:3000';
+
+        // Reveal
+        const obs = new IntersectionObserver(entries => {
+            entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('on'); obs.unobserve(e.target); } });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+        // Countdown
+        let secs = 4 * 86400 + 12 * 3600 + 36 * 60 + 8;
+        const cdD = document.getElementById('cd-d');
+        const cdH = document.getElementById('cd-h');
+        const cdM = document.getElementById('cd-m');
+        const cdS = document.getElementById('cd-s');
+        function updateCD() {
+            if (secs <= 0) return;
+            secs--;
+            cdD.textContent = String(Math.floor(secs / 86400)).padStart(2,'0');
+            cdH.textContent = String(Math.floor((secs % 86400) / 3600)).padStart(2,'0');
+            cdM.textContent = String(Math.floor((secs % 3600) / 60)).padStart(2,'0');
+            cdS.textContent = String(secs % 60).padStart(2,'0');
+        }
+        setInterval(updateCD, 1000);
+
+        // Leaderboard
+        async function loadLB() {
+            const container = document.getElementById('games-lb');
+            try {
+                const res = await fetch(`${API}/api/games/tournament/weekly`);
+                const data = await res.json();
+                if (data.success && data.leaderboard && data.leaderboard.length) {
+                    renderLB(data.leaderboard, container);
+                } else throw new Error();
+            } catch {
+                renderLB([
+                    { fullName: 'Jamshid Karimov',    totalScore: 28400 },
+                    { fullName: 'Zilola Aliyeva',     totalScore: 24200 },
+                    { fullName: 'Sardor Sobirov',     totalScore: 21900 },
+                    { fullName: 'Dilnoza Rahmonova',  totalScore: 18450 },
+                    { fullName: 'Shoxrux Xamidov',   totalScore: 15300 },
+                ], container);
+            }
+        }
+        function renderLB(players, container) {
+            container.innerHTML = '';
+            players.forEach((p, i) => {
+                const rankClass = ['lb-rank-1','lb-rank-2','lb-rank-3'][i] || '';
+                container.innerHTML += `
+                    <div class="lb-row">
+                        <span class="lb-rank ${rankClass}">${i + 1}</span>
+                        <div class="lb-user">
+                            <div class="lb-avatar">${p.fullName.charAt(0)}</div>
+                            <span class="lb-name">${p.fullName}</span>
+                        </div>
+                        <span class="lb-score">${p.totalScore.toLocaleString()} ball</span>
+                    </div>`;
+            });
+        }
+        loadLB();
+
+        // Canvas Game Logic
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const overlay = document.getElementById('game-overlay');
+        const overlayTitle = document.getElementById('overlay-title');
+        const startBtn = document.getElementById('btn-start-game');
+        const scoreVal = document.getElementById('game-score');
+
+        let isPlaying = false;
+        let score = 0;
+        let rocket = { x: 180, y: 290, w: 40, h: 40 };
+        let stars = [];
+        let obstacles = [];
+        let keys = {};
+        let animationId;
+
+        // Key Listeners
+        window.addEventListener('keydown', e => { keys[e.code] = true; });
+        window.addEventListener('keyup', e => { keys[e.code] = false; });
+
+        startBtn.addEventListener('click', startGame);
+
+        function startGame() {
+            isPlaying = true;
+            score = 0;
+            scoreVal.textContent = '0';
+            rocket.x = 180;
+            stars = [];
+            obstacles = [];
+            overlay.style.display = 'none';
+            loop();
+        }
+
+        function spawnObjects() {
+            if (Math.random() < 0.02) {
+                stars.push({ x: Math.random() * (canvas.width - 20), y: -20, r: 8 });
+            }
+            if (Math.random() < 0.035) {
+                obstacles.push({ x: Math.random() * (canvas.width - 30), y: -30, w: 25, h: 25, speed: 2 + Math.random() * 3 });
+            }
+        }
+
+        function update() {
+            if (keys['ArrowLeft'] && rocket.x > 0) rocket.x -= 5;
+            if (keys['ArrowRight'] && rocket.x < canvas.width - rocket.w) rocket.x += 5;
+
+            spawnObjects();
+
+            // Stars collection
+            for (let i = stars.length - 1; i >= 0; i--) {
+                stars[i].y += 3;
+                if (stars[i].y + stars[i].r > rocket.y && stars[i].y - stars[i].r < rocket.y + rocket.h &&
+                    stars[i].x + stars[i].r > rocket.x && stars[i].x - stars[i].r < rocket.x + rocket.w) {
+                    score += 10;
+                    scoreVal.textContent = score;
+                    stars.splice(i, 1);
+                    continue;
+                }
+                if (stars[i].y > canvas.height) stars.splice(i, 1);
+            }
+
+            // Obstacles collision
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                obstacles[i].y += obstacles[i].speed;
+                if (obstacles[i].y + obstacles[i].h > rocket.y + 5 && obstacles[i].y < rocket.y + rocket.h - 5 &&
+                    obstacles[i].x + obstacles[i].w > rocket.x + 5 && obstacles[i].x < rocket.x + rocket.w - 5) {
+                    gameOver();
+                    return;
+                }
+                if (obstacles[i].y > canvas.height) obstacles.splice(i, 1);
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Space background
+            ctx.fillStyle = 'rgba(255,255,255,0.15)';
+            for (let i = 0; i < 20; i++) {
+                ctx.fillRect((i * 37) % canvas.width, (Date.now() / 20 + i * 23) % canvas.height, 2, 2);
+            }
+
+            // Rocket emoji
+            ctx.font = '32px sans-serif';
+            ctx.fillText('🚀', rocket.x, rocket.y + 30);
+
+            // Stars (score boosters)
+            ctx.fillStyle = '#fbbf24';
+            stars.forEach(s => {
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Obstacles (comets)
+            obstacles.forEach(o => {
+                ctx.font = '22px sans-serif';
+                ctx.fillText('☄️', o.x, o.y + 20);
+            });
+        }
+
+        function loop() {
+            if (!isPlaying) return;
+            update();
+            draw();
+            animationId = requestAnimationFrame(loop);
+        }
+
+        function gameOver() {
+            isPlaying = false;
+            cancelAnimationFrame(animationId);
+            overlayTitle.textContent = `Game Over! Score: ${score}`;
+            startBtn.textContent = 'Try Again';
+            overlay.style.display = 'flex';
+        }
+
+        // Health check integration
+        function initSystemHealthCheck() {
+            const statusDot = document.querySelector('.status-dot');
+            const statusText = document.getElementById('system-status-text');
+            if (!statusDot || !statusText) return;
+
+            const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                ? 'http://localhost:3000'
+                : '';
+
+            async function checkHealth() {
+                try {
+                    const res = await fetch(`${API_BASE}/api/health`);
+                    const data = await res.json();
+                    if (data.status === 'ok') {
+                        statusDot.className = 'status-dot status-online';
+                        const lang = localStorage.getItem('orbita_lang') || 'uz';
+                        const texts = {
+                            uz: 'Tizim: API Onlayn (Baza ok)',
+                            ru: 'Система: API Онлайн (БД ок)',
+                            en: 'System: API Online (DB ok)'
+                        };
+                        statusText.textContent = texts[lang] || texts.uz;
+                    } else {
+                        statusDot.className = 'status-dot status-degraded';
+                        const lang = localStorage.getItem('orbita_lang') || 'uz';
+                        const texts = {
+                            uz: 'Tizim: Cheklangan rejim',
+                            ru: 'Система: Ограниченный режим',
+                            en: 'System: Degraded mode'
+                        };
+                        statusText.textContent = texts[lang] || texts.uz;
+                    }
+                } catch (err) {
+                    statusDot.className = 'status-dot status-offline';
+                    const lang = localStorage.getItem('orbita_lang') || 'uz';
+                    const texts = {
+                        uz: 'Tizim: API Oflayn (Ulanish xatosi)',
+                        ru: 'Система: API Оффлайн (Ошибка соединения)',
+                        en: 'System: API Offline (Connection Error)'
+                    };
+                    statusText.textContent = texts[lang] || texts.uz;
+                }
+            }
+
+            checkHealth();
+            setInterval(checkHealth, 15000);
+        }
+        document.addEventListener('DOMContentLoaded', initSystemHealthCheck);
+    </script>
+</body>
+</html>

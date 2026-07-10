@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orbita Yetkazish — Tez Orada</title>
+    <meta name="description" content="Orbita Delivery — Hamkor kafe va do'konlardan buyurtmalarni uyingizgacha yetkazib berish xizmati.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <link rel="stylesheet" href="page.css?v=1.0.2">
+    <script src="../translations.js?v=1.0.2"></script>
+    <script src="../telegram-gateway.js?v=1.0.2"></script>
+    <style>
+        body { background-image: radial-gradient(circle at 50% 30%, rgba(249,115,22,0.1) 0%, transparent 60%), radial-gradient(circle at 85% 85%, rgba(251,191,36,0.07) 0%, transparent 50%); }
+        .cs-badge { color: #fb923c; border-color: rgba(249,115,22,0.3); background: rgba(249,115,22,0.08); }
+        .cs-glow { position: absolute; top: 30%; left: 50%; transform: translate(-50%,-50%); width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, rgba(249,115,22,0.12), transparent 70%); filter: blur(80px); pointer-events: none; }
+        .ring-anim { width: 160px; height: 160px; border-radius: 50%; border: 2px solid rgba(249,115,22,0.2); display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; position: relative; }
+        .ring-anim::before { content:''; position:absolute; inset:-12px; border-radius:50%; border: 2px solid rgba(249,115,22,0.1); animation: ringExpand 3s ease-in-out infinite; }
+        .ring-anim::after { content:''; position:absolute; inset:-24px; border-radius:50%; border: 2px solid rgba(249,115,22,0.05); animation: ringExpand 3s ease-in-out infinite 0.5s; }
+        @keyframes ringExpand { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.08);opacity:0.6} }
+    </style>
+</head>
+<body>
+    <header class="page-header">
+        <div class="container page-header-inner">
+            <a href="../index.html" class="back-btn">
+                <ion-icon name="arrow-back-outline"></ion-icon>
+                <span data-i18n="sub.back">Orqaga</span>
+            </a>
+            <!-- Language switcher for subpages -->
+            <div class="lang-switcher">
+                <button class="lang-btn" data-lang="uz">UZ</button>
+                <button class="lang-btn" data-lang="ru">RU</button>
+                <button class="lang-btn" data-lang="en">EN</button>
+            </div>
+            <div class="page-logo">
+                <div class="page-logo-icon"><ion-icon name="rocket-outline"></ion-icon></div>
+                <span>Orbita<span>Go</span></span>
+            </div>
+            <a href="../index.html#download" class="page-header-cta">
+                <ion-icon name="download-outline"></ion-icon>
+                <span data-i18n="nav.download">Ilovani yuklab oling</span>
+            </a>
+        </div>
+    </header>
+
+    <section class="coming-soon-hero">
+        <div class="cs-glow"></div>
+        <div class="container">
+            <div class="ring-anim">
+                <div style="font-size:72px; animation: pulse 3s ease-in-out infinite;">🚴</div>
+            </div>
+
+            <div class="cs-badge reveal" data-i18n="feat.soon">
+                Tez Orada
+            </div>
+
+            <h1 class="cs-title reveal" data-i18n="sub.delivery.title">Orbita <span>Yetkazish</span></h1>
+            <p class="cs-desc reveal" data-i18n="sub.delivery.desc">Hamkor kafe va do'konlardan buyurtmalarni uyingizgacha eng tezkor kuryerlarimiz orqali yetkazib berish. O'rtacha 30 daqiqada eshigingizda!</p>
+
+            <div class="notify-form reveal">
+                <input type="email" class="notify-input" id="del-email" placeholder="Email manzilingiz...">
+                <button class="notify-btn" onclick="subscribe('del-email','del-success')" style="background: linear-gradient(135deg, #ea580c, #f97316);">
+                    <ion-icon name="notifications-outline"></ion-icon> Xabardor qiling
+                </button>
+            </div>
+            <div class="notify-success" id="del-success">
+                <ion-icon name="checkmark-circle"></ion-icon>
+                Ajoyib! Birinchi yetkazilish bepul bo'ladi, sizga kafolatimiz!
+            </div>
+
+            <div class="cs-features reveal">
+                <div class="cs-feat"><ion-icon name="timer-outline" style="color:#fb923c;"></ion-icon> 30 daqiqa ichida</div>
+                <div class="cs-feat"><ion-icon name="location-outline" style="color:#fb923c;"></ion-icon> Real-time kuzatuv</div>
+                <div class="cs-feat"><ion-icon name="cafe-outline" style="color:#fb923c;"></ion-icon> KFC, Evos, Baraka</div>
+                <div class="cs-feat"><ion-icon name="cash-outline" style="color:#fb923c;"></ion-icon> Ball bilan to'lov</div>
+                <div class="cs-feat"><ion-icon name="bicycle-outline" style="color:#fb923c;"></ion-icon> 50+ kuryer</div>
+                <div class="cs-feat"><ion-icon name="gift-outline" style="color:#fb923c;"></ion-icon> Birinchi yetkazish bepul</div>
+            </div>
+
+            <div style="margin-top:48px;" class="reveal">
+                <a href="../index.html" class="btn btn-outline">
+                    <ion-icon name="arrow-back-outline"></ion-icon>
+                    <span data-i18n="sub.back">Bosh sahifaga qaytish</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="page-footer">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+            <p>&copy; 2026 Orbita Go · <a href="../index.html" data-i18n="sub.back">Orbita Go</a></p>
+            <div class="system-status-indicator" style="margin-top: 0;">
+                <span class="status-dot status-checking"></span>
+                <span class="status-text" id="system-status-text">Tizim holati tekshirilmoqda...</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const obs = new IntersectionObserver(e => e.forEach(x => { if(x.isIntersecting){x.target.classList.add('on');obs.unobserve(x.target);} }), {threshold:0.1});
+        document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+        function subscribe(inputId, successId) {
+            const val = document.getElementById(inputId).value;
+            if (!val || !val.includes('@')) { alert("Iltimos, to'g'ri email kiriting."); return; }
+            
+            // Route through unified helper script with direct Telegram API fallback
+            window.sendTelegramNotification('subscribe', {
+                email: val,
+                section: inputId.split('-')[0]
+            });
+
+            document.querySelector(`#${inputId}`).closest('.notify-form').style.display = 'none';
+            document.getElementById(successId).style.display = 'flex';
+        }
+
+        // Health check integration
+        function initSystemHealthCheck() {
+            const statusDot = document.querySelector('.status-dot');
+            const statusText = document.getElementById('system-status-text');
+            if (!statusDot || !statusText) return;
+
+            const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                ? 'http://localhost:3000'
+                : '';
+
+            async function checkHealth() {
+                try {
+                    const res = await fetch(`${API_BASE}/api/health`);
+                    const data = await res.json();
+                    if (data.status === 'ok') {
+                        statusDot.className = 'status-dot status-online';
+                        const lang = localStorage.getItem('orbita_lang') || 'uz';
+                        const texts = {
+                            uz: 'Tizim: API Onlayn (Baza ok)',
+                            ru: 'Система: API Онлайн (БД ок)',
+                            en: 'System: API Online (DB ok)'
+                        };
+                        statusText.textContent = texts[lang] || texts.uz;
+                    } else {
+                        statusDot.className = 'status-dot status-degraded';
+                        const lang = localStorage.getItem('orbita_lang') || 'uz';
+                        const texts = {
+                            uz: 'Tizim: Cheklangan rejim',
+                            ru: 'Система: Ограниченный режим',
+                            en: 'System: Degraded mode'
+                        };
+                        statusText.textContent = texts[lang] || texts.uz;
+                    }
+                } catch (err) {
+                    statusDot.className = 'status-dot status-offline';
+                    const lang = localStorage.getItem('orbita_lang') || 'uz';
+                    const texts = {
+                        uz: 'Tizim: API Oflayn (Ulanish xatosi)',
+                        ru: 'Система: API Оффлайн (Ошибка соединения)',
+                        en: 'System: API Offline (Connection Error)'
+                    };
+                    statusText.textContent = texts[lang] || texts.uz;
+                }
+            }
+
+            checkHealth();
+            setInterval(checkHealth, 15000);
+        }
+        document.addEventListener('DOMContentLoaded', initSystemHealthCheck);
+    </script>
+</body>
+</html>

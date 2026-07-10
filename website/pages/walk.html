@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orbita Walk — Har Qadam Pul</title>
+    <meta name="description" content="Orbita Walk — kundalik qadamlaringizni real pulga aylantiring. KFC, Evos kuponlari va taksi chegirmalari.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <link rel="stylesheet" href="page.css?v=1.0.2">
+    <style>
+        .page-hero { background: radial-gradient(ellipse at top center, rgba(16,185,129,0.1) 0%, transparent 60%); }
+        .page-hero-glow { background: radial-gradient(circle, rgba(16,185,129,0.12), transparent 70%); }
+        .walk-hero-icon {
+            font-size: 90px; display: block; text-align: center;
+            margin-bottom: 20px; filter: drop-shadow(0 0 30px rgba(52,211,153,0.5));
+            animation: float 4s ease-in-out infinite;
+        }
+        /* Progress bar */
+        .progress-bar-wrap { background: rgba(255,255,255,0.05); border-radius: 12px; height: 10px; overflow: hidden; margin-top: 12px; }
+        .progress-bar-fill { height: 100%; border-radius: 12px; background: linear-gradient(90deg, var(--success), #6366f1); transition: width 1.5s ease; }
+        /* Walk calc widget */
+        .calc-widget {
+            background: var(--surface); border: 1px solid var(--border-color);
+            border-radius: 26px; padding: 32px; max-width: 480px; margin: 0 auto;
+        }
+        .calc-widget label { font-size: 13px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .calc-slider { width: 100%; accent-color: var(--success); margin: 12px 0; height: 4px; cursor: pointer; }
+        .calc-result { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-color); }
+        .calc-result-value { font-size: 32px; font-weight: 900; color: var(--success-light); font-family: 'Outfit', sans-serif; }
+        .calc-result-label { color: var(--text-secondary); font-size: 13px; }
+        /* Coupon cards */
+        .coupon-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+        .coupon-card {
+            background: var(--surface); border: 1px solid var(--border-color);
+            border-radius: 20px; padding: 24px 18px; text-align: center;
+            transition: var(--transition);
+        }
+        .coupon-card:hover { border-color: rgba(16,185,129,0.4); transform: translateY(-5px); box-shadow: 0 15px 35px rgba(16,185,129,0.08); }
+        .coupon-icon { font-size: 36px; margin-bottom: 10px; }
+        .coupon-card h4 { font-size: 14px; font-weight: 800; margin-bottom: 4px; }
+        .coupon-card p { font-size: 11px; color: var(--text-hint); }
+        .coupon-cost { margin-top: 12px; font-size: 13px; font-weight: 700; color: var(--success-light); }
+    </style>
+    <script src="../translations.js?v=1.0.2"></script>
+</head>
+<body>
+
+    <header class="page-header">
+        <div class="container page-header-inner">
+            <a href="../index.html" class="back-btn">
+                <ion-icon name="arrow-back-outline"></ion-icon>
+                <span data-i18n="sub.back">Orqaga</span>
+            </a>
+            <!-- Language switcher for subpages -->
+            <div class="lang-switcher">
+                <button class="lang-btn" data-lang="uz">UZ</button>
+                <button class="lang-btn" data-lang="ru">RU</button>
+                <button class="lang-btn" data-lang="en">EN</button>
+            </div>
+            <div class="page-logo">
+                <div class="page-logo-icon"><ion-icon name="rocket-outline"></ion-icon></div>
+                <span>Orbita<span>Go</span></span>
+            </div>
+            <a href="../index.html#download" class="page-header-cta">
+                <ion-icon name="download-outline"></ion-icon>
+                <span data-i18n="nav.download">Yuklab olish</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="page-hero">
+        <div class="page-hero-glow"></div>
+        <div class="container">
+            <div class="page-hero-badge reveal" data-i18n="feat.walk.title" style="color: var(--success-light); border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.08);">
+                Orbita Walk
+            </div>
+            <ion-icon name="footsteps" class="walk-hero-icon" style="color: var(--success-light);"></ion-icon>
+            <h1 class="reveal" data-i18n="sub.walk.title">Har bir Qadam — <span>Real Pul</span></h1>
+            <p class="page-hero-desc reveal" data-i18n="sub.walk.desc">Telefon qo'lingizda bo'lishining o'ziyoq daromad keltiradi. Yuring, bal to'plang, hamyor kuponlariga yoki pul balansiga almashtiring.</p>
+            <div class="page-hero-actions reveal">
+                <a href="../index.html#download" class="btn btn-primary" style="background: linear-gradient(135deg, var(--success), var(--success-light));">
+                    <ion-icon name="walk"></ion-icon>
+                    <span data-i18n="hero.download">Hoziroq boshlang</span>
+                </a>
+                <a href="#how" class="btn btn-outline">
+                    <span data-i18n="hero.try">Qanday ishlaydi?</span>
+                    <ion-icon name="arrow-down-outline"></ion-icon>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="section" style="padding-top: 0;">
+        <div class="container">
+            <div class="stats-row">
+                <div class="stat-card reveal" style="--delay:0s"><h2>120M+</h2><p>Bosilgan qadamlar</p></div>
+                <div class="stat-card reveal" style="--delay:0.1s"><h2>15K+</h2><p>Faol yuruvchilar</p></div>
+                <div class="stat-card reveal" style="--delay:0.2s"><h2>50K UZS</h2><p>Oylik max daromad</p></div>
+                <div class="stat-card reveal" style="--delay:0.3s"><h2>12 ta</h2><p>Hamkor brendlar</p></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Hisob-kitob kalkulyatori -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="section-badge" style="color:var(--success-light); border-color:rgba(16,185,129,0.2); background:rgba(16,185,129,0.07);">Hisob-kitob</div>
+                <h2>Qancha <span>yursam, shuncha topaman?</span></h2>
+                <p>Slayder bilan kunlik qadamlaringizni tanlang va taxminiy daromadni ko'ring</p>
+            </div>
+            <div class="calc-widget reveal">
+                <label>Kunlik qadamlar: <strong id="step-count">8,000</strong></label>
+                <input type="range" class="calc-slider" id="step-slider" min="1000" max="20000" step="500" value="8000">
+                <div class="progress-bar-wrap">
+                    <div class="progress-bar-fill" id="step-progress" style="width: 37%;"></div>
+                </div>
+                <div class="calc-result">
+                    <div>
+                        <div class="calc-result-label">Kunlik daromad</div>
+                        <div class="calc-result-value" id="daily-earn">16,000 UZS</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div class="calc-result-label">Oylik daromad</div>
+                        <div class="calc-result-value" id="monthly-earn">480,000 UZS</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Qanday ishlaydi -->
+    <section class="section" id="how" style="background: rgba(10,8,30,0.3); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="section-badge" style="color:var(--success-light); border-color:rgba(16,185,129,0.2); background:rgba(16,185,129,0.07);">Jarayon</div>
+                <h2>Juda oddiy — <span>3 qadam</span></h2>
+            </div>
+            <div style="max-width: 640px; margin: 0 auto;">
+                <div class="steps-list">
+                    <div class="step-item reveal">
+                        <div class="step-number" style="color:var(--success-light);">1</div>
+                        <div class="step-content">
+                            <h3>Ilovani yurging bilan oching</h3>
+                            <p>Orbita Walk ilovasini ochib, "Yurishni boshlash" tugmasini bosing. Akselerometr orqali qadamlar avtomatik hisoblanadi.</p>
+                        </div>
+                    </div>
+                    <div class="step-item reveal" style="--delay:0.1s">
+                        <div class="step-number" style="color:var(--success-light);">2</div>
+                        <div class="step-content">
+                            <h3>Qadam bosing — ball yig'ing</h3>
+                            <p>Har 1,000 qadam uchun 2,000 UZS ball yig'iladi. Kunlik limit: 20,000 qadam. Qancha yursangiz, shuncha ko'proq to'playsiz.</p>
+                        </div>
+                    </div>
+                    <div class="step-item reveal" style="--delay:0.2s">
+                        <div class="step-number" style="color:var(--success-light);">3</div>
+                        <div class="step-content">
+                            <h3>Ballarni almashtiring</h3>
+                            <p>To'plangan ballaringizni kuponlarga, taksi safarlariga yoki bank kartangizga naqd pul sifatida chiqaring.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Hamkor kuponlar -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="section-badge" style="color:var(--success-light); border-color:rgba(16,185,129,0.2); background:rgba(16,185,129,0.07);">Hamkorlar</div>
+                <h2>Ballaringizni <span>ishlatish joylari</span></h2>
+                <p>Yig'ilgan ballaringizni sevimli brendlarning kuponlariga almashtiring</p>
+            </div>
+            <div class="coupon-grid">
+                <div class="coupon-card reveal" style="--delay:0s">
+                    <div class="coupon-icon">🍗</div>
+                    <h4>KFC</h4>
+                    <p>Tezkor ovqat</p>
+                    <div class="coupon-cost">5,000 UZS dan</div>
+                </div>
+                <div class="coupon-card reveal" style="--delay:0.1s">
+                    <div class="coupon-icon">🍔</div>
+                    <h4>Evos Burger</h4>
+                    <p>Milliy tezkor ovqat</p>
+                    <div class="coupon-cost">4,000 UZS dan</div>
+                </div>
+                <div class="coupon-card reveal" style="--delay:0.2s">
+                    <div class="coupon-icon">🚗</div>
+                    <h4>Orbita Taksi</h4>
+                    <p>Taksi chegirmasi</p>
+                    <div class="coupon-cost">3,000 UZS dan</div>
+                </div>
+                <div class="coupon-card reveal" style="--delay:0.3s">
+                    <div class="coupon-icon">🏪</div>
+                    <h4>Baraka</h4>
+                    <p>Supermarket</p>
+                    <div class="coupon-cost">7,500 UZS dan</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Xususiyatlar -->
+    <section class="section" style="background: rgba(10,8,30,0.3); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="section-badge" style="color:var(--success-light); border-color:rgba(16,185,129,0.2); background:rgba(16,185,129,0.07);">Xususiyatlar</div>
+                <h2>Orbita Walk <span>imkoniyatlari</span></h2>
+            </div>
+            <div class="feature-list">
+                <div class="feat-item reveal" style="--delay:0s">
+                    <div class="feat-item-icon bg-green"><ion-icon name="analytics"></ion-icon></div>
+                    <h3>Batafsil Statistika</h3>
+                    <p>Kunlik, haftalik va oylik qadamlar, yonilgan kaloriya va bosib o'tilgan masofani kuzating.</p>
+                </div>
+                <div class="feat-item reveal" style="--delay:0.1s">
+                    <div class="feat-item-icon bg-yellow"><ion-icon name="location"></ion-icon></div>
+                    <h3>Geo-Kvestlar</h3>
+                    <p>Shahar bo'ylab landmarks ga boring va maxsus qo'shimcha ball to'plang. Yangi joylarni kashf eting.</p>
+                </div>
+                <div class="feat-item reveal" style="--delay:0.2s">
+                    <div class="feat-item-icon bg-purple"><ion-icon name="people"></ion-icon></div>
+                    <h3>Do'stlar Bilan Musobaqa</h3>
+                    <p>Do'stlaringizni taklif qiling va bir-biringiz bilan haftalik qadam musobaqasida bellashing.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+        <div class="cta-glow" style="background: radial-gradient(circle, rgba(16,185,129,0.12), transparent 70%);"></div>
+        <div class="container">
+            <h2>Bugunoq <span>yurish boshlang</span></h2>
+            <p>Bepul ilovani yuklab oling va birinchi qadamingizdan boshlaboq daromad oling!</p>
+            <div class="cta-buttons">
+                <a href="../index.html#download" class="cta-store-btn">
+                    <ion-icon name="logo-google-playstore"></ion-icon>
+                    <div><span>Yuklab oling</span><strong>Google Play</strong></div>
+                </a>
+                <a href="../index.html#download" class="cta-store-btn">
+                    <ion-icon name="logo-apple"></ion-icon>
+                    <div><span>Yuklab oling</span><strong>App Store</strong></div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="page-footer">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+            <p>&copy; 2026 Orbita Go · <a href="../index.html" data-i18n="sub.back">Bosh sahifaga qaytish</a></p>
+            <div class="system-status-indicator" style="margin-top: 0;">
+                <span class="status-dot status-checking"></span>
+                <span class="status-text" id="system-status-text">Tizim holati tekshirilmoqda...</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Reveal
+        const obs = new IntersectionObserver(entries => {
+            entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('on'); obs.unobserve(e.target); } });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+        // Calculator
+        const slider = document.getElementById('step-slider');
+        const stepCount = document.getElementById('step-count');
+        const progress = document.getElementById('step-progress');
+        const daily = document.getElementById('daily-earn');
+        const monthly = document.getElementById('monthly-earn');
+
+        function updateCalc() {
+            const steps = parseInt(slider.value);
+            stepCount.textContent = steps.toLocaleString();
+            progress.style.width = ((steps - 1000) / 19000 * 100) + '%';
+            const earn = Math.floor(steps / 1000) * 2000;
+            daily.textContent = earn.toLocaleString() + ' UZS';
+            monthly.textContent = (earn * 30).toLocaleString() + ' UZS';
+        }
+        slider.addEventListener('input', updateCalc);
+        updateCalc();
+
+        // Health check integration
+        function initSystemHealthCheck() {
+            const statusDot = document.querySelector('.status-dot');
+            const statusText = document.getElementById('system-status-text');
+            if (!statusDot || !statusText) return;
+
+            const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                ? 'http://localhost:3000'
+                : '';
+
+            async function checkHealth() {
+                try {
+                    const res = await fetch(`${API_BASE}/api/health`);
+                    const data = await res.json();
+                    if (data.status === 'ok') {
+                        statusDot.className = 'status-dot status-online';
+                        const lang = localStorage.getItem('orbita_lang') || 'uz';
+                        const texts = {
+                            uz: 'Tizim: API Onlayn (Baza ok)',
+                            ru: 'Система: API Онлайн (БД ок)',
+                            en: 'System: API Online (DB ok)'
+                        };
+                        statusText.textContent = texts[lang] || texts.uz;
+                    } else {
+                        statusDot.className = 'status-dot status-degraded';
+                        const lang = localStorage.getItem('orbita_lang') || 'uz';
+                        const texts = {
+                            uz: 'Tizim: Cheklangan rejim',
+                            ru: 'Система: Ограниченный режим',
+                            en: 'System: Degraded mode'
+                        };
+                        statusText.textContent = texts[lang] || texts.uz;
+                    }
+                } catch (err) {
+                    statusDot.className = 'status-dot status-offline';
+                    const lang = localStorage.getItem('orbita_lang') || 'uz';
+                    const texts = {
+                        uz: 'Tizim: API Oflayn (Ulanish xatosi)',
+                        ru: 'Система: API Оффлайн (Ошибка соединения)',
+                        en: 'System: API Offline (Connection Error)'
+                    };
+                    statusText.textContent = texts[lang] || texts.uz;
+                }
+            }
+
+            checkHealth();
+            setInterval(checkHealth, 15000);
+        }
+        document.addEventListener('DOMContentLoaded', initSystemHealthCheck);
+    </script>
+</body>
+</html>

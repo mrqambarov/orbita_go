@@ -1,0 +1,1891 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anvar Qambarov — Senior Full-Stack Engineer & Founder</title>
+    <meta name="description" content="Senior Full-Stack dasturchi, Orbita Go asoschisi Anvar Qambarovning shaxsiy interaktiv portfoliosi.">
+    <link rel="stylesheet" href="page.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&family=Outfit:wght@300;400;600;700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Ionicons -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <style>
+        :root {
+            --font-mono: 'Fira Code', monospace;
+            --primary-glow: rgba(99, 102, 241, 0.15);
+            --purple-glow: rgba(217, 70, 239, 0.15);
+            --cyber-green: #00ff66;
+            --cyber-glow: rgba(0, 255, 102, 0.25);
+            
+            /* Theme Variables (Space Mode by default) */
+            --bg-color: #030014;
+            --surface-color: rgba(13, 10, 38, 0.85);
+            --border-accent: rgba(255, 255, 255, 0.08);
+            --primary-color: #6366f1;
+            --primary-light: #818cf8;
+            --purple-color: #d946ef;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        /* Cyber Mode Theme Overrides */
+        body.cyber-mode {
+            --bg-color: #050508;
+            --surface-color: rgba(10, 10, 15, 0.97);
+            --border-accent: rgba(0, 255, 102, 0.22);
+            --primary-color: var(--cyber-green);
+            --primary-light: #51ff9b;
+            --purple-color: #00ffcc;
+            --text-main: #d1f7e2;
+            --text-muted: #5e846e;
+        }
+        
+        body {
+            position: relative;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow-x: hidden;
+            transition: background-color 0.4s ease, color 0.4s ease;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        /* Particle / Matrix Canvas Background */
+        #bg-canvas {
+            position: fixed; inset: 0;
+            width: 100%; height: 100%;
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        /* Glowing Blobs (Space Mode only) */
+        .glowing-blob {
+            position: absolute;
+            width: 600px; height: 600px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: -1;
+            filter: blur(150px);
+            opacity: 0.45;
+            animation: pulseGlow 14s infinite alternate;
+            transition: opacity 0.4s ease;
+        }
+        body.cyber-mode .glowing-blob {
+            opacity: 0 !important;
+        }
+        .blob-1 { top: 5%; left: -15%; background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%); }
+        .blob-2 { top: 40%; right: -15%; background: radial-gradient(circle, var(--purple-glow) 0%, transparent 70%); }
+        .blob-3 { bottom: 2%; left: 15%; background: radial-gradient(circle, rgba(16, 185, 129, 0.07) 0%, transparent 70%); }
+
+        @keyframes pulseGlow {
+            0% { transform: scale(1) translate(0, 0); opacity: 0.35; }
+            100% { transform: scale(1.2) translate(40px, 50px); opacity: 0.55; }
+        }
+
+        /* Top control panel */
+        .top-control-panel {
+            position: fixed; top: 90px; right: 24px;
+            z-index: 10000;
+            display: flex; gap: 8px;
+        }
+        .control-btn {
+            background: var(--surface-color);
+            border: 1px solid var(--border-accent);
+            padding: 10px 16px; border-radius: 14px;
+            color: var(--primary-light);
+            font-size: 11px; font-weight: 700;
+            cursor: pointer; display: flex; align-items: center; gap: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            text-transform: uppercase; letter-spacing: 1px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(99,102,241,0.25);
+        }
+        body.cyber-mode .control-btn:hover {
+            box-shadow: 0 15px 35px rgba(0, 255, 102, 0.2);
+            border-color: var(--cyber-green);
+            color: var(--cyber-green);
+        }
+
+        .dev-container {
+            max-width: 1000px; margin: 0 auto; padding: 0 24px 120px;
+            position: relative;
+        }
+
+        /* Interactive Profile Card with 3D perspective */
+        .profile-wrapper {
+            perspective: 1000px;
+            margin-top: -30px;
+        }
+        .profile-card {
+            background: var(--surface-color);
+            border: 1px solid var(--border-accent);
+            border-radius: 36px;
+            padding: 56px 40px 48px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.8), inset 0 1px 2px rgba(255,255,255,0.15);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            transform-style: preserve-3d;
+            transition: all 0.4s ease;
+        }
+        .profile-card::before {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,0.06) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        .profile-avatar-wrapper {
+            position: relative;
+            width: 150px; height: 150px;
+            margin: 0 auto 28px;
+            transform: translateZ(30px);
+        }
+        .profile-avatar {
+            width: 100%; height: 100%;
+            border-radius: 44px;
+            background: linear-gradient(135deg, var(--primary-color), var(--purple-color));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 58px; font-weight: 900; color: #fff;
+            box-shadow: 0 20px 45px rgba(99, 102, 241, 0.45);
+            border: 3px solid rgba(255,255,255,0.18);
+            transform: rotate(-6deg);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        body.cyber-mode .profile-avatar {
+            background: #000;
+            border-color: var(--cyber-green);
+            color: var(--cyber-green);
+            box-shadow: 0 0 30px var(--cyber-glow);
+        }
+        .profile-card:hover .profile-avatar {
+            transform: rotate(0deg) scale(1.06);
+        }
+        
+        /* Activity status badge pulsing */
+        .status-pill {
+            position: absolute; bottom: -6px; right: -6px;
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: #34d399;
+            font-size: 9px; font-weight: 800;
+            padding: 5px 12px; border-radius: 20px;
+            text-transform: uppercase; letter-spacing: 1.5px;
+            display: flex; align-items: center; gap: 6px;
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.15);
+        }
+        body.cyber-mode .status-pill {
+            background: rgba(0, 255, 102, 0.1);
+            border-color: var(--cyber-green);
+            color: var(--cyber-green);
+        }
+        .status-dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: #10b981;
+            box-shadow: 0 0 10px #10b981;
+            animation: statusDotPulse 1.5s infinite alternate;
+        }
+        body.cyber-mode .status-dot {
+            background: var(--cyber-green);
+            box-shadow: 0 0 10px var(--cyber-green);
+        }
+        @keyframes statusDotPulse {
+            0% { transform: scale(0.9); opacity: 0.6; }
+            100% { transform: scale(1.3); opacity: 1; }
+        }
+
+        .profile-card h1 {
+            font-size: 40px; font-weight: 900; letter-spacing: -1.5px; margin-bottom: 8px;
+            transform: translateZ(20px);
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .profile-card h1 span {
+            background: linear-gradient(135deg, var(--primary-light), var(--purple-color));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        body.cyber-mode .profile-card h1 span {
+            background: none;
+            -webkit-text-fill-color: initial;
+            color: var(--cyber-green);
+            text-shadow: 0 0 10px var(--cyber-glow);
+        }
+        
+        /* Auto Typing text */
+        .profile-title {
+            font-size: 13.5px; color: var(--text-muted); font-weight: 700;
+            text-transform: uppercase; letter-spacing: 3.5px; margin-bottom: 24px;
+            font-family: var(--font-mono);
+            min-height: 20px;
+        }
+        .typewriter-cursor {
+            display: inline-block;
+            width: 8px; height: 15px;
+            background-color: var(--primary-light);
+            margin-left: 4px;
+            animation: blinkCursor 0.8s infinite;
+        }
+        body.cyber-mode .typewriter-cursor {
+            background-color: var(--cyber-green);
+        }
+        @keyframes blinkCursor {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+        
+        /* Action buttons in bio */
+        .profile-actions {
+            display: flex; justify-content: center; gap: 14px; margin-bottom: 30px;
+        }
+        .profile-socials {
+            display: flex; justify-content: center; gap: 10px; margin-bottom: 24px;
+        }
+        .profile-socials .social-btn {
+            width: 44px; height: 44px; border-radius: 14px;
+            background: rgba(255,255,255,0.03); border: 1px solid var(--border-accent);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text-muted); font-size: 20px; text-decoration: none;
+            transition: var(--transition-fast);
+        }
+        .profile-socials .social-btn:hover {
+            background: var(--primary-color); border-color: var(--primary-light); color: #fff;
+            transform: translateY(-3px); box-shadow: 0 8px 24px rgba(99,102,241,0.3);
+        }
+        body.cyber-mode .profile-socials .social-btn:hover {
+            background: rgba(0, 255, 102, 0.1);
+            border-color: var(--cyber-green);
+            color: var(--cyber-green);
+            box-shadow: 0 0 15px var(--cyber-glow);
+        }
+        .profile-bio {
+            color: var(--text-muted); font-size: 16.5px; line-height: 1.9;
+            max-width: 760px; margin: 0 auto;
+        }
+
+        /* Stats Section */
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 48px 0;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.02); border: 1px solid var(--border-accent);
+            border-radius: 22px; padding: 28px 16px; text-align: center;
+            position: relative; overflow: hidden;
+            transition: var(--transition);
+        }
+        .stat-card:hover {
+            border-color: var(--primary-light);
+            transform: translateY(-4px);
+            background: rgba(255,255,255,0.04);
+        }
+        body.cyber-mode .stat-card:hover {
+            border-color: var(--cyber-green);
+            box-shadow: 0 0 20px rgba(0,255,102,0.1);
+        }
+        .stat-number {
+            font-size: 34px; font-weight: 900; font-family: var(--font-mono);
+            background: linear-gradient(135deg, #fff, var(--primary-light));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+        }
+        body.cyber-mode .stat-number {
+            background: none;
+            -webkit-text-fill-color: initial;
+            color: var(--cyber-green);
+            text-shadow: 0 0 10px var(--cyber-glow);
+        }
+        .stat-label { font-size: 11px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* ============================================================
+           INTERACTIVE CYBER TERMINAL WIDGET
+           ============================================================ */
+        .terminal-widget {
+            background: #000;
+            border: 1px solid var(--border-accent);
+            border-radius: 24px;
+            margin: 48px 0;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+            font-family: var(--font-mono);
+            transition: all 0.4s ease;
+        }
+        .terminal-header {
+            background: rgba(255,255,255,0.03);
+            border-bottom: 1px solid var(--border-accent);
+            padding: 12px 20px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        body.cyber-mode .terminal-header {
+            background: rgba(0, 255, 102, 0.05);
+        }
+        .terminal-dots {
+            display: flex; gap: 6px;
+        }
+        .tdot { width: 10px; height: 10px; border-radius: 50%; }
+        .tdot-r { background: #ff5f56; }
+        .tdot-y { background: #ffbd2e; }
+        .tdot-g { background: #27c93f; }
+        .terminal-title-text {
+            font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700;
+        }
+        .terminal-body {
+            padding: 24px;
+            height: 340px;
+            overflow-y: auto;
+            display: flex; flex-direction: column; gap: 8px;
+            font-size: 13px; line-height: 1.6;
+            color: #c9d1d9;
+            text-align: left;
+        }
+        body.cyber-mode .terminal-body {
+            color: #a6fcc5;
+        }
+        .terminal-row {
+            display: flex; gap: 8px; align-items: flex-start;
+        }
+        .terminal-prompt {
+            color: var(--primary-light);
+            flex-shrink: 0;
+        }
+        body.cyber-mode .terminal-prompt {
+            color: var(--cyber-green);
+        }
+        .terminal-text-input {
+            background: transparent; border: none; outline: none;
+            color: #fff; font-family: inherit; font-size: inherit;
+            width: 100%;
+        }
+        body.cyber-mode .terminal-text-input {
+            color: var(--cyber-green);
+        }
+        .terminal-output {
+            padding-left: 16px;
+            color: var(--text-muted);
+            white-space: pre-wrap;
+        }
+        body.cyber-mode .terminal-output {
+            color: #79ad8d;
+        }
+
+        /* General Section Header styling */
+        .section-header-left {
+            text-align: left; margin: 80px 0 40px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .section-header-left h2 {
+            font-size: 28px; font-weight: 900; letter-spacing: -0.8px;
+            position: relative; display: inline-block;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .section-header-left h2::after {
+            content: ''; position: absolute; bottom: -8px; left: 0;
+            width: 48px; height: 3px; background: var(--primary-color);
+            border-radius: 2px;
+            transition: all 0.4s ease;
+        }
+
+        /* Services Cards Grid */
+        .services-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+        }
+        .service-card {
+            background: rgba(255,255,255,0.02); border: 1px solid var(--border-accent);
+            border-radius: 26px; padding: 36px 28px;
+            position: relative; overflow: hidden;
+            transition: var(--transition);
+        }
+        .service-card::before {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(circle at 10% 10%, rgba(99,102,241,0.05), transparent 70%);
+            opacity: 0; transition: var(--transition);
+        }
+        .service-card:hover::before { opacity: 1; }
+        .service-card:hover {
+            border-color: var(--primary-light); transform: translateY(-8px);
+            box-shadow: 0 25px 55px rgba(99, 102, 241, 0.12);
+        }
+        body.cyber-mode .service-card:hover {
+            border-color: var(--cyber-green);
+            box-shadow: 0 0 25px rgba(0, 255, 102, 0.1);
+        }
+        .service-icon {
+            width: 56px; height: 56px; border-radius: 18px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 26px; margin-bottom: 24px;
+            background: rgba(99,102,241,0.1); color: var(--primary-light);
+            border: 1px solid rgba(99,102,241,0.15);
+            transition: var(--transition);
+        }
+        body.cyber-mode .service-icon {
+            background: rgba(0, 255, 102, 0.05);
+            color: var(--cyber-green);
+            border-color: rgba(0, 255, 102, 0.2);
+        }
+        .service-card:hover .service-icon {
+            transform: scale(1.1) rotate(-4deg);
+            background: var(--primary-color); color: #fff;
+            box-shadow: 0 8px 24px rgba(99,102,241,0.25);
+        }
+        body.cyber-mode .service-card:hover .service-icon {
+            background: var(--cyber-green);
+            color: #000;
+            box-shadow: 0 0 15px var(--cyber-glow);
+        }
+        .service-card h3 { font-size: 19px; font-weight: 800; margin-bottom: 12px; font-family: 'Space Grotesk', sans-serif; }
+        .service-card p { color: var(--text-muted); font-size: 13.5px; line-height: 1.75; }
+
+        /* Skills with Dynamic Filters */
+        .skills-container {
+            display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 40px;
+        }
+        
+        /* Filter tabs */
+        .skills-filter-tabs {
+            display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap;
+        }
+        .filter-tab {
+            background: rgba(255,255,255,0.03); border: 1px solid var(--border-accent);
+            padding: 8px 16px; border-radius: 12px;
+            font-size: 11px; font-weight: 700; color: var(--text-muted);
+            cursor: pointer; transition: var(--transition-fast);
+            text-transform: uppercase; letter-spacing: 0.8px;
+        }
+        .filter-tab:hover { background: rgba(255,255,255,0.08); color: #fff; }
+        .filter-tab.active {
+            background: var(--primary-color); border-color: var(--primary-light); color: #fff;
+            box-shadow: 0 0 15px rgba(99,102,241,0.3);
+        }
+        body.cyber-mode .filter-tab.active {
+            background: rgba(0, 255, 102, 0.15);
+            border-color: var(--cyber-green);
+            color: var(--cyber-green);
+            box-shadow: 0 0 15px var(--cyber-glow);
+        }
+
+        .tech-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+        }
+        .tech-card {
+            background: rgba(255,255,255,0.01); border: 1px solid var(--border-accent);
+            border-radius: 20px; padding: 20px 14px; text-align: center;
+            transition: var(--transition);
+        }
+        .tech-card.hidden {
+            display: none;
+        }
+        .tech-card:hover {
+            border-color: var(--primary-light); transform: translateY(-4px);
+            background: rgba(255,255,255,0.03);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+        }
+        body.cyber-mode .tech-card:hover {
+            border-color: var(--cyber-green);
+            box-shadow: 0 0 15px var(--cyber-glow);
+        }
+        .tech-card ion-icon { font-size: 32px; margin-bottom: 8px; }
+        .tech-card h3 { font-size: 14px; font-weight: 800; color: var(--text-main); }
+        .tech-card span { font-size: 11px; color: var(--text-muted); }
+
+        .skills-progress {
+            display: flex; flex-direction: column; gap: 20px;
+            background: rgba(255,255,255,0.01); border: 1px solid var(--border-accent);
+            border-radius: 28px; padding: 36px 32px;
+        }
+        .skill-item { display: flex; flex-direction: column; gap: 8px; }
+        .skill-info { display: flex; justify-content: space-between; font-size: 13.5px; font-weight: 700; }
+        .skill-name { color: var(--text-main); }
+        .skill-val { color: var(--primary-light); font-family: var(--font-mono); }
+        body.cyber-mode .skill-val { color: var(--cyber-green); }
+        .skill-bar-bg { width: 100%; height: 6px; background: rgba(255,255,255,0.04); border-radius: 10px; overflow: hidden; }
+        .skill-bar-fill { height: 100%; background: linear-gradient(90deg, var(--primary-color), var(--purple-color)); border-radius: 10px; width: 0; transition: width 1.2s ease-out; }
+        body.cyber-mode .skill-bar-fill {
+            background: var(--cyber-green);
+            box-shadow: 0 0 8px var(--cyber-green);
+        }
+
+        /* Timeline Experience styling */
+        .timeline {
+            position: relative; padding-left: 36px; border-left: 2px solid var(--border-accent);
+            display: flex; flex-direction: column; gap: 40px;
+        }
+        .timeline-item { position: relative; }
+        .timeline-dot {
+            position: absolute; left: -46px; top: 4px;
+            width: 18px; height: 18px; border-radius: 50%;
+            background: var(--bg-color); border: 4px solid var(--primary-color);
+            box-shadow: 0 0 12px var(--primary-color);
+            transition: var(--transition);
+        }
+        body.cyber-mode .timeline-dot {
+            border-color: var(--cyber-green);
+            box-shadow: 0 0 8px var(--cyber-glow);
+        }
+        .timeline-item:hover .timeline-dot {
+            border-color: var(--purple-color);
+            box-shadow: 0 0 16px var(--purple-color);
+            transform: scale(1.15);
+        }
+        body.cyber-mode .timeline-item:hover .timeline-dot {
+            border-color: var(--cyber-green);
+            box-shadow: 0 0 15px var(--cyber-green);
+        }
+        .timeline-date {
+            font-size: 11px; font-weight: 700; color: var(--primary-light);
+            text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px;
+            font-family: var(--font-mono);
+        }
+        .timeline-title { font-size: 19px; font-weight: 900; margin-bottom: 8px; color: var(--text-main); font-family: 'Space Grotesk', sans-serif; }
+        .timeline-desc { color: var(--text-muted); font-size: 14.5px; line-height: 1.8; }
+        .timeline-desc ul { margin-top: 10px; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+
+        /* Projects Section Grid */
+        .project-list {
+            display: grid; grid-template-columns: 1fr; gap: 32px;
+        }
+        .project-card {
+            background: rgba(255,255,255,0.01); border: 1px solid var(--border-accent);
+            border-radius: 28px; padding: 36px;
+            display: grid; grid-template-columns: auto 1fr; gap: 32px;
+            align-items: center; transition: var(--transition);
+            position: relative; overflow: hidden;
+        }
+        .project-card::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(135deg, rgba(99,102,241,0.04), transparent 50%);
+            opacity: 0; transition: var(--transition);
+        }
+        .project-card:hover::before { opacity: 1; }
+        .project-card:hover {
+            border-color: var(--primary-light); transform: translateY(-6px);
+            box-shadow: 0 30px 65px rgba(0, 0, 0, 0.5);
+        }
+        body.cyber-mode .project-card:hover {
+            border-color: var(--cyber-green);
+            box-shadow: 0 0 20px rgba(0, 255, 102, 0.1);
+        }
+        .project-icon {
+            width: 80px; height: 80px; border-radius: 24px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 36px; color: #fff;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+        body.cyber-mode .project-icon {
+            background: #000 !important;
+            border: 2px solid var(--cyber-green);
+            color: var(--cyber-green);
+        }
+        .project-card:hover .project-icon {
+            transform: scale(1.08) rotate(-4deg);
+        }
+        .project-info h3 {
+            font-size: 20px; font-weight: 900; margin-bottom: 8px;
+            display: flex; align-items: center; gap: 12px; color: var(--text-main);
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .project-status {
+            font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+            padding: 4px 12px; border-radius: 20px; border: 1px solid;
+            font-family: var(--font-mono);
+        }
+        .status-active { background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.3); color: #34d399; }
+        body.cyber-mode .status-active { background: rgba(0, 255, 102, 0.1); border-color: var(--cyber-green); color: var(--cyber-green); }
+        .status-dev { background: rgba(251,191,36,0.1); border-color: rgba(251,191,36,0.3); color: var(--yellow); }
+        .project-info p { color: var(--text-muted); font-size: 14.5px; line-height: 1.8; margin-bottom: 20px; }
+        
+        .project-btn-row {
+            display: flex; gap: 12px; align-items: center; margin-bottom: 20px;
+        }
+        .architecture-btn {
+            background: rgba(255,255,255,0.03); border: 1px solid var(--border-accent);
+            padding: 6px 14px; border-radius: 12px; font-size: 11px; font-weight: 700;
+            color: var(--primary-light); cursor: pointer; display: flex; align-items: center; gap: 6px;
+            transition: var(--transition-fast);
+        }
+        .architecture-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+        body.cyber-mode .architecture-btn { color: var(--cyber-green); border-color: rgba(0, 255, 102, 0.2); }
+        body.cyber-mode .architecture-btn:hover { background: rgba(0, 255, 102, 0.1); color: #fff; }
+
+        /* Architecture Diagram (Hidden by default) */
+        .architecture-diagram {
+            max-height: 0; overflow: hidden; transition: max-height 0.5s ease-out;
+            background: rgba(0,0,0,0.4); border-radius: 18px;
+            border: 1px solid transparent; margin-bottom: 20px;
+        }
+        .architecture-diagram.show {
+            max-height: 400px;
+            border-color: var(--border-accent);
+            padding: 24px;
+        }
+        
+        /* Flow chart styling */
+        .flow-container {
+            display: flex; justify-content: space-around; align-items: center;
+            flex-wrap: wrap; gap: 16px; font-family: var(--font-mono); font-size: 11px;
+        }
+        .flow-box {
+            background: rgba(255,255,255,0.02); border: 1px solid var(--border-accent);
+            padding: 12px 18px; border-radius: 12px; text-align: center;
+            min-width: 110px;
+        }
+        body.cyber-mode .flow-box { border-color: var(--cyber-green); color: var(--cyber-green); }
+        .flow-arrow { font-size: 18px; color: var(--text-muted); }
+        body.cyber-mode .flow-arrow { color: var(--cyber-green); }
+
+        .project-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+        .project-tag {
+            background: rgba(255,255,255,0.04); border: 1px solid var(--border-accent);
+            padding: 5px 14px; border-radius: 30px; font-size: 10px; font-weight: 700; color: var(--text-muted);
+        }
+        body.cyber-mode .project-tag {
+            border-color: rgba(0, 255, 102, 0.15);
+            color: var(--cyber-green);
+        }
+
+        /* Mock Interactive GitHub Activity Grid */
+        .github-activity-widget {
+            background: var(--surface-color);
+            border: 1px solid var(--border-accent);
+            border-radius: 24px; padding: 28px;
+            margin: 48px 0; overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+            text-align: left;
+        }
+        .github-activity-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px;
+        }
+        .github-activity-header h3 { font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 8px; font-family: 'Space Grotesk', sans-serif; }
+        .github-grid-container {
+            width: 100%; overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .github-grid-wrapper {
+            display: flex; gap: 8px; min-width: 730px;
+        }
+        .github-weekdays {
+            display: flex; flex-direction: column; justify-content: space-between;
+            font-size: 9px; color: var(--text-muted); padding-top: 18px; padding-bottom: 6px;
+            font-family: var(--font-mono);
+        }
+        .github-grid-cols {
+            display: flex; flex-direction: column; gap: 6px; width: 100%;
+        }
+        .github-months-row {
+            display: flex; justify-content: space-between; font-size: 9px;
+            color: var(--text-muted); margin-bottom: 6px; padding-left: 4px;
+            font-family: var(--font-mono);
+        }
+        .github-grid {
+            display: grid;
+            grid-template-flow: column;
+            grid-template-columns: repeat(42, 1fr);
+            gap: 4px;
+        }
+        .git-cell {
+            width: 100%; aspect-ratio: 1; border-radius: 3px;
+            background: rgba(255,255,255,0.05);
+            cursor: pointer; position: relative;
+            transition: transform 0.15s ease;
+        }
+        .git-cell:hover {
+            transform: scale(1.2);
+            z-index: 10;
+        }
+        /* Level Colors */
+        .git-l0 { background: rgba(255,255,255,0.04); }
+        .git-l1 { background: #0e4429; }
+        .git-l2 { background: #006d32; }
+        .git-l3 { background: #26a641; }
+        .git-l4 { background: #39d353; }
+        /* Cyber Matrix Level Colors */
+        body.cyber-mode .git-l0 { background: rgba(0, 255, 102, 0.03); }
+        body.cyber-mode .git-l1 { background: rgba(0, 255, 102, 0.18); }
+        body.cyber-mode .git-l2 { background: rgba(0, 255, 102, 0.42); }
+        body.cyber-mode .git-l3 { background: rgba(0, 255, 102, 0.72); }
+        body.cyber-mode .git-l4 { background: #00ff66; box-shadow: 0 0 10px rgba(0,255,102,0.35); }
+
+        .git-cell-tooltip {
+            position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%);
+            background: #000; border: 1px solid var(--border-accent);
+            padding: 4px 8px; border-radius: 6px; font-size: 10px; color: #fff;
+            white-space: nowrap; pointer-events: none; opacity: 0;
+            transition: opacity 0.2s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            z-index: 100;
+        }
+        .git-cell:hover .git-cell-tooltip { opacity: 1; }
+
+        .github-legend {
+            display: flex; gap: 6px; align-items: center; font-size: 10px;
+            color: var(--text-muted); justify-content: flex-end; margin-top: 12px;
+            font-family: var(--font-mono);
+        }
+        .legend-box { width: 10px; height: 10px; border-radius: 2px; }
+
+        /* Contact Details & Form */
+        .contact-grid {
+            display: grid; grid-template-columns: 1fr 1.25fr; gap: 32px;
+        }
+        .contact-details {
+            background: rgba(255,255,255,0.01); border: 1px solid var(--border-accent);
+            border-radius: 28px; padding: 36px;
+            display: flex; flex-direction: column; gap: 20px;
+        }
+        .contact-details h3 { font-size: 20px; font-weight: 900; margin-bottom: 4px; font-family: 'Space Grotesk', sans-serif; }
+        .contact-row { display: flex; align-items: center; gap: 14px; font-size: 14.5px; color: var(--text-muted); }
+        .contact-row ion-icon { color: var(--primary-light); font-size: 22px; flex-shrink: 0; }
+        body.cyber-mode .contact-row ion-icon { color: var(--cyber-green); }
+        .contact-row a { color: var(--primary-light); text-decoration: none; transition: var(--transition-fast); }
+        body.cyber-mode .contact-row a { color: var(--cyber-green); }
+        .contact-row a:hover { color: #fff; }
+        
+        .contact-form {
+            background: rgba(255,255,255,0.01); border: 1px solid var(--border-accent);
+            border-radius: 28px; padding: 36px;
+            display: flex; flex-direction: column; gap: 20px;
+        }
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        .form-group label { font-size: 11px; font-weight: 700; color: var(--text-hint); text-transform: uppercase; letter-spacing: 0.8px; }
+        .form-control {
+            background: rgba(255,255,255,0.03); border: 1px solid var(--border-accent);
+            border-radius: 14px; padding: 14px 18px; color: #fff; font-family: inherit; font-size: 14px;
+            outline: none; transition: var(--transition-fast);
+        }
+        .form-control:focus { border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(99,102,241,0.12); }
+        body.cyber-mode .form-control:focus { border-color: var(--cyber-green); box-shadow: 0 0 0 3px var(--cyber-glow); }
+        .submit-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--purple-color));
+            color: #fff; border: none; border-radius: 14px; padding: 16px;
+            font-weight: 700; font-size: 14.5px; cursor: pointer; transition: var(--transition);
+        }
+        body.cyber-mode .submit-btn {
+            background: #000;
+            border: 1px solid var(--cyber-green);
+            color: var(--cyber-green);
+        }
+        .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(99,102,241,0.35); }
+        body.cyber-mode .submit-btn:hover {
+            box-shadow: 0 0 20px var(--cyber-glow);
+            background: var(--cyber-green);
+            color: #000;
+        }
+
+        @media (max-width: 900px) {
+            .skills-container { grid-template-columns: 1fr; gap: 30px; }
+            .services-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            .tech-grid { grid-template-columns: repeat(2, 1fr); }
+            .project-card { grid-template-columns: 1fr; text-align: center; justify-items: center; }
+            .project-info h3 { justify-content: center; }
+            .project-tags { justify-content: center; }
+            .contact-grid { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .profile-card h1 { font-size: 30px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Interactive Canvas Background -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Glowing Background Blobs -->
+    <div class="glowing-blob blob-1"></div>
+    <div class="glowing-blob blob-2"></div>
+    <div class="glowing-blob blob-3"></div>
+
+    <!-- Floating Top Control Panel -->
+    <div class="top-control-panel">
+        <button class="control-btn" id="volume-toggle" title="Ovozni yoqish/o'chirish">
+            <ion-icon name="volume-mute-outline"></ion-icon>
+            <span>Ovoz: Off</span>
+        </button>
+        <button class="control-btn" id="theme-toggle">
+            <ion-icon name="terminal-outline"></ion-icon>
+            <span>Cyber Mode</span>
+        </button>
+    </div>
+
+    <!-- Header -->
+    <header class="page-header">
+        <div class="container page-header-inner">
+            <a href="../index.html" class="back-btn">
+                <ion-icon name="arrow-back-outline"></ion-icon>
+                <span>Bosh sahifa</span>
+            </a>
+            <a href="../index.html" class="page-logo">
+                <div class="page-logo-icon"><ion-icon name="rocket-outline"></ion-icon></div>
+                <span>Orbita<span><span>Go</span></span></span>
+            </a>
+            <a href="../index.html#download" class="page-header-cta">
+                <ion-icon name="download-outline"></ion-icon>
+                <span>Yuklab olish</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- Spacer -->
+    <div style="height: 140px;"></div>
+
+    <main class="dev-container">
+
+        <!-- Profile Card with Mouse parallax tilt -->
+        <div class="profile-wrapper">
+            <section class="profile-card" id="interactive-profile">
+                <div class="profile-avatar-wrapper">
+                    <div class="profile-avatar">AQ</div>
+                    <div class="status-pill">
+                        <span class="status-dot"></span>
+                        <span>Faol</span>
+                    </div>
+                </div>
+                <h1>Anvar <span>Qambarov</span></h1>
+                <div class="profile-title" id="typewriter-title">
+                    <span class="typewriter-text"></span><span class="typewriter-cursor"></span>
+                </div>
+                
+                <div class="profile-socials">
+                    <a href="https://t.me/mrqambarov" target="_blank" class="social-btn" aria-label="Telegram"><ion-icon name="paper-plane-outline"></ion-icon></a>
+                    <a href="https://instagram.com/orbita_tezkor" target="_blank" class="social-btn" aria-label="Instagram"><ion-icon name="logo-instagram"></ion-icon></a>
+                    <a href="https://github.com" target="_blank" class="social-btn" aria-label="GitHub"><ion-icon name="logo-github"></ion-icon></a>
+                </div>
+
+                <p class="profile-bio">
+                    Salom! Men Anvar Qambarov, 5 yildan ortiq tajribaga ega bo'lgan Full-Stack dasturchi va mobil muhandisman. 
+                    Yuqori darajadagi yuklama ostida ishlay oladigan web-ilova, tizimli backend xizmatlari va cross-platformal mobil tizimlarni (super-ilovalarni) loyihalashtiraman. 
+                    <strong>Orbita Go</strong> ekotizimining bosh me'mori va asoschisiman. 
+                    Mening maqsadim — yuqori kod sifati va mukammal dizayn orqali eng murakkab biznes g'oyalarni haqiqatga aylantirishdir.
+                </p>
+                
+                <div class="profile-actions" style="margin-top: 32px;">
+                    <a href="javascript:void(0)" onclick="window.print()" class="btn btn-outline">
+                        <ion-icon name="document-text-outline"></ion-icon>
+                        <span>CV Yuklab Olish (Print)</span>
+                    </a>
+                </div>
+            </section>
+        </div>
+
+        <!-- Interactive Cyber Terminal Widget -->
+        <section class="terminal-widget">
+            <div class="terminal-header">
+                <div class="terminal-dots">
+                    <span class="tdot tdot-r"></span>
+                    <span class="tdot tdot-y"></span>
+                    <span class="tdot tdot-g"></span>
+                </div>
+                <div class="terminal-title-text">anvar-dev-shell v2.0.0</div>
+                <div style="width: 40px;"></div>
+            </div>
+            <div class="terminal-body" id="terminal-logs">
+                <div style="color: var(--primary-light); font-weight: bold; margin-bottom: 8px;" class="term-init-line">
+                    Anvar Qambarov Interactive Dev Console.
+                    Yordam olish uchun 'help' deb yozing.
+                </div>
+                <div class="terminal-row">
+                    <span class="terminal-prompt">anvar-dev@guest:~$</span>
+                    <span class="terminal-output">neofetch</span>
+                </div>
+                <div class="terminal-output" style="color: var(--primary-light); font-family: var(--font-mono); white-space: pre; line-height: 1.2;">
+   .---.      <b>anvar@orbitago-core</b>
+  /     \     OS: Orbita OS v4.0.0
+  \   _./     Shell: anvar-sh v2.0
+   `-'`       CPU: Apple M3 Max Core
+              RAM: 64 GB LPDDR5X
+              UPTIME: 14 days, 3 hrs
+              PROJECT: Orbita Go SuperApp
+                </div>
+            </div>
+            <div style="padding: 0 24px 20px; background: #000; border-top: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center;">
+                <span class="terminal-prompt" style="margin-right: 8px;">anvar-dev@guest:~$</span>
+                <input type="text" class="terminal-text-input" id="terminal-input" placeholder="Tizimga buyruq bering..." autocomplete="off" />
+            </div>
+        </section>
+
+        <!-- Stats Grid -->
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" data-target="15000">0</div>
+                <div class="stat-label">Faol Foydalanuvchilar</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" data-target="5">0</div>
+                <div class="stat-label">Tajriba (Yil)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" data-target="24">0</div>
+                <div class="stat-label">Yakunlangan Loyihalar</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" data-target="99">0</div>
+                <div class="stat-label">Mijozlar Bahosi (%)</div>
+            </div>
+        </section>
+
+        <!-- Services Section -->
+        <section>
+            <div class="section-header-left">
+                <h2>Men taqdim etadigan xizmatlar</h2>
+            </div>
+            <div class="services-grid">
+                <div class="service-card">
+                    <div class="service-icon"><ion-icon name="phone-portrait-outline"></ion-icon></div>
+                    <h3>Cross-Platform Mobile Apps</h3>
+                    <p>Flutter/Dart yordamida tezkor, chiroyli va mukammal ishlaydigan hamda mukammal native optimallashgan mobil ilovalar ishlab chiqish.</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon"><ion-icon name="code-slash-outline"></ion-icon></div>
+                    <h3>Scalable Backend Systems</h3>
+                    <p>Node.js, Express va socket.io yordamida real-time, yuqori yuklamalarga chidamli API hamda xavfsiz backend arxitekturalarini qurish.</p>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon"><ion-icon name="color-palette-outline"></ion-icon></div>
+                    <h3>Figma UI/UX Engineering</h3>
+                    <p>Zamonaviy tendentsiyalar, dark-mode interfeyslari, foydalanuvchilar uchun sodda va qulay dizayn prototiplari hamda dizayn-tizimlar qurish.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- GitHub Contribution Graph Widget -->
+        <section class="github-activity-widget">
+            <div class="github-activity-header">
+                <h3><ion-icon name="git-commit-outline" style="color: var(--primary-light); font-size: 20px;"></ion-icon> Github Kod Faolligi Grid</h3>
+                <span style="font-size: 11px; color: var(--text-hint); font-weight: bold; font-family: var(--font-mono)">Oxirgi 294 kunda: 1,424 ta commit</span>
+            </div>
+            <div class="github-grid-container">
+                <div class="github-grid-wrapper">
+                    <div class="github-weekdays">
+                        <span>Mon</span>
+                        <span>Wed</span>
+                        <span>Fri</span>
+                    </div>
+                    <div class="github-grid-cols">
+                        <div class="github-months-row">
+                            <span>Okt</span>
+                            <span>Noy</span>
+                            <span>Dek</span>
+                            <span>Yan</span>
+                            <span>Fev</span>
+                            <span>Mar</span>
+                            <span>Apr</span>
+                            <span>May</span>
+                            <span>Iyun</span>
+                            <span>Iyul</span>
+                        </div>
+                        <div class="github-grid" id="github-activity-grid">
+                            <!-- Cells filled dynamically via script -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="github-legend">
+                <span>Kamroq</span>
+                <div class="legend-box git-l0"></div>
+                <div class="legend-box git-l1"></div>
+                <div class="legend-box git-l2"></div>
+                <div class="legend-box git-l3"></div>
+                <div class="legend-box git-l4"></div>
+                <span>Ko'proq</span>
+            </div>
+        </section>
+
+        <!-- Skills Container -->
+        <section>
+            <div class="section-header-left">
+                <h2>Texnik ko'nikmalar & Stack</h2>
+                <div class="skills-filter-tabs">
+                    <span class="filter-tab active" data-filter="all">Barchasi</span>
+                    <span class="filter-tab" data-filter="mobile">Mobile</span>
+                    <span class="filter-tab" data-filter="backend">Backend</span>
+                    <span class="filter-tab" data-filter="frontend">Frontend & Design</span>
+                </div>
+            </div>
+            <div class="skills-container">
+                <div class="tech-grid" id="tech-grid">
+                    <!-- Tech Node -->
+                    <div class="tech-card" data-category="backend">
+                        <ion-icon name="logo-nodejs" style="color: #68a063;"></ion-icon>
+                        <h3>Node.js</h3>
+                        <span>Backend API</span>
+                    </div>
+                    <!-- Tech Flutter -->
+                    <div class="tech-card" data-category="mobile">
+                        <ion-icon name="phone-portrait-outline" style="color: #61dbfb;"></ion-icon>
+                        <h3>Flutter</h3>
+                        <span>Mobil Ilovalar</span>
+                    </div>
+                    <!-- Tech Dart -->
+                    <div class="tech-card" data-category="mobile">
+                        <ion-icon name="code-working-outline" style="color: #0077c2;"></ion-icon>
+                        <h3>Dart</h3>
+                        <span>App Logic</span>
+                    </div>
+                    <!-- Tech JS -->
+                    <div class="tech-card" data-category="frontend">
+                        <ion-icon name="logo-javascript" style="color: #f7df1e;"></ion-icon>
+                        <h3>JavaScript</h3>
+                        <span>Interaktiv Web</span>
+                    </div>
+                    <!-- Tech Postgres -->
+                    <div class="tech-card" data-category="backend">
+                        <ion-icon name="server-outline" style="color: #0064a5;"></ion-icon>
+                        <h3>PostgreSQL</h3>
+                        <span>Ma'lumotlar Bazasi</span>
+                    </div>
+                    <!-- Tech Prisma -->
+                    <div class="tech-card" data-category="backend">
+                        <ion-icon name="shapes-outline" style="color: #6366f1;"></ion-icon>
+                        <h3>Prisma ORM</h3>
+                        <span>DB Client</span>
+                    </div>
+                    <!-- Tech Figma -->
+                    <div class="tech-card" data-category="frontend">
+                        <ion-icon name="color-palette-outline" style="color: #ef4444;"></ion-icon>
+                        <h3>Figma</h3>
+                        <span>UI/UX Dizayn</span>
+                    </div>
+                    <!-- Tech Git -->
+                    <div class="tech-card" data-category="backend">
+                        <ion-icon name="git-branch-outline" style="color: #f1502f;"></ion-icon>
+                        <h3>Git / GitHub</h3>
+                        <span>Versiyalar nazorati</span>
+                    </div>
+                    <!-- Tech DevOps -->
+                    <div class="tech-card" data-category="backend">
+                        <ion-icon name="cloud-upload-outline" style="color: #06b6d4;"></ion-icon>
+                        <h3>Linux / VPS</h3>
+                        <span>Deploy & DevOps</span>
+                    </div>
+                </div>
+
+                <div class="skills-progress">
+                    <div class="skill-item">
+                        <div class="skill-info"><span class="skill-name">Mobil Dasturlash (Flutter)</span><span class="skill-val">95%</span></div>
+                        <div class="skill-bar-bg"><div class="skill-bar-fill" data-width="95%"></div></div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-info"><span class="skill-name">Backend Dasturlash (Node.js)</span><span class="skill-val">90%</span></div>
+                        <div class="skill-bar-bg"><div class="skill-bar-fill" data-width="90%"></div></div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-info"><span class="skill-name">UI/UX Dizayn (Figma)</span><span class="skill-val">85%</span></div>
+                        <div class="skill-bar-bg"><div class="skill-bar-fill" data-width="85%"></div></div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-info"><span class="skill-name">Database Arxitektura (SQL)</span><span class="skill-val">88%</span></div>
+                        <div class="skill-bar-bg"><div class="skill-bar-fill" data-width="88%"></div></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Timeline Section -->
+        <section>
+            <div class="section-header-left">
+                <h2>Ish faoliyati xronologiyasi</h2>
+            </div>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-date">2025 — Hozirgacha</div>
+                    <div class="timeline-title">Asoschi & Bosh Dasturchi — Orbita Go</div>
+                    <div class="timeline-desc">
+                        O'zbekistondagi ilk qadam bosib pul topadigan va taksi buyurtma qiladigan super-ilovani to'liq arxitekturasini loyihalashtirish:
+                        <ul>
+                            <li>Node.js backend va PostgreSQL bazasi arxitekturasini yaratish</li>
+                            <li>Socket.io yordamida haydovchilar bilan mijozlar orasidagi real-time aloqani yo'lga qo'yish</li>
+                            <li>Flutter yordamida yuqori sifatli va zamonaviy UI interfeyslarini ishlab chiqish</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-date">2022 — 2024</div>
+                    <div class="timeline-title">Senior Mobile Developer — Freelance</div>
+                    <div class="timeline-desc">
+                        MDH va xalqaro mijozlar uchun 15 dan ortiq mobil ilovalarni mustaqil yoki jamoa tarkibida ishlab chiqish:
+                        <ul>
+                            <li>To'lov integratsiyalari (Payme, Click, Stripe)</li>
+                            <li>Telefon sensorlari (GPS tracking, qadam o'lchash akselerometri) bilan ishlash</li>
+                            <li>Clean Architecture printsiplari bo'yicha kod bazasini optimal shakllantirish</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-date">2020 — 2022</div>
+                    <div class="timeline-title">Frontend Web Developer</div>
+                    <div class="timeline-desc">
+                        Landing sahifalar, murakkab boshqaruv panellari (Admin dashboard) hamda Telegram mini-dasturlari (WebApp) ustida ishlash.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Projects Section -->
+        <section>
+            <div class="section-header-left">
+                <h2>Asosiy Loyihalar</h2>
+            </div>
+            <div class="project-list">
+                
+                <!-- Project 1 -->
+                <div class="project-card">
+                    <div class="project-icon" style="background: linear-gradient(135deg, #6366f1, #d946ef);">
+                        <ion-icon name="rocket-outline"></ion-icon>
+                    </div>
+                    <div class="project-info">
+                        <h3>Orbita Go Ekotizimi <span class="project-status status-active">Faol</span></h3>
+                        <p>
+                            Safar qilish, fitness va o'yinlarni yagona platformaga jamlagan O'zbekistonning ilk super-ilovalaridan biri. 
+                            Taksi buyurtmasi, qadamlar hisoblagichi hamda mini-o'yinlar turnirlari orqali foydalanuvchilar real pul mukofotlari yutib oladilar.
+                        </p>
+                        
+                        <div class="project-btn-row">
+                            <button class="architecture-btn" onclick="toggleArchitecture('arch-1')">
+                                <ion-icon name="git-network-outline"></ion-icon>
+                                <span>Sistema Arxitekturasi</span>
+                            </button>
+                        </div>
+
+                        <!-- Expanded Architecture Flow -->
+                        <div class="architecture-diagram" id="arch-1">
+                            <div class="flow-container">
+                                <div class="flow-box">Mobile client (Flutter)</div>
+                                <div class="flow-arrow"><ion-icon name="arrow-forward-outline"></ion-icon></div>
+                                <div class="flow-box">Socket.io Gateway (Node.js)</div>
+                                <div class="flow-arrow"><ion-icon name="arrow-forward-outline"></ion-icon></div>
+                                <div class="flow-box">PostgreSQL DB</div>
+                            </div>
+                        </div>
+
+                        <div class="project-tags">
+                            <span class="project-tag">Node.js</span>
+                            <span class="project-tag">Socket.io</span>
+                            <span class="project-tag">PostgreSQL</span>
+                            <span class="project-tag">Flutter</span>
+                            <span class="project-tag">Leaflet.js</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project 2 -->
+                <div class="project-card">
+                    <div class="project-icon" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">
+                        <ion-icon name="navigate-outline"></ion-icon>
+                    </div>
+                    <div class="project-info">
+                        <h3>Orbita Driver <span class="project-status status-active">Faol</span></h3>
+                        <p>
+                            Haydovchilar uchun mo'ljallangan maxsus professional ilova. Real-time buyurtmalar, qulay marshrut xaritasi, 
+                            kunlik va haftalik balans statistikalari va avtomatik balans to'ldirish tizimi.
+                        </p>
+                        
+                        <div class="project-btn-row">
+                            <button class="architecture-btn" onclick="toggleArchitecture('arch-2')">
+                                <ion-icon name="git-network-outline"></ion-icon>
+                                <span>Sistema Arxitekturasi</span>
+                            </button>
+                        </div>
+
+                        <!-- Expanded Architecture Flow -->
+                        <div class="architecture-diagram" id="arch-2">
+                            <div class="flow-container">
+                                <div class="flow-box">Driver App</div>
+                                <div class="flow-arrow"><ion-icon name="arrow-forward-outline"></ion-icon></div>
+                                <div class="flow-box">GIS Engine</div>
+                                <div class="flow-arrow"><ion-icon name="arrow-forward-outline"></ion-icon></div>
+                                <div class="flow-box">Queue Server</div>
+                            </div>
+                        </div>
+
+                        <div class="project-tags">
+                            <span class="project-tag">Flutter</span>
+                            <span class="project-tag">REST API</span>
+                            <span class="project-tag">WebSockets</span>
+                            <span class="project-tag">OSM xaritalar</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project 3 -->
+                <div class="project-card">
+                    <div class="project-icon" style="background: linear-gradient(135deg, #10b981, #06b6d4);">
+                        <ion-icon name="storefront-outline"></ion-icon>
+                    </div>
+                    <div class="project-info">
+                        <h3>Orbita Market & Cafe <span class="project-status status-dev">Tez kunda</span></h3>
+                        <p>
+                            Ekotizim foydalanuvchilarining to'plagan ballarini (Koinlar) mahsulotlar va mazali taomlarga almashtirish uchun 
+                            hamkor kafe hamda do'konlar uchun integratsiya tizimi va maxsus market-front.
+                        </p>
+                        
+                        <div class="project-btn-row">
+                            <button class="architecture-btn" onclick="toggleArchitecture('arch-3')">
+                                <ion-icon name="git-network-outline"></ion-icon>
+                                <span>Sistema Arxitekturasi</span>
+                            </button>
+                        </div>
+
+                        <!-- Expanded Architecture Flow -->
+                        <div class="architecture-diagram" id="arch-3">
+                            <div class="flow-container">
+                                <div class="flow-box">Web Front (NextJS)</div>
+                                <div class="flow-arrow"><ion-icon name="arrow-forward-outline"></ion-icon></div>
+                                <div class="flow-box">Partner Gateway</div>
+                                <div class="flow-arrow"><ion-icon name="arrow-forward-outline"></ion-icon></div>
+                                <div class="flow-box">Transaction Ledger</div>
+                            </div>
+                        </div>
+
+                        <div class="project-tags">
+                            <span class="project-tag">React / Next.js</span>
+                            <span class="project-tag">Node.js API</span>
+                            <span class="project-tag">PostgreSQL</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section>
+            <div class="section-header-left">
+                <h2>Aloqa</h2>
+            </div>
+            <div class="contact-grid">
+                <div class="contact-details">
+                    <h3>Savol va Takliflar</h3>
+                    <p style="color: var(--text-muted); font-size: 14px; line-height: 1.6;">Hamkorlik, loyihalar yoki maslahatlar uchun men bilan quyidagi kanallar orqali bog'lanishingiz mumkin.</p>
+                    
+                    <div class="contact-row">
+                        <ion-icon name="call-outline"></ion-icon>
+                        <span>Telefon: <a href="tel:+998500303555">+998 (50) 030-35-55</a></span>
+                    </div>
+                    <div class="contact-row">
+                        <ion-icon name="mail-outline"></ion-icon>
+                        <span>Email: <a href="mailto:mr1qambarov@gmail.com">mr1qambarov@gmail.com</a></span>
+                    </div>
+                    <div class="contact-row">
+                        <ion-icon name="paper-plane-outline"></ion-icon>
+                        <span>Telegram: <a href="https://t.me/mrqambarov" target="_blank">@mrqambarov</a></span>
+                    </div>
+                    <div class="contact-row">
+                        <ion-icon name="time-outline"></ion-icon>
+                        <span>Javob berish vaqti: 24 soat ichida</span>
+                    </div>
+                </div>
+
+                <form class="contact-form" id="dev-contact-form">
+                    <div class="form-group">
+                        <label for="c-name">Ismingiz</label>
+                        <input type="text" id="c-name" class="form-control" placeholder="Ismingizni kiriting..." required>
+                    </div>
+                    <div class="form-group">
+                        <label for="c-phone">Telefon raqamingiz</label>
+                        <input type="tel" id="c-phone" class="form-control" placeholder="+998 (90) 123-45-67" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="c-msg">Xabaringiz</label>
+                        <textarea id="c-msg" class="form-control" rows="4" placeholder="Xabaringizni yozing..." required></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn" id="btn-dev-submit">Xabar yuborish</button>
+                </form>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="page-footer">
+        <div class="container">
+            <p>© 2026 Anvar Qambarov | Barcha huquqlar himoyalangan. | <a href="../index.html">Bosh sahifa</a></p>
+        </div>
+    </footer>
+
+    <!-- Interactive script components -->
+    <script>
+        // 1. Web Audio API Click Sounds (Mechanic keyboard styled click sound)
+        let audioCtx = null;
+        let isMuted = true;
+
+        const volBtn = document.getElementById('volume-toggle');
+        volBtn.addEventListener('click', () => {
+            isMuted = !isMuted;
+            const btnSpan = volBtn.querySelector('span');
+            const btnIcon = volBtn.querySelector('ion-icon');
+            
+            if (isMuted) {
+                btnSpan.textContent = 'Ovoz: Off';
+                btnIcon.setAttribute('name', 'volume-mute-outline');
+            } else {
+                btnSpan.textContent = 'Ovoz: On';
+                btnIcon.setAttribute('name', 'volume-high-outline');
+                playCyberSound(600, 0.05); // test play
+            }
+        });
+
+        function playCyberSound(frequency = 800, duration = 0.04) {
+            if (isMuted) return;
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+                // click synth sweep
+                osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + duration);
+                
+                gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (err) {}
+        }
+
+        // Attach audio sound to clickables
+        document.querySelectorAll('a, button, input, .filter-tab, .git-cell, .architecture-btn').forEach(el => {
+            el.addEventListener('mousedown', () => playCyberSound(900, 0.03));
+        });
+
+        // 2. Matrix Digital Rain Canvas Background
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let isCyber = false;
+        
+        let cols = 0;
+        let ypos = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            // Re-init column matrix for Matrix mode
+            cols = Math.floor(canvas.width / 20) + 1;
+            ypos = Array(cols).fill(0).map(() => Math.random() * -100);
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Particle elements for Space Mode
+        let particles = [];
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 0.4;
+                this.vy = (Math.random() - 0.5) * 0.4;
+                this.r = Math.random() * 2 + 1;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if (this.x < 0 || this.x > canvas.width) this.vx = -this.vx;
+                if (this.y < 0 || this.y > canvas.height) this.vy = -this.vy;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(99, 102, 241, 0.35)';
+                ctx.fill();
+            }
+        }
+
+        function initSpaceParticles() {
+            particles = [];
+            const count = Math.min(60, Math.floor(canvas.width / 20));
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle());
+            }
+        }
+        initSpaceParticles();
+
+        function drawSpaceLines() {
+            const distLimit = 125;
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < distLimit) {
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.strokeStyle = 'rgba(99, 102, 241, ' + (1 - dist / distLimit) * 0.12 + ')';
+                        ctx.lineWidth = 0.5;
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        // Matrix character set
+        const matrixChars = "0101010101010101ABCDEFHIJKLMNOPQRSTUVWXYZあいうえおカキクケコサシスセソタチツテト".split("");
+
+        function drawMatrixRain() {
+            ctx.fillStyle = 'rgba(5, 5, 8, 0.08)'; // trails
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#00ff66';
+            ctx.font = '15px monospace';
+            
+            for (let i = 0; i < cols; i++) {
+                const text = matrixChars[Math.floor(Math.random() * matrixChars.length)];
+                const x = i * 20;
+                const y = ypos[i];
+                
+                // Draw glow character
+                ctx.fillStyle = Math.random() > 0.98 ? '#fff' : 'rgba(0, 255, 102, 0.65)';
+                ctx.fillText(text, x, y);
+                
+                ypos[i] += 20;
+                
+                if (ypos[i] > canvas.height && Math.random() > 0.975) {
+                    ypos[i] = 0;
+                }
+            }
+        }
+
+        let matrixFpsInterval = 1000 / 30; // 30 fps for matrix rain
+        let lastTime = 0;
+
+        function loop(timestamp) {
+            if (isCyber) {
+                if (timestamp - lastTime > matrixFpsInterval) {
+                    drawMatrixRain();
+                    lastTime = timestamp;
+                }
+            } else {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach(p => {
+                    p.update();
+                    p.draw();
+                });
+                drawSpaceLines();
+            }
+            requestAnimationFrame(loop);
+        }
+        requestAnimationFrame(loop);
+
+        // Theme Switch Logic
+        const themeBtn = document.getElementById('theme-toggle');
+        themeBtn.addEventListener('click', () => {
+            isCyber = !isCyber;
+            document.body.classList.toggle('cyber-mode', isCyber);
+            
+            const btnSpan = themeBtn.querySelector('span');
+            const btnIcon = themeBtn.querySelector('ion-icon');
+            
+            if (isCyber) {
+                btnSpan.textContent = 'Space Mode';
+                btnIcon.setAttribute('name', 'planet-outline');
+                writeTerminalOutput('THEME_SWITCH', 'Matrix Rain initialized. Fonts modified to Cyber Mono.');
+                playCyberSound(1200, 0.15);
+            } else {
+                btnSpan.textContent = 'Cyber Mode';
+                btnIcon.setAttribute('name', 'terminal-outline');
+                writeTerminalOutput('THEME_SWITCH', 'Stellar particle background activated.');
+                playCyberSound(700, 0.12);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        });
+
+        // 3. Interactive GitHub Activity Grid Builder
+        function buildGithubActivityGrid() {
+            const grid = document.getElementById('github-activity-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            
+            const today = new Date();
+            // 42 columns * 7 days = 294 cells
+            for (let i = 0; i < 294; i++) {
+                const cell = document.createElement('div');
+                const level = Math.random() > 0.82 
+                    ? Math.floor(Math.random() * 4) + 1 
+                    : 0;
+                cell.className = 'git-cell git-l' + level;
+                
+                // date tooltip
+                const cellDate = new Date(today);
+                cellDate.setDate(today.getDate() - (294 - i));
+                
+                const commits = level === 0 ? 'No commits' : (level * 3 + Math.floor(Math.random()*4)) + ' commits';
+                
+                const tooltip = document.createElement('span');
+                tooltip.className = 'git-cell-tooltip';
+                tooltip.textContent = commits + ' on ' + cellDate.toLocaleDateString('uz-UZ', { month: 'short', day: 'numeric', year: 'numeric' });
+                cell.appendChild(tooltip);
+                
+                grid.appendChild(cell);
+            }
+        }
+        buildGithubActivityGrid();
+
+        // Project Architecture Toggle logic
+        function toggleArchitecture(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.classList.toggle('show');
+            }
+        }
+
+        // 4. Typing Loop Header
+        const typewriterWords = [
+            "Senior Full-Stack Engineer",
+            "Mobile App Architect (Flutter)",
+            "System Integrator (Node.js)",
+            "Creator of Orbita Go"
+        ];
+        let wordIdx = 0;
+        let charIdx = 0;
+        let isDeleting = false;
+        const typewriterEl = document.querySelector('#typewriter-title .typewriter-text');
+
+        function doTypewriter() {
+            const currentWord = typewriterWords[wordIdx];
+            if (isDeleting) {
+                typewriterEl.textContent = currentWord.substring(0, charIdx - 1);
+                charIdx--;
+            } else {
+                typewriterEl.textContent = currentWord.substring(0, charIdx + 1);
+                charIdx++;
+            }
+            
+            let typeSpeed = isDeleting ? 30 : 75;
+            
+            if (!isDeleting && charIdx === currentWord.length) {
+                isDeleting = true;
+                typeSpeed = 2200; // pause at full word
+            } else if (isDeleting && charIdx === 0) {
+                isDeleting = false;
+                wordIdx = (wordIdx + 1) % typewriterWords.length;
+                typeSpeed = 300; // pause before typing next
+            }
+            
+            setTimeout(doTypewriter, typeSpeed);
+        }
+        document.addEventListener('DOMContentLoaded', () => setTimeout(doTypewriter, 1000));
+
+        // 5. Interactive Terminal Console Commands
+        const termInput = document.getElementById('terminal-input');
+        const termLogs = document.getElementById('terminal-logs');
+
+        function writeTerminalOutput(command, text) {
+            const row = document.createElement('div');
+            row.className = 'terminal-row';
+            row.innerHTML = '<span class="terminal-prompt">anvar-dev@guest:~$</span> <span class="terminal-output">' + command + '</span>';
+            termLogs.appendChild(row);
+            
+            const out = document.createElement('div');
+            out.className = 'terminal-output';
+            out.textContent = text;
+            termLogs.appendChild(out);
+            
+            termLogs.scrollTop = termLogs.scrollHeight;
+        }
+
+        termInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                const cmd = termInput.value.trim().toLowerCase();
+                termInput.value = '';
+                if (!cmd) return;
+                
+                let reply = '';
+                if (cmd === 'help') {
+                    reply = 'Ruxsat etilgan buyruqlar: neofetch, about, skills, projects, clear, secret, contact, sudo hack';
+                } else if (cmd === 'neofetch') {
+                    reply = 'anvar@orbitago-core \n-------------------- \nOS: Orbita OS v4.0.0 \nShell: anvar-sh v2.0 \nCPU: Apple M3 Max Core \nRAM: 64 GB LPDDR5X \nUPTIME: 14 days, 3 hrs \nPROJECT: Orbita Go SuperApp';
+                } else if (cmd === 'about') {
+                    reply = 'Anvar Qambarov - Senior Full-Stack dasturchi, 5 yillik tajribaga ega. Orbita Go loyihasi asoschisi.';
+                } else if (cmd === 'skills') {
+                    reply = 'Flutter: 95% \nNode.js: 90% \nFigma: 85% \nPostgreSQL: 88%';
+                } else if (cmd === 'projects') {
+                    reply = '1. Orbita Go (Taksi, qadam, o\'yinlar) - Active \n2. Orbita Driver (Haydovchilar uchun) - Active \n3. Orbita Market - Tez kunda';
+                } else if (cmd === 'contact') {
+                    reply = 'Telegram: @mrqambarov \nEmail: mr1qambarov@gmail.com \nTel: +998 (50) 030-35-55';
+                } else if (cmd === 'clear') {
+                    termLogs.innerHTML = '';
+                    return;
+                } else if (cmd === 'secret') {
+                    reply = '💻 MATRIX BOOTING COMPLETED... Siz maxfiy rejimni ishga tushirdingiz!';
+                    if (!isCyber) themeBtn.click();
+                } else if (cmd === 'sudo hack') {
+                    triggerCyberBreachAnimation();
+                    return;
+                } else {
+                    reply = "Buyruq topilmadi: '" + cmd + "'. Yordam uchun 'help' deb yozing.";
+                }
+                
+                writeTerminalOutput(cmd, reply);
+            }
+        });
+
+        function triggerCyberBreachAnimation() {
+            writeTerminalLog('Initiating bypass protocols...');
+            let lines = [
+                'Connecting to core server...',
+                'Retrieving encryption headers...',
+                'Overriding token handshake...',
+                'Accessing PostgreSQL cluster database...',
+                'Orbita Database structure matching: 100%',
+                'Orbita Go API endpoints scanned.',
+                'BREACH COMPLETED. Status: ACCESS GRANTED. Welcome, Admin Anvar Qambarov.'
+            ];
+            
+            let idx = 0;
+            const timer = setInterval(() => {
+                if (idx < lines.length) {
+                    writeTerminalLog(lines[idx]);
+                    playCyberSound(400 + idx*100, 0.08);
+                    idx++;
+                } else {
+                    clearInterval(timer);
+                }
+            }, 600);
+        }
+
+        // Terminal contact form interception logger
+        function writeTerminalLog(text) {
+            const out = document.createElement('div');
+            out.className = 'terminal-output';
+            out.style.color = '#ffb86c'; // orange warning log
+            out.textContent = '[SYSTEM_LOG] ' + text;
+            termLogs.appendChild(out);
+            termLogs.scrollTop = termLogs.scrollHeight;
+        }
+
+        // 6. Mouse Tilt Effect on Profile Card
+        const card = document.getElementById('interactive-profile');
+        if (card) {
+            card.addEventListener('mousemove', e => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const xc = rect.width / 2;
+                const yc = rect.height / 2;
+                const angleX = (yc - y) / 14;
+                const angleY = (x - xc) / 14;
+                
+                card.style.transform = "rotateX(" + angleX + "deg) rotateY(" + angleY + "deg)";
+                card.style.setProperty('--mx', (x / rect.width) * 100 + '%');
+                card.style.setProperty('--my', (y / rect.height) * 100 + '%');
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'rotateX(0deg) rotateY(0deg)';
+                card.style.setProperty('--mx', '50%');
+                card.style.setProperty('--my', '50%');
+            });
+        }
+
+        // 7. Animated Stats Counter
+        function initStatsCounter() {
+            const stats = document.querySelectorAll('.stat-number');
+            const speed = 100;
+            
+            const animate = (el) => {
+                const target = parseInt(el.dataset.target, 10);
+                let count = 0;
+                const increment = Math.max(1, Math.floor(target / speed));
+                
+                const update = () => {
+                    count += increment;
+                    if (count < target) {
+                        el.textContent = count + (el.dataset.target.includes('+') || el.dataset.target === '99' ? '%' : '+');
+                        if (el.dataset.target === '15000') el.textContent = Math.floor(count/1000) + 'K+';
+                        if (el.dataset.target === '5') el.textContent = count + '+';
+                        if (el.dataset.target === '24') el.textContent = count + '+';
+                        setTimeout(update, 15);
+                    } else {
+                        el.textContent = el.dataset.target === '15000' ? '15K+' : el.dataset.target === '99' ? '99%' : target + '+';
+                    }
+                };
+                update();
+            };
+
+            const obs = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        animate(entry.target);
+                        obs.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            stats.forEach(s => obs.observe(s));
+        }
+        document.addEventListener('DOMContentLoaded', initStatsCounter);
+
+        // 8. Skills Category Filtering
+        const filterTabs = document.querySelectorAll('.filter-tab');
+        const techCards = document.querySelectorAll('.tech-card');
+
+        filterTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                filterTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                const filter = tab.dataset.filter;
+                techCards.forEach(card => {
+                    if (filter === 'all' || card.dataset.category === filter) {
+                        card.classList.remove('hidden');
+                        card.style.animation = 'fadeIn 0.3s ease forwards';
+                    } else {
+                        card.classList.add('hidden');
+                    }
+                });
+            });
+        });
+
+        // 9. Skills progress bar animate on view
+        function initSkillsAnimation() {
+            const fills = document.querySelectorAll('.skill-bar-fill');
+            const obs = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const el = entry.target;
+                        el.style.width = el.dataset.width;
+                        obs.unobserve(el);
+                    }
+                });
+            }, { threshold: 0.1 });
+            fills.forEach(f => obs.observe(f));
+        }
+        document.addEventListener('DOMContentLoaded', initSkillsAnimation);
+
+        // 10. Contact Form Submission
+        document.getElementById('dev-contact-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-dev-submit');
+            const name = document.getElementById('c-name').value;
+            const phone = document.getElementById('c-phone').value;
+            const msg = document.getElementById('c-msg').value;
+
+            btn.setAttribute('disabled', 'true');
+            btn.textContent = 'Yuborilmoqda...';
+
+            writeTerminalLog('Init message transmission request...');
+            writeTerminalLog('Payload: ' + JSON.stringify({ name: name, phone: phone }));
+
+            try {
+                if (window.sendTelegramNotification) {
+                    await window.sendTelegramNotification('dev_message', { name, phone, msg });
+                    writeTerminalLog('Telegram API gateway responded: 200 OK.');
+                } else {
+                    console.log('Notification fallback console', { name, phone, msg });
+                    writeTerminalLog('Fallback log captured. Status: SIMULATED.');
+                }
+                
+                btn.textContent = 'Muvaffaqiyatli yuborildi! ✅';
+                playCyberSound(1000, 0.2);
+                
+                setTimeout(() => {
+                    document.getElementById('dev-contact-form').reset();
+                    btn.removeAttribute('disabled');
+                    btn.textContent = 'Xabar yuborish';
+                }, 1500);
+            } catch (err) {
+                writeTerminalLog('Connection error: ' + err.message);
+                btn.textContent = 'Xatolik yuz berdi ❌';
+                btn.removeAttribute('disabled');
+                setTimeout(() => { btn.textContent = 'Xabar yuborish'; }, 1500);
+        });
+
+        // Dynamic Developer Settings Loader
+        const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+            ? 'http://localhost:3000'
+            : '';
+
+        async function loadDevSettings() {
+            try {
+                const res = await fetch(`${API_BASE}/api/settings`);
+                const d = await res.json();
+                if (d.success && d.settings && d.settings.developer) {
+                    applyDevSettings(d.settings.developer);
+                }
+            } catch (err) {
+                console.warn('Failed to load developer settings, using fallback content.');
+            }
+        }
+
+        function applyDevSettings(dev) {
+            if (!dev) return;
+            
+            // 1. Update Name
+            if (dev.fullName) {
+                const nameEl = document.querySelector('.profile-card h1');
+                if (nameEl) {
+                    const parts = dev.fullName.split(' ');
+                    const firstName = parts[0] || '';
+                    const lastName = parts.slice(1).join(' ') || '';
+                    nameEl.innerHTML = `${firstName} <span>${lastName}</span>`;
+                }
+                // Update title
+                document.title = `${dev.fullName} — ${dev.role || 'Developer'}`;
+            }
+
+            // 2. Update Avatar Initials
+            if (dev.avatarInitials) {
+                const avatarEl = document.querySelector('.profile-avatar');
+                if (avatarEl) avatarEl.textContent = dev.avatarInitials;
+            }
+
+            // 3. Update Bio
+            if (dev.bio) {
+                const bioEl = document.querySelector('.profile-bio');
+                if (bioEl) bioEl.innerHTML = dev.bio;
+            }
+
+            // 4. Update Telegram socials link
+            if (dev.telegram) {
+                const tgUser = dev.telegram.replace('@', '');
+                const tgSocial = document.querySelector('.profile-socials a[aria-label="Telegram"]');
+                if (tgSocial) tgSocial.href = `https://t.me/${tgUser}`;
+                
+                const tgContact = document.querySelector('.contact-row ion-icon[name="paper-plane-outline"] + span a');
+                if (tgContact) {
+                    tgContact.href = `https://t.me/${tgUser}`;
+                    tgContact.textContent = `@${tgUser}`;
+                }
+            }
+
+            // 5. Update Contact Email
+            if (dev.email) {
+                const emailContact = document.querySelector('.contact-row ion-icon[name="mail-outline"] + span a');
+                if (emailContact) {
+                    emailContact.href = `mailto:${dev.email}`;
+                    emailContact.textContent = dev.email;
+                }
+            }
+
+            // 6. Update Contact Phone
+            if (dev.phone) {
+                const phoneContact = document.querySelector('.contact-row ion-icon[name="call-outline"] + span a');
+                if (phoneContact) {
+                    phoneContact.href = `tel:${dev.phone.replace(/[^+\\d]/g, '')}`;
+                    phoneContact.textContent = dev.phone;
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadDevSettings);
+    </script>
+</body>
+</html>

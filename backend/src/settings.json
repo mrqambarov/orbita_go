@@ -1,0 +1,42 @@
+{
+  "company": {
+    "phone": "+998 (50) 030-35-55",
+    "email": "support@orbitago.uz",
+    "telegram": "orbitago"
+  },
+  "developer": {
+    "fullName": "Anvar Qambarov",
+    "role": "Senior Full-Stack Engineer & Founder",
+    "avatarInitials": "AQ",
+    "phone": "+998 (50) 030-35-55",
+    "email": "mr1qambarov@gmail.com",
+    "telegram": "mrqambarov",
+    "bio": "Salom! Men Anvar Qambarov, 5 yildan ortiq tajribaga ega bo'lgan Full-Stack dasturchi va mobil muhandisman. Yuqori darajadagi yuklama ostida ishlay oladigan web-ilova, tizimli backend xizmatlari va cross-platformal mobil tizimlarni (super-ilovalarni) loyihalashtiraman. Orbita Go ekotizimining bosh me'mori va asoschisiman. Mening maqsadim — yuqori kod sifati va mukammal dizayn orqali eng murakkab biznes g'oyalarni haqiqatga aylantirishdir."
+  },
+  "downloads": {
+    "passenger": "https://play.google.com/store/apps/details?id=com.orbitago",
+    "driver": "https://play.google.com/store/apps/details?id=com.orbitago.driver",
+    "games": "https://play.google.com/store/apps/details?id=com.orbitago.games",
+    "cafe": "https://orbitago.uz/download/cafe",
+    "market": "https://orbitago.uz/download/market"
+  },
+  "rates": {
+    "stepsToCoins": 100,
+    "maxDailySteps": 20000,
+    "minPayout": 50000
+  },
+  "maintenance": {
+    "taxi": false,
+    "walk": false,
+    "games": false,
+    "market": false
+  },
+  "taxiPricing": {
+    "startBase": 5000,
+    "startKm": 1200,
+    "komfortBase": 8000,
+    "komfortKm": 1600,
+    "biznesBase": 12000,
+    "biznesKm": 2200
+  }
+}

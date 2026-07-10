@@ -1,0 +1,34 @@
+{
+    "name": "Orbita Go",
+    "short_name": "OrbitaGo",
+    "description": "Taksi, Fitness va O'yinlar Ekotizimi",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#030014",
+    "theme_color": "#6366f1",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "https://api.iconify.design/mdi/rocket-launch.svg?color=%236366f1",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Taksi buyurtma",
+            "short_name": "Taksi",
+            "description": "Tezkor taksi buyurtma",
+            "url": "/#simulator"
+        },
+        {
+            "name": "Peshqadamlar",
+            "short_name": "Musobaqa",
+            "description": "Haftalik turnir",
+            "url": "/#leaderboard"
+        }
+    ],
+    "categories": ["travel", "lifestyle", "games"],
+    "lang": "uz"
+}

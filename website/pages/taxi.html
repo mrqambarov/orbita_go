@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orbita Go Taksi — Tezkor, Xavfsiz va Arzon</title>
+    <meta name="description" content="Kosonsoy va Namangan bo'ylab eng tezkor taksi xizmati. Start, Komfort va Biznes tariflar. Real-time haydovchi kuzatuv.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <link rel="stylesheet" href="page.css?v=1.0.2">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="../translations.js?v=1.0.2"></script>
+    <script src="../telegram-gateway.js?v=1.0.2"></script>
+    <style>
+        .page-hero { background: radial-gradient(ellipse at top center, rgba(251,191,36,0.1) 0%, transparent 60%); }
+        .page-hero-glow { background: radial-gradient(circle, rgba(251,191,36,0.15), transparent 70%); }
+        .taxi-hero-icon {
+            font-size: 90px; display: block; text-align: center;
+            margin-bottom: 24px; filter: drop-shadow(0 0 30px rgba(251,191,36,0.5));
+            animation: float 4s ease-in-out infinite;
+        }
+        /* Address dropdown layout */
+        .address-item {
+            padding: 12px 16px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition-fast);
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            text-align: left;
+        }
+        .address-item:hover {
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="page-header">
+        <div class="container page-header-inner">
+            <a href="../index.html" class="back-btn">
+                <ion-icon name="arrow-back-outline"></ion-icon>
+                <span data-i18n="sub.back">Orqaga</span>
+            </a>
+            <!-- Language switcher for subpages -->
+            <div class="lang-switcher">
+                <button class="lang-btn" data-lang="uz">UZ</button>
+                <button class="lang-btn" data-lang="ru">RU</button>
+                <button class="lang-btn" data-lang="en">EN</button>
+            </div>
+            <div class="page-logo">
+                <div class="page-logo-icon"><ion-icon name="rocket-outline"></ion-icon></div>
+                <span>Orbita<span>Go</span></span>
+            </div>
+            <a href="../index.html#download" class="page-header-cta">
+                <ion-icon name="download-outline"></ion-icon>
+                <span data-i18n="nav.download">Yuklab olish</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="page-hero">
+        <div class="page-hero-glow"></div>
+        <div class="container">
+            <div class="page-hero-badge reveal" data-i18n="feat.taxi.title">
+                Orbita Go Taksi
+            </div>
+            <ion-icon name="car-sport" class="taxi-hero-icon"></ion-icon>
+            <h1 class="reveal" data-i18n="sub.taxi.title">Tezkor, Xavfsiz va <span>Arzon Taksi</span></h1>
+            <p class="page-hero-desc reveal" data-i18n="sub.taxi.desc">Kosonsoy tumani va Namangan bo'ylab bir necha soniyada haydovchi toping. Real-time kuzatuv, qulay to'lov va ishonchli xizmat.</p>
+            <div class="page-hero-actions reveal">
+                <a href="../index.html#simulator" class="btn btn-primary">
+                    <ion-icon name="navigate-outline"></ion-icon>
+                    <span data-i18n="hero.try">Simulyatorda sinab ko'ring</span>
+                </a>
+                <a href="../index.html#download" class="btn btn-outline">
+                    <ion-icon name="logo-google-playstore"></ion-icon>
+                    <span data-i18n="hero.download">Ilovani yuklab oling</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="section" style="padding-top: 0;">
+        <div class="container">
+            <div class="stats-row">
+                <div class="stat-card reveal" style="--delay:0s"><h2>48K+</h2><p data-i18n="stats.trips">Bajarilgan safarlar</p></div>
+                <div class="stat-card reveal" style="--delay:0.1s"><h2>320+</h2><p data-i18n="stats.drivers">Faol haydovchilar</p></div>
+                <div class="stat-card reveal" style="--delay:0.2s"><h2>4.9★</h2><p>O'rtacha reyting</p></div>
+                <div class="stat-card reveal" style="--delay:0.3s"><h2>~4 daq</h2><p>O'rtacha kutish vaqti</p></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tariflar -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="section-badge">Narxlar</div>
+                <h2>O'zingizga mos <span>tarifni tanlang</span></h2>
+                <p>Barcha tariflar qulay to'lov va ishonchli haydovchilarni kafolatlaydi</p>
+            </div>
+            <div class="tariff-grid">
+                <div class="tariff-item reveal" style="--delay:0s">
+                    <ion-icon name="car-outline" style="color:#94a3b8;"></ion-icon>
+                    <h3>Start</h3>
+                    <div class="tariff-price">5,000 <span>UZS dan</span></div>
+                    <p class="tariff-desc">Kundalik safarlar uchun eng qulay va iqtisodiy variant.</p>
+                    <div class="tariff-features">
+                        <div class="tariff-feat"><ion-icon name="checkmark-circle"></ion-icon> Tez ketish kafolati</div>
+                        <div class="tariff-feat"><ion-icon name="checkmark-circle"></ion-icon> Real-time kuzatuv</div>
+                        <div class="tariff-feat"><ion-icon name="checkmark-circle"></ion-icon> Xavfsiz to'lov</div>
+                    </div>
+                </div>
+                <div class="tariff-item featured reveal" style="--delay:0.15s">
+                    <ion-icon name="car-sport-outline" style="color:#818cf8;"></ion-icon>
+                    <h3>Komfort</h3>
+                    <div class="tariff-price">8,000 <span>UZS dan</span></div>
+                    <p class="tariff-desc">Yangi va tozalangan avtomobillar bilan qulay sayohat.</p>
+                    <div class="tariff-features">
+                        <div class="tariff-feat"><ion-icon name="checkmark-circle"></ion-icon> Yangi model avtomobil</div>
+                        <div class="tariff-feat"><ion-icon name="checkmark-circle"></ion-icon> Konditsioner kafolat</div>
+                        <div class="tariff-feat"><ion-icon name="checkmark-circle"></ion-icon> Yuqori reyting haydovchi</div>
+                        <div class="tariff-feat"><ion-icon name="checkmark-circle"></ion-icon> Ichimlik suv</div>
+                    </div>
+                </div>
+                <div class="tariff-item reveal" style="--delay:0.3s">
+                    <ion-icon name="ribbon-outline" style="color:#d946ef;"></ion-icon>
+                    <h3>Biznes</h3>
+                    <div class="tariff-price">12,000 <span>UZS dan</span></div>
+                    <p class="tariff-desc">Premium avtomobil va maxsus haydovchi bilan VIP sayohat.</p>
+                    <div class="tariff-features">
+                        <div class="tariff-feat"><ion-icon name="checkmark-circle"></ion-icon> Premium avtomobil</div>
+                        <div class="tariff-feat"><ion-icon name="checkmark-circle"></ion-icon> Tajribali haydovchi</div>
+                        <div class="tariff-feat"><ion-icon name="checkmark-circle"></ion-icon> Wi-Fi va zaryadlagich</div>
+                        <div class="tariff-feat"><ion-icon name="checkmark-circle"></ion-icon> Oldindan bron qilish</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Price Estimator -->
+    <section class="section" id="estimator-section" style="background: rgba(10,8,30,0.15); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="section-badge" data-i18n="sim.badge">Kalkulyator</div>
+                <h2 data-i18n="sim.title">Safar narxini <span>hisoblang</span></h2>
+                <p data-i18n="sim.desc">Manzillarni kiriting va turli tariflar bo'yicha aniq narxni bilib oling.</p>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 40px; margin-top: 40px;" class="info-split">
+                <!-- Inputs and pricing -->
+                <div class="reveal" style="background: var(--surface); border: 1px solid var(--border-color); border-radius: 24px; padding: 32px; display: flex; flex-direction: column; justify-content: space-between;">
+                    <form id="calc-form" onsubmit="event.preventDefault();" style="display: flex; flex-direction: column; gap: 20px;">
+                        <div class="input-group">
+                            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-secondary);" data-i18n="sim.pickup.label">Qayerdan</label>
+                            <div style="position: relative;">
+                                <input type="text" id="calc-pickup" placeholder="Pickup manzili..." data-i18n="sim.pickup.ph" data-i18n-attr="placeholder" style="width: 100%; padding: 12px 16px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); color: #fff; font-family: inherit; font-size: 14px;" autocomplete="off">
+                                <div class="address-dropdown" id="calc-pickup-dropdown" style="display: none; position: absolute; left: 0; right: 0; top: 100%; z-index: 1000; background: #0c0a22; border: 1px solid var(--border-color); border-radius: 12px; max-height: 200px; overflow-y: auto; margin-top: 6px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);"></div>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-secondary);" data-i18n="sim.dest.label">Qayerga</label>
+                            <div style="position: relative;">
+                                <input type="text" id="calc-dest" placeholder="Destination manzili..." data-i18n="sim.dest.ph" data-i18n-attr="placeholder" style="width: 100%; padding: 12px 16px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); color: #fff; font-family: inherit; font-size: 14px;" autocomplete="off">
+                                <div class="address-dropdown" id="calc-dest-dropdown" style="display: none; position: absolute; left: 0; right: 0; top: 100%; z-index: 1000; background: #0c0a22; border: 1px solid var(--border-color); border-radius: 12px; max-height: 200px; overflow-y: auto; margin-top: 6px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);"></div>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div style="margin-top: 32px; border-top: 1px dashed var(--border-color); padding-top: 24px;">
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;" id="calc-tariffs">
+                            <div class="calc-tariff-card active" data-tariff="START" style="border: 1px solid var(--border-color); border-radius: 16px; padding: 12px; text-align: center; cursor: pointer; background: rgba(255,255,255,0.02); transition: var(--transition-fast);">
+                                <h4 style="font-size: 14px; margin-bottom: 4px;">Start</h4>
+                                <span style="font-size: 12px; color: var(--text-secondary);" id="calc-price-start">-- UZS</span>
+                            </div>
+                            <div class="calc-tariff-card" data-tariff="KOMFORT" style="border: 1px solid var(--border-color); border-radius: 16px; padding: 12px; text-align: center; cursor: pointer; background: rgba(255,255,255,0.02); transition: var(--transition-fast);">
+                                <h4 style="font-size: 14px; margin-bottom: 4px;">Komfort</h4>
+                                <span style="font-size: 12px; color: var(--text-secondary);" id="calc-price-komfort">-- UZS</span>
+                            </div>
+                            <div class="calc-tariff-card" data-tariff="BIZNES" style="border: 1px solid var(--border-color); border-radius: 16px; padding: 12px; text-align: center; cursor: pointer; background: rgba(255,255,255,0.02); transition: var(--transition-fast);">
+                                <h4 style="font-size: 14px; margin-bottom: 4px;">Biznes</h4>
+                                <span style="font-size: 12px; color: var(--text-secondary);" id="calc-price-biznes">-- UZS</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 24px;">
+                            <span style="font-size: 14px; color: var(--text-secondary);">Masofa: <strong id="calc-hud-distance">-- km</strong></span>
+                            <span style="font-size: 14px; color: var(--text-secondary);">Safar vaqti: <strong id="calc-hud-time">-- daq</strong></span>
+                        </div>
+                        <button class="btn btn-primary" id="btn-order-ride" type="button" style="width: 100%; margin-top: 24px; padding: 14px; border-radius: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; cursor: not-allowed; opacity: 0.6; background: linear-gradient(135deg, var(--yellow), #f59e0b); color: #000; transition: var(--transition-fast);" disabled>
+                            <span>Buyurtma berish</span>
+                            <ion-icon name="checkmark-circle-outline" style="font-size: 18px;"></ion-icon>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Leaflet map -->
+                <div class="reveal" style="border: 1px solid var(--border-color); border-radius: 24px; overflow: hidden; height: 350px; position: relative; z-index: 1;">
+                    <div id="calc-map" style="width: 100%; height: 100%;"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Xususiyatlar -->
+    <section class="section" style="background: rgba(10,8,30,0.3); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="section-badge">Nima uchun Orbita Go?</div>
+                <h2>Oddiy taksi emas, <span>ekotizim</span></h2>
+            </div>
+            <div class="feature-list">
+                <div class="feat-item reveal" style="--delay:0s">
+                    <div class="feat-item-icon bg-yellow"><ion-icon name="navigate"></ion-icon></div>
+                    <h3>Real-time Kuzatuv</h3>
+                    <p>Haydovchingiz joylashuvini har soniyada xaritada kuzating. Yaqinlaringizga safar havolasini yuboring.</p>
+                </div>
+                <div class="feat-item reveal" style="--delay:0.1s">
+                    <div class="feat-item-icon bg-green"><ion-icon name="shield-checkmark"></ion-icon></div>
+                    <h3>Xavfsiz To'lov</h3>
+                    <p>Payme va Click orqali to'lov. Naqd pul ham qabul qilinadi. Barcha tranzaksiyalar himoyalangan.</p>
+                </div>
+                <div class="feat-item reveal" style="--delay:0.2s">
+                    <div class="feat-item-icon bg-purple"><ion-icon name="trophy"></ion-icon></div>
+                    <h3>Ball Yig'ish</h3>
+                    <p>Har bir safardan ball to'plang. Yig'ilgan ballar taksi chegirmalari va kuponlarga aylanadi.</p>
+                </div>
+                <div class="feat-item reveal" style="--delay:0.3s">
+                    <div class="feat-item-icon bg-cyan"><ion-icon name="star"></ion-icon></div>
+                    <h3>Haydovchi Reytingi</h3>
+                    <p>Har bir haydovchi mijozlar tomonidan baholanadi. Faqat yuqori reyting egalarigina aktiv bo'la oladi.</p>
+                </div>
+                <div class="feat-item reveal" style="--delay:0.4s">
+                    <div class="feat-item-icon bg-orange"><ion-icon name="time"></ion-icon></div>
+                    <h3>24/7 Ishlaydi</h3>
+                    <p>Tongdan kechgacha, hafta kunlari va dam olish kunlarida ham xizmat mavjud. Hech qachon kutmang.</p>
+                </div>
+                <div class="feat-item reveal" style="--delay:0.5s">
+                    <div class="feat-item-icon bg-blue"><ion-icon name="chatbubble-ellipses"></ion-icon></div>
+                    <h3>Jonli Qo'llab-quvvatlash</h3>
+                    <p>Muammo yuzaga kelsa, ilovadagi chat orqali operator bilan real vaqtda muloqot qiling.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Haydovchi bo'lish -->
+    <section class="section">
+        <div class="container">
+            <div class="info-split reverse">
+                <div class="info-text reveal">
+                    <div class="section-badge">Haydovchilar uchun</div>
+                    <h2>Siz ham <span>daromad qiling</span></h2>
+                    <p>Orbita Go'da haydovchi bo'ling va erkin vaqtingizda qo'shimcha daromad toping. Kunlik ish jadvali, bonuslar va qo'llab-quvvatlash bilan.</p>
+                    <div class="info-checklist">
+                        <div class="info-check"><ion-icon name="checkmark-circle"></ion-icon> Haydovchilik guvohnomasi (B toifa)</div>
+                        <div class="info-check"><ion-icon name="checkmark-circle"></ion-icon> 2015 yildan yangi avto (ixtiyoriy)</div>
+                        <div class="info-check"><ion-icon name="checkmark-circle"></ion-icon> Bepul ro'yxatdan o'tish</div>
+                        <div class="info-check"><ion-icon name="checkmark-circle"></ion-icon> Haftalik to'lov kafolati</div>
+                        <div class="info-check"><ion-icon name="checkmark-circle"></ion-icon> Bonuslar va mukofotlar</div>
+                    </div>
+                    <div style="margin-top:28px;">
+                        <a href="../index.html#download" class="btn btn-primary">
+                            <ion-icon name="car-sport"></ion-icon>
+                            <span>Haydovchi bo'lish</span>
+                        </a>
+                    </div>
+                </div>
+                <div class="info-visual reveal">
+                    <div class="visual-icon"><ion-icon name="car-sport"></ion-icon></div>
+                    <div class="visual-content">
+                        <div style="font-size:48px; margin-bottom:16px;">🚗</div>
+                        <h3>+2,800,000 UZS</h3>
+                        <p>O'rtacha oylik daromad</p>
+                        <div style="margin-top:20px; display:flex; gap:16px; justify-content:center; flex-wrap:wrap;">
+                            <div style="text-align:center;">
+                                <div style="font-size:22px; font-weight:900; color:var(--yellow);">320+</div>
+                                <div style="font-size:11px; color:var(--text-hint);">Faol haydovchi</div>
+                            </div>
+                            <div style="text-align:center;">
+                                <div style="font-size:22px; font-weight:900; color:var(--success-light);">4.9★</div>
+                                <div style="font-size:11px; color:var(--text-hint);">O'rtacha reyting</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Steps -->
+    <section class="section" style="background: rgba(10,8,30,0.3); border-top: 1px solid var(--border-color);">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="section-badge">Juda oson</div>
+                <h2>Taksi buyurtma <span>qilish tartibi</span></h2>
+            </div>
+            <div style="max-width: 640px; margin: 0 auto;">
+                <div class="steps-list">
+                    <div class="step-item reveal" style="--delay:0s">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Ilovani oching</h3>
+                            <p>Orbita Go ilovasini oching va "Taksi" bo'limiga o'ting. Joylashuvingiz avtomatik aniqlanadi.</p>
+                        </div>
+                    </div>
+                    <div class="step-item reveal" style="--delay:0.1s">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Manzilni kiriting</h3>
+                            <p>Qayerga borishingizni kiriting yoki xaritada tanlang. Narx va taxminiy vaqt ko'rsatiladi.</p>
+                        </div>
+                    </div>
+                    <div class="step-item reveal" style="--delay:0.2s">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>Tarifni tanlang</h3>
+                            <p>Start, Komfort yoki Biznes tariflaridan birini tanlang va buyurtma bering.</p>
+                        </div>
+                    </div>
+                    <div class="step-item reveal" style="--delay:0.3s">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h3>Haydovchini kuting</h3>
+                            <p>O'rtacha 4 daqiqada haydovchi yetib keladi. Xaritada real-time kuzating.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+        <div class="cta-glow"></div>
+        <div class="container">
+            <h2>Hoziroq <span>sinab ko'ring</span></h2>
+            <p>Saytdagi simulyatorda yoki ilovani yuklab birinchi safaringizni boshlang!</p>
+            <div class="cta-buttons">
+                <a href="../index.html#simulator" class="cta-store-btn">
+                    <ion-icon name="navigate-circle-outline"></ion-icon>
+                    <div><span>Interaktiv</span><strong>Simulyator</strong></div>
+                </a>
+                <a href="../index.html#download" class="cta-store-btn">
+                    <ion-icon name="logo-google-playstore"></ion-icon>
+                    <div><span>Yuklab oling</span><strong>Google Play</strong></div>
+                </a>
+                <a href="../index.html#download" class="cta-store-btn">
+                    <ion-icon name="logo-apple"></ion-icon>
+                    <div><span>Yuklab oling</span><strong>App Store</strong></div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Taksi Safar Kvitansiya Modal (Receipt Modal) -->
+    <div class="receipt-overlay" id="receipt-modal">
+        <div class="receipt-card">
+            <div class="receipt-header">
+                <div class="receipt-header-icon">
+                    <ion-icon name="checkmark-done-circle-outline"></ion-icon>
+                </div>
+                <h3>Safar yakunlandi!</h3>
+                <p>Orbita Go bilan sayohatingiz uchun rahmat.</p>
+            </div>
+            
+            <div class="receipt-info-row">
+                <span>Bosib o'tilgan masofa</span>
+                <strong id="receipt-distance">0 km</strong>
+            </div>
+            <div class="receipt-info-row">
+                <span>Safar davomiyligi</span>
+                <strong id="receipt-duration">0 daqiqa</strong>
+            </div>
+            <div class="receipt-info-row">
+                <span>Tanlangan tarif</span>
+                <strong id="receipt-tariff-name">Start</strong>
+            </div>
+            
+            <div class="receipt-total">
+                <span>Jami to'lov</span>
+                <strong id="receipt-total-cost">0 UZS</strong>
+            </div>
+
+            <div class="receipt-driver-info">
+                <div class="receipt-driver-avatar" id="receipt-driver-avatar-letter">A</div>
+                <div class="receipt-driver-details">
+                    <h4 id="receipt-driver-name">Akbar H. (Loyiha rahbari)</h4>
+                    <p id="receipt-driver-car">Chevrolet Gentra (90 A 777 AA)</p>
+                </div>
+            </div>
+
+            <div class="receipt-rating">
+                <ion-icon name="star" class="receipt-star active" data-rating="1"></ion-icon>
+                <ion-icon name="star" class="receipt-star active" data-rating="2"></ion-icon>
+                <ion-icon name="star" class="receipt-star active" data-rating="3"></ion-icon>
+                <ion-icon name="star" class="receipt-star active" data-rating="4"></ion-icon>
+                <ion-icon name="star" class="receipt-star active" data-rating="5"></ion-icon>
+            </div>
+
+            <button class="btn btn-primary" id="btn-close-receipt" style="width:100%; margin-top:24px; padding:12px; border-radius:12px; border:none; font-weight:bold; cursor:pointer; background:linear-gradient(135deg, var(--yellow), #f59e0b); color:#000;">
+                Yopish
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="page-footer">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+            <p>&copy; 2026 Orbita Go · <a href="../index.html" data-i18n="sub.back">Bosh sahifaga qaytish</a></p>
+            <div class="system-status-indicator" style="margin-top: 0;">
+                <span class="status-dot status-checking"></span>
+                <span class="status-text" id="system-status-text">Tizim holati tekshirilmoqda...</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Scroll reveal
+        const reveals = document.querySelectorAll('.reveal');
+        const obs = new IntersectionObserver(entries => {
+            entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('on'); obs.unobserve(e.target); } });
+        }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+        reveals.forEach(el => obs.observe(el));
+
+        // Leaflet Map Initialization
+        const KOSONSOY = [41.2605, 71.5508];
+        const map = L.map('calc-map').setView(KOSONSOY, 13);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19
+        }).addTo(map);
+
+        let pickupMarker = null, destMarker = null, routeLine = null;
+        let pickupLatLng = null, destLatLng = null;
+
+        const pickupInput = document.getElementById('calc-pickup');
+        const destInput = document.getElementById('calc-dest');
+        const pickupDD = document.getElementById('calc-pickup-dropdown');
+        const destDD = document.getElementById('calc-dest-dropdown');
+
+        const hudDistance = document.getElementById('calc-hud-distance');
+        const hudTime = document.getElementById('calc-hud-time');
+
+        let PRICES = { START: 5000, KOMFORT: 8000, BIZNES: 12000 };
+        let TAXI_RATES = { START: 1200, KOMFORT: 1600, BIZNES: 2200 };
+        let selectedTariff = 'START';
+
+        // Load dynamic taxi pricing settings
+        async function loadTaxiPricingSettings() {
+            try {
+                const apiBase = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+                    ? 'http://localhost:3000'
+                    : '';
+                const res = await fetch(`${apiBase}/api/settings`);
+                const data = await res.json();
+                if (data.success && data.settings && data.settings.taxiPricing) {
+                    const tp = data.settings.taxiPricing;
+                    PRICES = {
+                        START: tp.startBase || 5000,
+                        KOMFORT: tp.komfortBase || 8000,
+                        BIZNES: tp.biznesBase || 12000
+                    };
+                    TAXI_RATES = {
+                        START: tp.startKm || 1200,
+                        KOMFORT: tp.komfortKm || 1600,
+                        BIZNES: tp.biznesKm || 2200
+                    };
+                    updateCalculator();
+                }
+            } catch (err) {
+                console.warn('Failed to load dynamic taxi pricing settings:', err);
+            }
+        }
+        loadTaxiPricingSettings();
+
+        // Setup Autocomplete
+        setupAutocomplete(pickupInput, pickupDD, (name, lat, lng) => {
+            pickupInput.value = name;
+            pickupLatLng = [lat, lng];
+            if (pickupMarker) map.removeLayer(pickupMarker);
+            pickupMarker = L.marker(pickupLatLng).addTo(map);
+            updateCalculator();
+        });
+
+        setupAutocomplete(destInput, destDD, (name, lat, lng) => {
+            destInput.value = name;
+            destLatLng = [lat, lng];
+            if (destMarker) map.removeLayer(destMarker);
+            destMarker = L.marker(destLatLng).addTo(map);
+            updateCalculator();
+        });
+
+        function setupAutocomplete(input, dropdown, onSelect) {
+            let timer = null;
+            input.addEventListener('input', () => {
+                clearTimeout(timer);
+                const q = input.value.trim();
+                if (q.length < 3) { dropdown.style.display = 'none'; return; }
+                timer = setTimeout(async () => {
+                    try {
+                        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)},+Uzbekistan&format=json&limit=5&accept-language=uz`);
+                        const results = await res.json();
+                        if (results.length) {
+                            dropdown.innerHTML = '';
+                            dropdown.style.display = 'block';
+                            results.forEach(item => {
+                                const div = document.createElement('div');
+                                div.className = 'address-item';
+                                div.textContent = item.display_name;
+                                div.addEventListener('click', () => {
+                                    dropdown.style.display = 'none';
+                                    onSelect(item.display_name, parseFloat(item.lat), parseFloat(item.lon));
+                                });
+                                dropdown.appendChild(div);
+                            });
+                        } else dropdown.style.display = 'none';
+                    } catch { dropdown.style.display = 'none'; }
+                }, 500);
+            });
+            document.addEventListener('click', e => { if (e.target !== input) dropdown.style.display = 'none'; });
+        }
+
+        const delay = ms => new Promise(r => setTimeout(r, ms));
+        let activeDrivers = [];
+        let isBookingSimulating = false;
+        const driverNames = ["Boburjon S.", "Sardor M.", "Otabek K.", "Rustam A.", "Doston T.", "Elyor B.", "Jasur P.", "Nozim G."];
+        const driverCars = ["Cobalt (90 A 123 BA)", "Gentra (90 B 456 BB)", "Nexia 3 (90 C 789 CC)", "Tracker (90 D 012 DD)", "Gentra (90 E 345 EE)", "Onix (90 F 678 FF)", "Cobalt (90 G 901 GG)", "Damas (90 H 234 HH)"];
+
+        function spawnDrivers() {
+            const center = KOSONSOY;
+            for (let i = 0; i < 8; i++) {
+                const latOffset = (Math.random() - 0.5) * 0.02;
+                const lngOffset = (Math.random() - 0.5) * 0.02;
+                const lat = center[0] + latOffset;
+                const lng = center[1] + lngOffset;
+
+                const customCarMarkup = `
+                    <div style="background: #fbbf24; border: 2px solid #fff; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px rgba(0,0,0,0.5);">
+                        <span style="font-size:12px; line-height: 1;">🚕</span>
+                    </div>`;
+                const icon = L.divIcon({
+                    html: customCarMarkup,
+                    className: 'custom-car-icon',
+                    iconSize: [24, 24]
+                });
+
+                const marker = L.marker([lat, lng], { icon: icon }).addTo(map);
+                activeDrivers.push({
+                    id: i,
+                    name: driverNames[i],
+                    car: driverCars[i],
+                    marker: marker,
+                    lat: lat,
+                    lng: lng
+                });
+            }
+        }
+
+        function updateDriversMovement() {
+            if (isBookingSimulating) return;
+            activeDrivers.forEach(d => {
+                d.lat += (Math.random() - 0.5) * 0.0006;
+                d.lng += (Math.random() - 0.5) * 0.0006;
+                d.marker.setLatLng([d.lat, d.lng]);
+            });
+        }
+
+        // Spawn on map load
+        spawnDrivers();
+        setInterval(updateDriversMovement, 2000);
+
+        function updateCalculator() {
+            if (pickupLatLng && destLatLng) {
+                const dist = haversine(pickupLatLng, destLatLng);
+                const mins = Math.max(3, Math.round(dist / 0.4));
+                hudDistance.textContent = `${dist.toFixed(1)} km`;
+                hudTime.textContent = `~${mins} daq`;
+
+                // Calculate prices
+                const priceStart = PRICES.START + Math.round(dist * TAXI_RATES.START);
+                const priceKomfort = PRICES.KOMFORT + Math.round(dist * TAXI_RATES.KOMFORT);
+                const priceBiznes = PRICES.BIZNES + Math.round(dist * TAXI_RATES.BIZNES);
+
+                document.getElementById('calc-price-start').textContent = `${priceStart.toLocaleString()} UZS`;
+                document.getElementById('calc-price-komfort').textContent = `${priceKomfort.toLocaleString()} UZS`;
+                document.getElementById('calc-price-biznes').textContent = `${priceBiznes.toLocaleString()} UZS`;
+
+                // Draw route line
+                if (routeLine) map.removeLayer(routeLine);
+                routeLine = L.polyline([pickupLatLng, destLatLng], { color: '#6366f1', weight: 4, opacity: 0.8 }).addTo(map);
+                map.fitBounds(routeLine.getBounds(), { padding: [40, 40] });
+
+                // Enable order button
+                const orderBtn = document.getElementById('btn-order-ride');
+                orderBtn.removeAttribute('disabled');
+                orderBtn.style.cursor = 'pointer';
+                orderBtn.style.opacity = '1';
+            }
+        }
+
+        function haversine(a, b) {
+            const R = 6371, toR = d => d * Math.PI / 180;
+            const aLat = Array.isArray(a) ? a[0] : a.lat;
+            const aLng = Array.isArray(a) ? a[1] : a.lng;
+            const bLat = Array.isArray(b) ? b[0] : b.lat;
+            const bLng = Array.isArray(b) ? b[1] : b.lng;
+            const dLat = toR(bLat - aLat), dLng = toR(bLng - aLng);
+            const s = Math.sin(dLat/2)**2 + Math.cos(toR(aLat)) * Math.cos(toR(bLat)) * Math.sin(dLng/2)**2;
+            return R * 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1-s));
+        }
+
+        // Tariff selector interaction
+        document.querySelectorAll('.calc-tariff-card').forEach(card => {
+            card.addEventListener('click', () => {
+                document.querySelectorAll('.calc-tariff-card').forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+                selectedTariff = card.dataset.tariff;
+            });
+        });
+
+        // Booking simulator trigger
+        const orderBtn = document.getElementById('btn-order-ride');
+        orderBtn.addEventListener('click', startBookingSimulation);
+
+        async function startBookingSimulation() {
+            if (isBookingSimulating) return;
+            isBookingSimulating = true;
+            orderBtn.setAttribute('disabled', 'true');
+            orderBtn.style.opacity = '0.6';
+            orderBtn.style.cursor = 'not-allowed';
+            orderBtn.textContent = 'Haydovchi qidirilmoqda...';
+
+            // Find closest driver marker
+            let closestDriver = activeDrivers[0];
+            let minDist = Infinity;
+            activeDrivers.forEach(d => {
+                const dist = haversine([d.lat, d.lng], pickupLatLng);
+                if (dist < minDist) {
+                    minDist = dist;
+                    closestDriver = d;
+                }
+            });
+
+            // Focus map on closest driver
+            map.setView([closestDriver.lat, closestDriver.lng], 14);
+            await delay(2000);
+
+            // Accept booking state
+            orderBtn.textContent = 'Qabul qilindi! Haydovchi kelmoqda...';
+            const steps = 60;
+            const pLat = pickupLatLng[0], pLng = pickupLatLng[1];
+            const dLatStart = closestDriver.lat, dLngStart = closestDriver.lng;
+
+            // Move car to pickup manzil
+            for (let i = 1; i <= steps; i++) {
+                const currentLat = dLatStart + (pLat - dLatStart) * (i / steps);
+                const currentLng = dLngStart + (pLng - dLngStart) * (i / steps);
+                closestDriver.marker.setLatLng([currentLat, currentLng]);
+                map.setView([currentLat, currentLng]);
+                await delay(30);
+            }
+
+            // Arrived state
+            orderBtn.textContent = 'Yo\'lovchi salonga chiqmoqda...';
+            if (pickupMarker) map.removeLayer(pickupMarker);
+            await delay(2000);
+
+            // Journey to destination manzil
+            orderBtn.textContent = 'Manzilga yo\'lga chiqdik...';
+            const destLat = destLatLng[0], destLng = destLatLng[1];
+
+            for (let i = 1; i <= steps; i++) {
+                const currentLat = pLat + (destLat - pLat) * (i / steps);
+                const currentLng = pLng + (destLng - pLng) * (i / steps);
+                closestDriver.marker.setLatLng([currentLat, currentLng]);
+                map.setView([currentLat, currentLng]);
+                await delay(30);
+            }
+
+            // Safe completion
+            orderBtn.textContent = 'Safar yakunlandi!';
+            await delay(1000);
+
+            // Show Receipt
+            const dist = haversine(pickupLatLng, destLatLng);
+            const mins = Math.max(3, Math.round(dist / 0.4));
+            const basePrice = PRICES[selectedTariff];
+            const perKmPrice = TAXI_RATES[selectedTariff] || 1200;
+            const totalCost = basePrice + Math.round(dist * perKmPrice);
+
+            document.getElementById('receipt-distance').textContent = `${dist.toFixed(1)} km`;
+            document.getElementById('receipt-duration').textContent = `${mins} daqiqa`;
+            document.getElementById('receipt-tariff-name').textContent = selectedTariff;
+            document.getElementById('receipt-total-cost').textContent = `${totalCost.toLocaleString()} UZS`;
+            document.getElementById('receipt-driver-name').textContent = closestDriver.name;
+            document.getElementById('receipt-driver-car').textContent = closestDriver.car;
+            document.getElementById('receipt-driver-avatar-letter').textContent = closestDriver.name.charAt(0);
+
+            // Send telegram booking alert using unified gateway
+            window.sendTelegramNotification('order', {
+                pickup: pickupInput.value,
+                dest: destInput.value,
+                distance: `${dist.toFixed(1)} km`,
+                duration: `${mins} daqiqa`,
+                tariff: selectedTariff,
+                price: `${totalCost.toLocaleString()} UZS`,
+                driverName: closestDriver.name,
+                driverCar: closestDriver.car
+            });
+
+            document.getElementById('receipt-modal').classList.add('open');
+        }
+
+        // Close receipt interaction
+        document.getElementById('btn-close-receipt').addEventListener('click', () => {
+            document.getElementById('receipt-modal').classList.remove('open');
+            isBookingSimulating = false;
+            orderBtn.textContent = 'Buyurtma berish';
+
+            // Clean drivers
+            activeDrivers.forEach(d => map.removeLayer(d.marker));
+            activeDrivers = [];
+            spawnDrivers();
+
+            // Clear markers
+            pickupInput.value = '';
+            destInput.value = '';
+            pickupLatLng = null;
+            destLatLng = null;
+            if (pickupMarker) map.removeLayer(pickupMarker);
+            if (destMarker) map.removeLayer(destMarker);
+            if (routeLine) map.removeLayer(routeLine);
+            pickupMarker = null;
+            destMarker = null;
+            routeLine = null;
+
+            hudDistance.textContent = '-- km';
+            hudTime.textContent = '-- daq';
+            document.getElementById('calc-price-start').textContent = '-- UZS';
+            document.getElementById('calc-price-komfort').textContent = '-- UZS';
+            document.getElementById('calc-price-biznes').textContent = '-- UZS';
+
+            orderBtn.setAttribute('disabled', 'true');
+            orderBtn.style.opacity = '0.6';
+            orderBtn.style.cursor = 'not-allowed';
+        });
+
+        // Rating interaction
+        document.querySelectorAll('.receipt-star').forEach(star => {
+            star.addEventListener('click', () => {
+                const rating = parseInt(star.dataset.rating);
+                document.querySelectorAll('.receipt-star').forEach(s => {
+                    const r = parseInt(s.dataset.rating);
+                    if (r <= rating) s.classList.add('active');
+                    else s.classList.remove('active');
+                });
+            });
+        });
+
+        // Health check integration
+        function initSystemHealthCheck() {
+            const statusDot = document.querySelector('.status-dot');
+            const statusText = document.getElementById('system-status-text');
+            if (!statusDot || !statusText) return;
+
+            const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                ? 'http://localhost:3000'
+                : '';
+
+            async function checkHealth() {
+                try {
+                    const res = await fetch(`${API_BASE}/api/health`);
+                    const data = await res.json();
+                    if (data.status === 'ok') {
+                        statusDot.className = 'status-dot status-online';
+                        const lang = localStorage.getItem('orbita_lang') || 'uz';
+                        const texts = {
+                            uz: 'Tizim: API Onlayn (Baza ok)',
+                            ru: 'Система: API Онлайн (БД ок)',
+                            en: 'System: API Online (DB ok)'
+                        };
+                        statusText.textContent = texts[lang] || texts.uz;
+                    } else {
+                        statusDot.className = 'status-dot status-degraded';
+                        const lang = localStorage.getItem('orbita_lang') || 'uz';
+                        const texts = {
+                            uz: 'Tizim: Cheklangan rejim',
+                            ru: 'Система: Ограниченный режим',
+                            en: 'System: Degraded mode'
+                        };
+                        statusText.textContent = texts[lang] || texts.uz;
+                    }
+                } catch (err) {
+                    statusDot.className = 'status-dot status-offline';
+                    const lang = localStorage.getItem('orbita_lang') || 'uz';
+                    const texts = {
+                        uz: 'Tizim: API Oflayn (Ulanish xatosi)',
+                        ru: 'Система: API Оффлайн (Ошибка соединения)',
+                        en: 'System: API Offline (Connection Error)'
+                    };
+                    statusText.textContent = texts[lang] || texts.uz;
+                }
+            }
+
+            checkHealth();
+            setInterval(checkHealth, 15000);
+        }
+        document.addEventListener('DOMContentLoaded', initSystemHealthCheck);
+    </script>
+</body>
+</html>

@@ -1,0 +1,266 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                      String         @id @default(cuid())
+  orbitaId                String         @unique
+  password                String?
+  phoneNumber             String?        @unique
+  email                   String?        @unique
+  fullName                String?
+  username                String?        @unique
+  role                    String         @default("CLIENT")
+  isVerified              Boolean        @default(false)
+  avatarUrl               String?
+  walletBalance           Float          @default(5000)
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
+  // Referral system
+  referredById            String?
+  referredBy              User?          @relation("Referrals", fields: [referredById], references: [id])
+  referrals               User[]         @relation("Referrals")
+  isReferralRewardClaimed Boolean        @default(false)
+  totalStepsRedeemed      Int            @default(0)
+  lastCheckInAt           DateTime?
+  checkInStreak           Int            @default(0)
+  gameStats     GameStat[]
+  userMissions  UserMission[]
+  inventory     UserInventory[]
+  garden        GardenState?
+  driverProfile DriverProfile?
+  driverOrders  Order[]        @relation("DriverOrders")
+  clientOrders  Order[]        @relation("ClientOrders")
+  transactions  Transaction[]
+  favoriteAddresses FavoriteAddress[]
+  rideQuests        UserRideQuest[]
+}
+
+model Otp {
+  id          String   @id @default(cuid())
+  phoneNumber String
+  code        String
+  expiresAt   DateTime
+  attempts    Int      @default(0)
+  isUsed      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([phoneNumber])
+}
+
+model DriverProfile {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  carModel   String
+  carColor   String
+  carNumber  String   @unique
+  rating     Float    @default(5.0)
+  totalTrips Int      @default(0)
+  isOnline   Boolean  @default(false)
+  isVerified Boolean  @default(false)
+  currentLat Float?
+  currentLng Float?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id])
+}
+
+model Order {
+  id           String    @id @default(cuid())
+  clientId     String
+  driverId     String?
+  fromLat      Float
+  fromLng      Float
+  fromAddress  String
+  toLat        Float
+  toLng        Float
+  toAddress    String
+  tariff       String    @default("standard")
+  price        Float
+  distanceKm   Float?
+  durationMin  Int?
+  status       String    @default("SEARCHING")
+  clientRating Int?
+  driverRating Int?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  arrivedAt    DateTime?
+  stopAddress  String?
+  stopLat      Float?
+  stopLng      Float?
+  paymentMethod String    @default("CASH")
+  driver       User?     @relation("DriverOrders", fields: [driverId], references: [id])
+  client       User      @relation("ClientOrders", fields: [clientId], references: [id])
+
+  @@index([clientId, createdAt])
+  @@index([driverId, status])
+  @@index([status])
+}
+
+model TariffConfig {
+  id         String  @id @default(cuid())
+  name       String  @unique
+  label      String
+  basePrice  Float
+  pricePerKm Float
+  isActive   Boolean @default(true)
+  sortOrder  Int     @default(0)
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  orderId    String
+  senderId   String
+  senderRole String
+  text       String
+  createdAt  DateTime @default(now())
+}
+
+model Transaction {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  subtitle  String
+  amount    Float
+  isCredit  Boolean  // true = (+), false = (-)
+  type      String   // REGISTRATION_BONUS, TOPUP, COMMISSION, TRIP_EARNING
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model GameStat {
+  id        String   @id @default(cuid())
+  userId    String
+  gameType  String   // "GRAVITY_RUN", "MATH_DASH", "WORD_QUEST", "MEMORY"
+  highScore Int      @default(0)
+  level     Int      @default(1)
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, gameType])
+}
+
+model DailyMission {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  reward      Int      // In coins
+  goalValue   Int
+  gameType    String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}
+
+model UserMission {
+  id           String   @id @default(cuid())
+  userId       String
+  missionId    String
+  currentValue Int      @default(0)
+  isCompleted  Boolean  @default(false)
+  isClaimed    Boolean  @default(false)
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id])
+}
+
+model ShopItem {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  price       Int      // In coins
+  category    String   // "SKIN", "POWERUP"
+  imageUrl    String?
+  isActive    Boolean  @default(true)
+}
+
+model UserInventory {
+  id         String   @id @default(cuid())
+  userId     String
+  itemId     String
+  quantity   Int      @default(1)
+  isEquipped Boolean  @default(false)
+  user       User     @relation(fields: [userId], references: [id])
+}
+
+model GardenState {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  level     Int      @default(1)
+  water     Int      @default(0)
+  treeType  String   @default("OAK")
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model PromoCode {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  amount    Float
+  isUsed    Boolean  @default(false)
+  userId    String?
+  createdAt DateTime @default(now())
+}
+
+model FavoriteAddress {
+  id        String   @id @default(cuid())
+  userId    String
+  label     String   // e.g. "Uy", "Ish"
+  address   String
+  lat       Float
+  lng       Float
+  iconType  String   @default("HOME") // HOME, WORK, HEART, STAR
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model RideQuest {
+  id          String             @id @default(cuid())
+  title       String
+  description String
+  targetCount Int
+  rewardPrice Float
+  isActive    Boolean            @default(true)
+  createdAt   DateTime           @default(now())
+  userQuests  UserRideQuest[]
+}
+
+model UserRideQuest {
+  id           String    @id @default(cuid())
+  userId       String
+  questId      String
+  currentCount Int       @default(0)
+  isCompleted  Boolean   @default(false)
+  isClaimed    Boolean   @default(false)
+  updatedAt    DateTime  @updatedAt
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quest        RideQuest @relation(fields: [questId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questId])
+}
+
+model GardenCoopAction {
+  id          String   @id @default(cuid())
+  giverId     String
+  receiverId  String
+  createdAt   DateTime @default(now())
+  
+  @@index([giverId, createdAt])
+}
+
+model GeoQuest {
+  id          String   @id @default(cuid())
+  title       String
+  lat         Float
+  lng         Float
+  radius      Float    // in meters
+  goalSteps   Int
+  rewardCoins Int
+  rewardCouponCode String?
+}

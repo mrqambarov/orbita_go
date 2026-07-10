@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  # Database Service (PostgreSQL)
+  postgres:
+    image: postgres:15-alpine
+    container_name: orbita-go-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: orbitago
+      POSTGRES_PASSWORD: orbitago_password_2026
+      POSTGRES_DB: orbita_go
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U orbitago -d orbita_go"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend App Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: orbita-go-backend
+    restart: always
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      NODE_ENV: production
+      DATABASE_URL: "postgresql://orbitago:orbitago_password_2026@postgres:5432/orbita_go?schema=public"
+      JWT_SECRET: "kuchli_random_jwt_secret_orbita_go_2026"
+      ADMIN_SECRET: "orbita-admin-secret-2026"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+    driver: local

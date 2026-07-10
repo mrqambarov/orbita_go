@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orbita Go — Professional Admin Dashboard</title>
+    <script>
+        // Redirect /admin to /admin/ to ensure relative path assets resolve correctly
+        if (window.location.pathname === '/admin') {
+            window.location.replace('/admin/');
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Ionicons -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        /* ===== GLOBAL STYLES & RESET ===== */
+        *, *::before, *::after {
+            margin: 0; padding: 0; box-sizing: border-box;
+        }
+        :root {
+            --p: #6366f1;
+            --p-l: #818cf8;
+            --p-d: #4f46e5;
+            --purple: #d946ef;
+            --purple-glow: rgba(217, 70, 239, 0.15);
+            --primary-glow: rgba(99, 102, 241, 0.15);
+            --green: #10b981;
+            --yellow: #fbbf24;
+            --red: #ef4444;
+            --bg: #030014;
+            --surf: rgba(13, 10, 38, 0.7);
+            --surf-l: rgba(22, 18, 55, 0.85);
+            --border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-hint: #64748b;
+            --transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            --font-main: 'Plus Jakarta Sans', sans-serif;
+            --font-title: 'Space Grotesk', sans-serif;
+        }
+        
+        body {
+            font-family: var(--font-main);
+            background: var(--bg);
+            color: var(--text-main);
+            display: flex; min-height: 100vh; overflow-x: hidden;
+            background-image: radial-gradient(circle at 10% 20%, rgba(99,102,241,0.06) 0%, transparent 40%),
+                              radial-gradient(circle at 90% 80%, rgba(217,70,239,0.04) 0%, transparent 40%);
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.25); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(99, 102, 241, 0.45); }
+
+        a { text-decoration: none; color: inherit; }
+
+        /* ===== LOGIN OVERLAY ===== */
+        #login-screen {
+            position: fixed; inset: 0; z-index: 9999;
+            background: #030014;
+            display: flex; align-items: center; justify-content: center;
+            background-image: radial-gradient(circle at 30% 30%, rgba(99,102,241,0.15), transparent 50%),
+                              radial-gradient(circle at 70% 70%, rgba(217,70,239,0.1), transparent 50%);
+        }
+        .login-card {
+            background: var(--surf); border: 1px solid var(--border);
+            backdrop-filter: blur(35px); -webkit-backdrop-filter: blur(35px);
+            border-radius: 32px;
+            padding: 56px 44px; width: 100%; max-width: 440px;
+            display: flex; flex-direction: column; gap: 26px;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.1);
+            text-align: center;
+        }
+        .login-logo { display: flex; align-items: center; gap: 12px; justify-content: center; }
+        .login-logo-icon {
+            width: 48px; height: 48px; border-radius: 16px;
+            background: linear-gradient(135deg, var(--p-d), var(--purple));
+            display: flex; align-items: center; justify-content: center; font-size: 24px;
+            box-shadow: 0 0 25px rgba(99,102,241,0.45);
+        }
+        .login-logo span { font-size: 26px; font-weight: 900; font-family: var(--font-title); }
+        .login-logo span span { color: var(--purple); }
+        .login-card h2 { font-size: 20px; font-weight: 700; color: var(--text-muted); }
+        .login-input {
+            width: 100%; background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border); color: #fff;
+            padding: 15px 20px; border-radius: 16px;
+            font-size: 14.5px; outline: none; transition: var(--transition);
+            font-family: inherit;
+        }
+        .login-input:focus { border-color: var(--p-l); box-shadow: 0 0 0 4px rgba(99,102,241,0.15); }
+        .login-btn {
+            background: linear-gradient(135deg, var(--p), var(--p-d));
+            color: #fff; border: none; padding: 15px; border-radius: 16px;
+            font-size: 15.5px; font-weight: 700; cursor: pointer;
+            font-family: inherit; transition: var(--transition);
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .login-btn:hover { transform: translateY(-2px); box-shadow: 0 15px 35px rgba(99,102,241,0.4); }
+        .login-err { color: var(--red); font-size: 13px; font-weight: 600; display: none; }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: 260px; flex-shrink: 0;
+            background: rgba(5, 3, 20, 0.95);
+            border-right: 1px solid var(--border);
+            display: flex; flex-direction: column;
+            padding: 28px 20px; gap: 8px;
+            position: fixed; top: 0; left: 0; bottom: 0; z-index: 100;
+            transition: var(--transition);
+        }
+        .sidebar-logo {
+            display: flex; align-items: center; gap: 12px;
+            padding: 8px 12px 24px; border-bottom: 1px solid var(--border);
+            margin-bottom: 12px;
+        }
+        .sidebar-logo-icon {
+            width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+            background: linear-gradient(135deg, var(--p-d), var(--purple));
+            display: flex; align-items: center; justify-content: center; font-size: 20px;
+        }
+        .sidebar-logo span { font-size: 20px; font-weight: 900; font-family: var(--font-title); }
+        .sidebar-logo span span { color: var(--purple); }
+
+        .nav-item {
+            display: flex; align-items: center; gap: 14px;
+            padding: 12px 16px; border-radius: 16px;
+            color: var(--text-muted); font-size: 14px; font-weight: 600;
+            cursor: pointer; transition: var(--transition); border: none;
+            background: none; width: 100%; text-align: left;
+            font-family: inherit;
+        }
+        .nav-item ion-icon { font-size: 20px; flex-shrink: 0; }
+        .nav-item:hover { color: #fff; background: rgba(255,255,255,0.03); }
+        .nav-item.active {
+            color: #fff; background: rgba(99,102,241,0.12);
+            border: 1px solid rgba(99,102,241,0.22);
+            box-shadow: 0 8px 24px rgba(99,102,241,0.05);
+        }
+        .nav-badge {
+            margin-left: auto; background: var(--purple); color: #fff;
+            font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 8px;
+        }
+        .nav-section-label {
+            font-size: 10px; font-weight: 800; color: var(--text-hint);
+            text-transform: uppercase; letter-spacing: 1.5px;
+            padding: 14px 16px 6px;
+        }
+        .sidebar-footer { margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border); }
+
+        /* ===== MAIN CONTENT WRAPPER ===== */
+        .main-content {
+            margin-left: 260px; flex: 1;
+            display: flex; flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        /* Topbar */
+        .topbar {
+            background: rgba(5, 3, 20, 0.85); backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border-bottom: 1px solid var(--border);
+            padding: 20px 36px; display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 50;
+        }
+        .topbar-title { font-size: 22px; font-weight: 800; font-family: var(--font-title); }
+        .topbar-right { display: flex; align-items: center; gap: 14px; }
+        .topbar-icon-btn {
+            width: 42px; height: 42px; border-radius: 14px;
+            background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; cursor: pointer; color: var(--text-muted);
+            transition: var(--transition);
+        }
+        .topbar-icon-btn:hover { background: rgba(99,102,241,0.12); color: #fff; transform: translateY(-1px); }
+        .live-badge {
+            display: flex; align-items: center; gap: 8px;
+            background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2);
+            color: var(--green); font-size: 11.5px; font-weight: 700;
+            padding: 6px 14px; border-radius: 10px;
+        }
+        .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 1.6s infinite alternate; }
+
+        .page-section { display: none; padding: 36px; animation: fadeInSection 0.4s ease; }
+        .page-section.active { display: block; }
+
+        @keyframes fadeInSection {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== STAT CARDS ===== */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 28px; }
+        .stat-card {
+            background: var(--surf); border: 1px solid var(--border);
+            border-radius: 24px; padding: 26px;
+            display: flex; flex-direction: column; gap: 12px;
+            transition: var(--transition); position: relative; overflow: hidden;
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        }
+        .stat-card:hover { border-color: rgba(99,102,241,0.25); transform: translateY(-4px); box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
+        .stat-card::before {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(circle at top right, var(--card-glow, rgba(99,102,241,0.05)), transparent 70%);
+            pointer-events: none;
+        }
+        .stat-icon {
+            width: 48px; height: 48px; border-radius: 16px;
+            display: flex; align-items: center; justify-content: center; font-size: 24px;
+        }
+        .stat-label { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; }
+        .stat-value { font-size: 34px; font-weight: 900; letter-spacing: -1.5px; line-height: 1; font-family: var(--font-title); }
+        .stat-change { font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 4px; }
+        .stat-change.up { color: var(--green); }
+        .stat-change.down { color: var(--red); }
+
+        /* ===== CHARTS SECTION ===== */
+        .charts-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; margin-bottom: 28px; }
+        .chart-card {
+            background: var(--surf); border: 1px solid var(--border);
+            border-radius: 24px; padding: 26px; backdrop-filter: blur(20px);
+        }
+        .chart-card h3 { font-size: 16px; font-weight: 800; margin-bottom: 24px; font-family: var(--font-title); }
+        .chart-wrapper { position: relative; height: 260px; }
+
+        /* ===== TABLE CONTROLS & TABLES ===== */
+        .table-card {
+            background: var(--surf); border: 1px solid var(--border);
+            border-radius: 24px; overflow: hidden; margin-bottom: 28px;
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        }
+        .table-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 22px 28px; border-bottom: 1px solid var(--border);
+            flex-wrap: wrap; gap: 16px;
+        }
+        .table-header h3 { font-size: 17px; font-weight: 800; font-family: var(--font-title); }
+        .table-toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .table-search {
+            background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+            color: #fff; padding: 10px 16px; border-radius: 12px; font-size: 13.5px;
+            outline: none; font-family: inherit; width: 220px; transition: var(--transition);
+        }
+        .table-search:focus { border-color: var(--p-l); box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+        .filter-btn {
+            background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+            color: var(--text-muted); padding: 10px 16px; border-radius: 12px; font-size: 12px;
+            cursor: pointer; font-family: inherit; transition: var(--transition); display: flex; gap: 8px; align-items: center;
+            font-weight: 700;
+        }
+        .filter-btn.active { background: rgba(99,102,241,0.12); border-color: rgba(99,102,241,0.3); color: var(--p-l); }
+        .filter-btn:hover { color: #fff; background: rgba(255,255,255,0.06); }
+
+        table { width: 100%; border-collapse: collapse; }
+        thead th {
+            padding: 16px 28px; text-align: left;
+            font-size: 10px; font-weight: 800; color: var(--text-hint);
+            text-transform: uppercase; letter-spacing: 1px;
+            background: rgba(255,255,255,0.01); border-bottom: 1px solid var(--border);
+        }
+        tbody tr { border-bottom: 1px solid var(--border); transition: var(--transition); }
+        tbody tr:last-child { border-bottom: none; }
+        tbody tr:hover { background: rgba(255,255,255,0.02); }
+        tbody td { padding: 16px 28px; font-size: 14px; font-weight: 500; vertical-align: middle; }
+
+        /* Chips styling */
+        .chip {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 5px 12px; border-radius: 10px; font-size: 11px; font-weight: 800;
+            border: 1px solid; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .chip-green { background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.25); color: #34d399; }
+        .chip-yellow { background: rgba(251,191,36,0.1); border-color: rgba(251,191,36,0.25); color: #fbbf24; }
+        .chip-red { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.25); color: #f87171; }
+        .chip-blue { background: rgba(99,102,241,0.1); border-color: rgba(99,102,241,0.25); color: #818cf8; }
+        .chip-gray { background: rgba(100,116,139,0.1); border-color: rgba(100,116,139,0.25); color: #94a3b8; }
+
+        /* User profiles cells */
+        .user-cell { display: flex; align-items: center; gap: 12px; }
+        .mini-avatar {
+            width: 38px; height: 38px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 15px; font-weight: 800; color: #fff; flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .mini-name { font-weight: 700; font-size: 14px; }
+        .mini-sub { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+
+        /* Action buttons */
+        .act-btn {
+            background: rgba(255,255,255,0.02); border: 1px solid var(--border); color: var(--text-muted);
+            padding: 8px 14px; border-radius: 10px; cursor: pointer;
+            font-size: 12px; font-family: inherit; font-weight: 600; transition: var(--transition);
+        }
+        .act-btn:hover { color: #fff; border-color: var(--p-l); background: rgba(99,102,241,0.08); }
+        .act-btn.danger:hover { color: var(--red); border-color: var(--red); background: rgba(239,68,68,0.08); }
+
+        /* Live Logger Console (Terminal dashboard log feed) */
+        .logger-card {
+            background: #000; border: 1px solid var(--border);
+            border-radius: 24px; padding: 24px; margin-bottom: 28px;
+            font-family: var(--font-mono); font-size: 12px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+        }
+        .logger-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px;
+        }
+        .logger-header h4 { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px; color: var(--text-muted); }
+        .logger-body {
+            height: 160px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;
+            color: #a6fcc5;
+        }
+        .log-row { display: flex; gap: 10px; }
+        .log-time { color: var(--text-hint); }
+        .log-method { color: var(--purple); font-weight: 700; }
+        .log-status-200 { color: var(--green); }
+
+        /* Settings Card Form styling */
+        .settings-card {
+            background: var(--surf); border: 1px solid var(--border);
+            border-radius: 24px; padding: 32px; margin-bottom: 24px;
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        }
+        .settings-card h3 { font-size: 16px; font-weight: 800; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; font-family: var(--font-title); }
+        .settings-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 16px; }
+        .settings-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 16px; }
+        .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+        .form-group label { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; }
+        .form-control {
+            background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+            border-radius: 12px; padding: 12px 16px; color: #fff; font-family: inherit; font-size: 14px;
+            outline: none; transition: var(--transition);
+        }
+        .form-control:focus { border-color: var(--p-l); box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+
+        /* Custom Switch */
+        .switch-container {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(255,255,255,0.02); border: 1px solid var(--border);
+            padding: 14px 20px; border-radius: 16px; margin-bottom: 12px;
+        }
+        .switch-label { font-size: 13.5px; font-weight: 600; }
+        .switch {
+            position: relative; display: inline-block; width: 46px; height: 24px;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; inset: 0;
+            background-color: rgba(255,255,255,0.1);
+            transition: .3s; border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 18px; width: 18px;
+            left: 3px; bottom: 3px; background-color: white;
+            transition: .3s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--p); }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        /* Loading Spinner */
+        .loading-row td { text-align: center; padding: 48px; color: var(--text-muted); }
+        .spinner {
+            width: 24px; height: 24px; border-radius: 50%;
+            border: 3px solid rgba(99,102,241,0.2); border-top-color: var(--p);
+            animation: spin 0.8s linear infinite; display: inline-block; margin-right: 12px; vertical-align: middle;
+        }
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+        .empty-state ion-icon { font-size: 56px; opacity: 0.2; display: block; margin: 0 auto 16px; }
+
+        /* ===== TOAST ALERTS ===== */
+        .toast {
+            position: fixed; top: 24px; right: 24px; z-index: 10000;
+            background: rgba(10, 8, 30, 0.96); border: 1px solid var(--border);
+            border-radius: 20px; padding: 16px 24px;
+            display: none; align-items: center; gap: 14px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.6); min-width: 320px;
+            animation: slideInRight 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+        }
+        .toast.show { display: flex; }
+        .toast-icon { font-size: 24px; }
+        .toast-text strong { display: block; font-size: 14.5px; font-weight: 800; }
+        .toast-text span { display: block; font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+        /* ===== DETAIL MODALS / INSPECTORS ===== */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(3,0,20,0.75);
+            z-index: 1000; display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+        }
+        .modal-overlay.show { opacity: 1; pointer-events: auto; }
+        .modal-card {
+            background: var(--surf-l); border: 1px solid var(--border);
+            border-radius: 32px; padding: 40px; width: 100%; max-width: 500px;
+            box-shadow: 0 35px 80px rgba(0,0,0,0.8);
+            transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .modal-overlay.show .modal-card { transform: scale(1); }
+        .modal-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .modal-card-header h3 { font-size: 18px; font-weight: 800; font-family: var(--font-title); }
+        .close-modal-btn { background: none; border: none; color: var(--text-muted); font-size: 24px; cursor: pointer; transition: var(--transition); }
+        .close-modal-btn:hover { color: #fff; }
+        .modal-info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+        .modal-info-row span:first-child { color: var(--text-muted); }
+        .modal-info-row span:last-child { font-weight: 700; }
+
+        @media(max-width: 1100px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .charts-grid { grid-template-columns: 1fr; }
+        }
+        @media(max-width: 768px) {
+            .sidebar { width: 70px; padding: 24px 10px; }
+            .sidebar-logo span, .nav-item span, .nav-section-label { display: none; }
+            .main-content { margin-left: 70px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .topbar { padding: 16px 20px; }
+            .page-section { padding: 20px; }
+            .settings-grid-2, .settings-grid-3 { grid-template-columns: 1fr; }
+        }
+
+        /* ===== KEYFRAMES ===== */
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes slideInRight { from { transform: translateX(40px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<!-- ======================================================
+     LOGIN SCREEN
+     ====================================================== -->
+<div id="login-screen">
+    <div class="login-card">
+        <div class="login-logo">
+            <div class="login-logo-icon"><ion-icon name="rocket-outline"></ion-icon></div>
+            <span>Orbita<span>Go</span></span>
+        </div>
+        <h2>Admin Panel</h2>
+        <input type="text" class="login-input" id="admin-user" placeholder="Login" value="admin">
+        <input type="password" class="login-input" id="admin-pass" placeholder="Parol">
+        <div class="login-err" id="login-err">Login yoki parol noto'g'ri</div>
+        <button class="login-btn" id="login-btn">
+            <ion-icon name="log-in-outline"></ion-icon> Kirish
+        </button>
+        <p style="font-size:12px;color:var(--text-hint);">Demo: admin / admin123</p>
+    </div>
+</div>
+
+<!-- ======================================================
+     SIDEBAR
+     ====================================================== -->
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+        <div class="sidebar-logo-icon"><ion-icon name="rocket-outline"></ion-icon></div>
+        <span>Orbita<span>Go</span></span>
+    </div>
+
+    <span class="nav-section-label">Asosiy</span>
+    <button class="nav-item active" data-page="dashboard" id="nav-dashboard">
+        <ion-icon name="grid-outline"></ion-icon>
+        <span>Dashboard</span>
+    </button>
+    <button class="nav-item" data-page="orders" id="nav-orders">
+        <ion-icon name="car-outline"></ion-icon>
+        <span>Buyurtmalar</span>
+        <span class="nav-badge" id="badge-orders">0</span>
+    </button>
+
+    <span class="nav-section-label">Foydalanuvchilar</span>
+    <button class="nav-item" data-page="drivers" id="nav-drivers">
+        <ion-icon name="person-circle-outline"></ion-icon>
+        <span>Haydovchilar</span>
+    </button>
+    <button class="nav-item" data-page="users" id="nav-users">
+        <ion-icon name="people-outline"></ion-icon>
+        <span>Foydalanuvchilar</span>
+    </button>
+
+    <span class="nav-section-label">O'yinlar</span>
+    <button class="nav-item" data-page="leaderboard" id="nav-leaderboard">
+        <ion-icon name="trophy-outline"></ion-icon>
+        <span>Peshqadamlar</span>
+    </button>
+
+    <span class="nav-section-label">Tizim</span>
+    <button class="nav-item" data-page="settings" id="nav-settings">
+        <ion-icon name="settings-outline"></ion-icon>
+        <span>Sozlamalar</span>
+    </button>
+
+    <div class="sidebar-footer">
+        <button class="nav-item" id="logout-btn">
+            <ion-icon name="log-out-outline"></ion-icon>
+            <span>Chiqish</span>
+        </button>
+        <button class="nav-item" onclick="window.open('../index.html')">
+            <ion-icon name="globe-outline"></ion-icon>
+            <span>Veb-sayt</span>
+        </button>
+    </div>
+</aside>
+
+<!-- ======================================================
+     MAIN CONTENT
+     ====================================================== -->
+<main class="main-content" id="main-content">
+    <!-- Topbar -->
+    <div class="topbar">
+        <div class="topbar-title" id="topbar-title">Dashboard</div>
+        <div class="topbar-right">
+            <div class="live-badge"><span class="live-dot"></span> Real-time</div>
+            <button class="topbar-icon-btn" onclick="refreshAll()" title="Yangilash">
+                <ion-icon name="refresh-outline"></ion-icon>
+            </button>
+            <button class="topbar-icon-btn" onclick="window.open('../index.html')" title="Veb-sayt">
+                <ion-icon name="open-outline"></ion-icon>
+            </button>
+        </div>
+    </div>
+
+    <!-- ========== DASHBOARD SECTION ========== -->
+    <section class="page-section active" id="page-dashboard">
+        <!-- Stat Cards -->
+        <div class="stats-grid">
+            <div class="stat-card" style="--card-glow:rgba(99,102,241,.08);">
+                <div class="stat-icon" style="background:rgba(99,102,241,.12);color:#818cf8;"><ion-icon name="car-sport"></ion-icon></div>
+                <span class="stat-label">Jami buyurtmalar</span>
+                <div class="stat-value" id="s-total-orders">—</div>
+                <div class="stat-change up" id="s-orders-change"><ion-icon name="trending-up-outline"></ion-icon> Yuklanmoqda...</div>
+            </div>
+            <div class="stat-card" style="--card-glow:rgba(16,185,129,.08);">
+                <div class="stat-icon" style="background:rgba(16,185,129,.12);color:#34d399;"><ion-icon name="people"></ion-icon></div>
+                <span class="stat-label">Foydalanuvchilar</span>
+                <div class="stat-value" id="s-total-users">—</div>
+                <div class="stat-change up" id="s-users-change"><ion-icon name="trending-up-outline"></ion-icon> Yuklanmoqda...</div>
+            </div>
+            <div class="stat-card" style="--card-glow:rgba(251,191,36,.08);">
+                <div class="stat-icon" style="background:rgba(251,191,36,.12);color:#fbbf24;"><ion-icon name="person-circle"></ion-icon></div>
+                <span class="stat-label">Faol haydovchilar</span>
+                <div class="stat-value" id="s-active-drivers">—</div>
+                <div class="stat-change" id="s-drivers-change"><ion-icon name="ellipse-outline"></ion-icon> Yuklanmoqda...</div>
+            </div>
+            <div class="stat-card" style="--card-glow:rgba(217,70,239,.08);">
+                <div class="stat-icon" style="background:rgba(217,70,239,.12);color:#f472b6;"><ion-icon name="trophy"></ion-icon></div>
+                <span class="stat-label">Haftalik turnir balllar</span>
+                <div class="stat-value" id="s-tournament-score">—</div>
+                <div class="stat-change up" id="s-tournament-change"><ion-icon name="trending-up-outline"></ion-icon> Yuklanmoqda...</div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h3>📊 Haftalik buyurtmalar</h3>
+                <div class="chart-wrapper"><canvas id="chart-orders"></canvas></div>
+            </div>
+            <div class="chart-card">
+                <h3>🎯 Tarif taqsimoti</h3>
+                <div class="chart-wrapper"><canvas id="chart-tariffs"></canvas></div>
+            </div>
+        </div>
+
+        <!-- System live request ticker -->
+        <div class="logger-card">
+            <div class="logger-header">
+                <h4><ion-icon name="pulse-outline" style="color: var(--green)"></ion-icon> Tizimning Jonli So'rovlar Logi (Simulated API Log)</h4>
+                <span style="font-size:10px;color:var(--text-hint);">FPS: 60 · STATUS: NOMINAL</span>
+            </div>
+            <div class="logger-body" id="system-logs-body">
+                <!-- Log entries added dynamically via js -->
+            </div>
+        </div>
+
+        <!-- Recent Orders -->
+        <div class="table-card">
+            <div class="table-header">
+                <h3>🚗 So'nggi buyurtmalar</h3>
+                <button class="filter-btn" onclick="switchPage('orders')">
+                    <ion-icon name="arrow-forward-outline"></ion-icon> Barchasi
+                </button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#ID</th><th>Mijoz</th><th>Qayerdan</th><th>Qayerga</th><th>Tarif</th><th>Narx</th><th>Holat</th>
+                    </tr>
+                </thead>
+                <tbody id="recent-orders-body">
+                    <tr class="loading-row"><td colspan="7"><span class="spinner"></span>Yuklanmoqda...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ========== ORDERS SECTION ========== -->
+    <section class="page-section" id="page-orders">
+        <div class="table-card">
+            <div class="table-header">
+                <h3>🚗 Barcha Buyurtmalar</h3>
+                <div class="table-toolbar">
+                    <input type="text" class="table-search" id="orders-search" placeholder="🔍 Qidirish...">
+                    <button class="filter-btn active" data-filter="ALL" onclick="filterOrders(this)">Barchasi</button>
+                    <button class="filter-btn" data-filter="COMPLETED" onclick="filterOrders(this)">Yakunlangan</button>
+                    <button class="filter-btn" data-filter="PENDING" onclick="filterOrders(this)">Kutmoqda</button>
+                    <button class="filter-btn" data-filter="CANCELLED" onclick="filterOrders(this)">Bekor</button>
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#ID</th><th>Mijoz</th><th>Haydovchi</th><th>Marshrut</th><th>Tarif</th><th>Narx</th><th>Sana</th><th>Holat</th><th>Amal</th>
+                    </tr>
+                </thead>
+                <tbody id="orders-body">
+                    <tr class="loading-row"><td colspan="9"><span class="spinner"></span>Yuklanmoqda...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ========== DRIVERS SECTION ========== -->
+    <section class="page-section" id="page-drivers">
+        <div class="table-card">
+            <div class="table-header">
+                <h3>🚖 Haydovchilar</h3>
+                <div class="table-toolbar">
+                    <input type="text" class="table-search" id="drivers-search" placeholder="🔍 Qidirish...">
+                    <button class="filter-btn active" data-filter="ALL" onclick="filterDrivers(this)">Barchasi</button>
+                    <button class="filter-btn" data-filter="ACTIVE" onclick="filterDrivers(this)">Faol</button>
+                    <button class="filter-btn" data-filter="BLOCKED" onclick="filterDrivers(this)">Bloklangan</button>
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Haydovchi</th><th>Telefon</th><th>Avtomobil</th><th>Reyting</th><th>Safarlar</th><th>Holat</th><th>Amal</th>
+                    </tr>
+                </thead>
+                <tbody id="drivers-body">
+                    <tr class="loading-row"><td colspan="7"><span class="spinner"></span>Yuklanmoqda...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ========== USERS SECTION ========== -->
+    <section class="page-section" id="page-users">
+        <div class="table-card">
+            <div class="table-header">
+                <h3>👥 Foydalanuvchilar</h3>
+                <div class="table-toolbar">
+                    <input type="text" class="table-search" id="users-search" placeholder="🔍 Qidirish...">
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr><th>Foydalanuvchi</th><th>Telefon</th><th>Qadamlar</th><th>Ball</th><th>Safarlar</th><th>Ro'yxat sanasi</th></tr>
+                </thead>
+                <tbody id="users-body">
+                    <tr class="loading-row"><td colspan="6"><span class="spinner"></span>Yuklanmoqda...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ========== LEADERBOARD SECTION ========== -->
+    <section class="page-section" id="page-leaderboard">
+        <div class="table-card">
+            <div class="table-header">
+                <h3>🏆 Haftalik Peshqadamlar</h3>
+                <div class="live-badge"><span class="live-dot"></span> Real-time</div>
+            </div>
+            <table>
+                <thead>
+                    <tr><th>Rank</th><th>O'yinchi</th><th>Jami Ball</th><th>Daraxt Darajasi</th></tr>
+                </thead>
+                <tbody id="lb-body">
+                    <tr class="loading-row"><td colspan="4"><span class="spinner"></span>Yuklanmoqda...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ========== SETTINGS SECTION ========== -->
+    <section class="page-section" id="page-settings">
+        <!-- Tab Sub-Navigation for settings groups -->
+        <div style="display:flex;gap:12px;margin-bottom:24px;border-bottom:1px solid var(--border);padding-bottom:14px;">
+            <button class="filter-btn active" data-set-tab="company" onclick="switchSettingsTab(this, 'company')">🏢 Tashkilot Aloqa</button>
+            <button class="filter-btn" data-set-tab="developer" onclick="switchSettingsTab(this, 'developer')">💻 Dasturchi Portfoliosi</button>
+            <button class="filter-btn" data-set-tab="system" onclick="switchSettingsTab(this, 'system')">⚙️ Tizim & Tariflar</button>
+            <button class="filter-btn" data-set-tab="server" onclick="switchSettingsTab(this, 'server')">🖥 Server & DB (.env)</button>
+        </div>
+
+        <!-- 1. Company Tab Settings -->
+        <div class="settings-tab-content" id="set-section-company">
+            <div class="settings-card">
+                <h3>🏢 Tashkilot (Orbita Go) Aloqa Ma'lumotlari</h3>
+                <p style="font-size:12.5px;color:var(--text-muted);margin-bottom:20px;">
+                    Bu bo'limdagi ma'lumotlar bosh sahifaning (landing page) futer qismidagi kompaniya aloqalari va havolalarini yangilaydi.
+                </p>
+                <div class="settings-grid-3">
+                    <div class="form-group">
+                        <label for="set-comp-phone">Tashkilot telefoni</label>
+                        <input type="text" id="set-comp-phone" class="form-control" placeholder="+998 (50) 030-35-55">
+                    </div>
+                    <div class="form-group">
+                        <label for="set-comp-email">Kompaniya e-pochtasi</label>
+                        <input type="email" id="set-comp-email" class="form-control" placeholder="support@orbitago.uz">
+                    </div>
+                    <div class="form-group">
+                        <label for="set-comp-telegram">Telegram kanal / bot username</label>
+                        <input type="text" id="set-comp-telegram" class="form-control" placeholder="orbitago">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Developer Tab Settings -->
+        <div class="settings-tab-content" id="set-section-developer" style="display:none;">
+            <div class="settings-card">
+                <h3>💻 Dasturchi (Shaxsiy) Portfolio Sozlamalari</h3>
+                <p style="font-size:12.5px;color:var(--text-muted);margin-bottom:20px;">
+                    Dasturchi sahifasidagi ("Dasturchi" menyusi) ma'lumotlarni bevosita boshqarish. Bosh sahifa kontaktlariga ta'sir qilmaydi.
+                </p>
+                <div class="settings-grid-3">
+                    <div class="form-group">
+                        <label for="set-dev-name">Dasturchi F.I.Sh.</label>
+                        <input type="text" id="set-dev-name" class="form-control" placeholder="Anvar Qambarov">
+                    </div>
+                    <div class="form-group">
+                        <label for="set-dev-role">Mutaxassisligi / Role</label>
+                        <input type="text" id="set-dev-role" class="form-control" placeholder="Senior Full-Stack Engineer & Founder">
+                    </div>
+                    <div class="form-group">
+                        <label for="set-dev-initials">Avatar bosh harflari (Initials)</label>
+                        <input type="text" id="set-dev-initials" class="form-control" placeholder="AQ" maxlength="3">
+                    </div>
+                </div>
+                <div class="settings-grid-3">
+                    <div class="form-group">
+                        <label for="set-dev-phone">Shaxsiy telefoni</label>
+                        <input type="text" id="set-dev-phone" class="form-control" placeholder="+998 (50) 030-35-55">
+                    </div>
+                    <div class="form-group">
+                        <label for="set-dev-email">Shaxsiy e-pochtasi</label>
+                        <input type="email" id="set-dev-email" class="form-control" placeholder="mr1qambarov@gmail.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="set-dev-telegram">Shaxsiy telegram username</label>
+                        <input type="text" id="set-dev-telegram" class="form-control" placeholder="mrqambarov">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="set-dev-bio">Dasturchi haqida biografiya (Bio)</label>
+                    <textarea id="set-dev-bio" class="form-control" rows="5" style="resize:vertical;line-height:1.6;" placeholder="Salom! Men Anvar Qambarov..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. System & Rates Tab Settings -->
+        <div class="settings-tab-content" id="set-section-system" style="display:none;">
+            <!-- Taxi Pricing -->
+            <div class="settings-card">
+                <h3>🚖 Taksi Tariflari Hisob-kitobi (Tariff Pricing)</h3>
+                <p style="font-size:12.5px;color:var(--text-muted);margin-bottom:20px;">
+                    Taksi buyurtmalari uchun boshlang'ich (Base fare) va kilometr narxlarini bevosita boshqarish.
+                </p>
+                <div class="settings-grid-2">
+                    <div class="form-group">
+                        <label for="set-price-start-base">Start: Boshlang'ich narxi (Base Fare) - UZS</label>
+                        <input type="number" id="set-price-start-base" class="form-control" placeholder="5000">
+                    </div>
+                    <div class="form-group">
+                        <label for="set-price-start-km">Start: 1 km uchun narx (Rate/Km) - UZS</label>
+                        <input type="number" id="set-price-start-km" class="form-control" placeholder="1200">
+                    </div>
+                </div>
+                <div class="settings-grid-2">
+                    <div class="form-group">
+                        <label for="set-price-komfort-base">Komfort: Boshlang'ich narxi (Base Fare) - UZS</label>
+                        <input type="number" id="set-price-komfort-base" class="form-control" placeholder="8000">
+                    </div>
+                    <div class="form-group">
+                        <label for="set-price-komfort-km">Komfort: 1 km uchun narx (Rate/Km) - UZS</label>
+                        <input type="number" id="set-price-komfort-km" class="form-control" placeholder="1600">
+                    </div>
+                </div>
+                <div class="settings-grid-2">
+                    <div class="form-group">
+                        <label for="set-price-biznes-base">Biznes: Boshlang'ich narxi (Base Fare) - UZS</label>
+                        <input type="number" id="set-price-biznes-base" class="form-control" placeholder="12000">
+                    </div>
+                    <div class="form-group">
+                        <label for="set-price-biznes-km">Biznes: 1 km uchun narx (Rate/Km) - UZS</label>
+                        <input type="number" id="set-price-biznes-km" class="form-control" placeholder="2200">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Downloads -->
+            <div class="settings-card">
+                <h3>📱 Ilovalarni Yuklab Olish Linklari</h3>
+                <div class="settings-grid-3">
+                    <div class="form-group">
+                        <label for="set-dl-passenger">Orbita Go (Mijoz) Linki</label>
+                        <input type="text" id="set-dl-passenger" class="form-control" placeholder="Havolani kiriting...">
+                    </div>
+                    <div class="form-group">
+                        <label for="set-dl-driver">Orbita Driver Linki</label>
+                        <input type="text" id="set-dl-driver" class="form-control" placeholder="Havolani kiriting...">
+                    </div>
+                    <div class="form-group">
+                        <label for="set-dl-games">Orbita Games Linki</label>
+                        <input type="text" id="set-dl-games" class="form-control" placeholder="Havolani kiriting...">
+                    </div>
+                </div>
+                <div class="settings-grid-2">
+                    <div class="form-group">
+                        <label for="set-dl-cafe">Orbita Cafe Linki</label>
+                        <input type="text" id="set-dl-cafe" class="form-control" placeholder="Havolani kiriting...">
+                    </div>
+                    <div class="form-group">
+                        <label for="set-dl-market">Orbita Market Linki</label>
+                        <input type="text" id="set-dl-market" class="form-control" placeholder="Havolani kiriting...">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conversion rates -->
+            <div class="settings-card">
+                <h3>🪙 Hisoblash & Konvertatsiya</h3>
+                <div class="settings-grid-3">
+                    <div class="form-group">
+                        <label for="set-steps-to-coins">100 Tanga uchun qadamlar</label>
+                        <input type="number" id="set-steps-to-coins" class="form-control" placeholder="1000">
+                    </div>
+                    <div class="form-group">
+                        <label for="set-max-steps">Kunlik Maksimal Qadamlar limiti</label>
+                        <input type="number" id="set-max-steps" class="form-control" placeholder="20000">
+                    </div>
+                    <div class="form-group">
+                        <label for="set-min-payout">Minimal Yechib olish miqdori (Score)</label>
+                        <input type="number" id="set-min-payout" class="form-control" placeholder="50000">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Maintenance Mode -->
+            <div class="settings-card">
+                <h3>🔴 Texnik ishlar rejimi (Maintenance Mode)</h3>
+                <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 20px;">
+                    Tanlangan ilovalarni vaqtinchalik yopib turish va foydalanuvchilarga texnik ishlar haqida xabar ko'rsatish.
+                </p>
+                <div class="settings-grid-2">
+                    <div class="switch-container">
+                        <span class="switch-label">Orbita Go Taxi xizmati</span>
+                        <label class="switch">
+                            <input type="checkbox" id="set-mt-taxi">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="switch-container">
+                        <span class="switch-label">Orbita Walk & Earn</span>
+                        <label class="switch">
+                            <input type="checkbox" id="set-mt-walk">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="switch-container">
+                        <span class="switch-label">Orbita Games xizmati</span>
+                        <label class="switch">
+                            <input type="checkbox" id="set-mt-games">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="switch-container">
+                        <span class="switch-label">Orbita Market & Cafe</span>
+                        <label class="switch">
+                            <input type="checkbox" id="set-mt-market">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Server & Database Tab Settings -->
+        <div class="settings-tab-content" id="set-section-server" style="display:none;">
+            <div class="settings-card">
+                <h3>🖥 Server va Ma'lumotlar Bazasi Sozlamalari (.env)</h3>
+                <p style="font-size:12.5px;color:var(--text-muted);margin-bottom:20px;">
+                    <strong>DIQQAT:</strong> Ushbu bo'limdagi sozlamalar bevosita backendning muhit o'zgaruvchilari (<code>.env</code>) fayliga yoziladi.
+                    Tugatgandan so'ng backend server avtomatik ravishda qayta ishga tushadi.
+                </p>
+                
+                <div class="form-group">
+                    <label for="set-env-db-url">DATABASE_URL (PostgreSQL ulanish havolasi)</label>
+                    <input type="text" id="set-env-db-url" class="form-control" placeholder="postgresql://user:pass@host:port/dbname">
+                </div>
+                
+                <div class="settings-grid-2">
+                    <div class="form-group">
+                        <label for="set-env-port">PORT (Server eshitish porti)</label>
+                        <input type="number" id="set-env-port" class="form-control" placeholder="3000">
+                    </div>
+                    <div class="form-group">
+                        <label for="set-env-jwt">JWT_SECRET (Token kaliti)</label>
+                        <input type="text" id="set-env-jwt" class="form-control" placeholder="Maxfiy kalit...">
+                    </div>
+                </div>
+                
+                <div class="settings-grid-2">
+                    <div class="form-group">
+                        <label for="set-env-tg-token">TELEGRAM_BOT_TOKEN</label>
+                        <input type="text" id="set-env-tg-token" class="form-control" placeholder="Telegram bot token...">
+                    </div>
+                    <div class="form-group">
+                        <label for="set-env-tg-chat">TELEGRAM_CHAT_ID</label>
+                        <input type="text" id="set-env-tg-chat" class="form-control" placeholder="Chat ID (masalan, -100...)">
+                    </div>
+                </div>
+                
+                <div class="settings-grid-2">
+                    <div class="form-group">
+                        <label for="set-env-sms-email">SMS_EMAIL (Eskiz.uz)</label>
+                        <input type="text" id="set-env-sms-email" class="form-control" placeholder="Eskiz email...">
+                    </div>
+                    <div class="form-group">
+                        <label for="set-env-sms-pass">SMS_PASSWORD</label>
+                        <input type="password" id="set-env-sms-pass" class="form-control" placeholder="Eskiz parol...">
+                    </div>
+                </div>
+                
+                <div style="text-align: right; margin-top: 20px;">
+                    <button class="login-btn danger" id="btn-save-env" style="display: inline-flex; width: auto; padding: 14px 40px; background: linear-gradient(135deg, var(--red), #b91c1c);">
+                        <ion-icon name="power-outline"></ion-icon> 💾 Serverni Qayta Sozlash & Saqlash
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Save button -->
+        <div style="text-align: right; margin-top: 10px;" id="global-save-container">
+            <button class="login-btn" id="btn-save-settings" style="display: inline-flex; width: auto; padding: 14px 40px;">
+                <ion-icon name="save-outline"></ion-icon> Sozlamalarni Saqlash
+            </button>
+        </div>
+    </section>
+</main>
+
+<!-- Detailed Inspection Modal -->
+<div class="modal-overlay" id="inspector-modal">
+    <div class="modal-card">
+        <div class="modal-card-header">
+            <h3 id="modal-title">Loyiha Tafsilotlari</h3>
+            <button class="close-modal-btn" onclick="closeInspector()"><ion-icon name="close-outline"></ion-icon></button>
+        </div>
+        <div id="modal-details-body">
+            <!-- Filled dynamically -->
+        </div>
+    </div>
+</div>
+
+<!-- Toast notifications -->
+<div class="toast" id="toast">
+    <ion-icon name="checkmark-circle" class="toast-icon" style="color:#34d399;"></ion-icon>
+    <div class="toast-text">
+        <strong id="toast-title">Muvaffaqiyat</strong>
+        <span id="toast-msg">Amal bajarildi.</span>
+    </div>
+</div>
+
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script src="./admin.js"></script>
+</body>
+</html>

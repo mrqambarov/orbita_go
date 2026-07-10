@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Orbita Go — Kosonsoy va Namangan bo'ylab eng tezkor va hamyonbop taksi xizmati. Qadamlaringizni pulga va chegirmalarga almashtiring, o'yinlar o'ynab mukofotlar yuting!">
+    <meta name="keywords" content="taksi, kosonsoy taksi, namangan taksi, qadamlarni pulga almashtirish, orbita go, orbita walk, orbita games, orbita cafe, orbita market">
+    <meta property="og:title" content="Orbita Go — Taksi, Fitness va O'yinlar Ekotizimi">
+    <meta property="og:description" content="Safar qiling, qadam bosing, g'olib bo'ling! O'zbekistonning yangi avlod super-app ekotizimi.">
+    <meta property="og:type" content="website">
+    <title>Orbita Go — Taksi, Fitness va O'yinlar Ekotizimi</title>
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#6366f1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- Leaflet.js Interactive Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Ionicons -->
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <link rel="stylesheet" href="style.css?v=1.1.0">
+    <!-- Schema.org Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Orbita Go",
+      "operatingSystem": "Android, iOS, Web",
+      "applicationCategory": "UtilitiesApplication, TravelApplication",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "UZS"
+      },
+      "description": "Orbita Go — Taksi, Fitness va O'yinlar Ekotizimi. Safar qiling, qadam bosing, g'olib bo'ling!",
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.9",
+        "ratingCount": "1520"
+      }
+    }
+    </script>
+</head>
+<body>
+
+    <!-- Particle Canvas Background -->
+    <canvas id="particle-canvas"></canvas>
+
+    <!-- Header Navigation -->
+    <header class="main-header" id="navbar">
+        <div class="container header-container">
+            <a href="#" class="logo" id="logo-link">
+                <div class="logo-icon"><ion-icon name="rocket-outline"></ion-icon></div>
+                <span>Orbita<span>Go</span></span>
+            </a>
+            <nav class="nav-menu" id="navigation-menu">
+                <a href="#features" class="nav-link" id="nav-features" data-i18n="nav.features">Xususiyatlar</a>
+                <a href="#how-it-works" class="nav-link" id="nav-how" data-i18n="nav.how">Qanday ishlaydi</a>
+                <a href="#simulator" class="nav-link" id="nav-simulator" data-i18n="nav.simulator">Simulyator</a>
+                <a href="#leaderboard" class="nav-link" id="nav-leaderboard" data-i18n="nav.leaderboard">Musobaqa</a>
+                <a href="#news" class="nav-link" id="nav-news" data-i18n="nav.news">Yangiliklar</a>
+                <a href="#faq" class="nav-link" id="nav-faq" data-i18n="nav.faq">FAQ</a>
+            </nav>
+            <div class="header-right">
+                <!-- Language Switcher -->
+                <div class="lang-switcher" id="lang-switcher">
+                    <button class="lang-btn active" data-lang="uz" id="lang-uz">🇺🇿</button>
+                    <button class="lang-btn" data-lang="ru" id="lang-ru">🇷🇺</button>
+                    <button class="lang-btn" data-lang="en" id="lang-en">🇬🇧</button>
+                </div>
+                <a href="#download" class="btn btn-primary btn-header" id="btn-header-cta">
+                    <span data-i18n="nav.download">Yuklab olish</span>
+                    <ion-icon name="arrow-forward-outline"></ion-icon>
+                </a>
+                <!-- Hamburger toggle -->
+                <button class="hamburger" id="hamburger-btn" aria-label="Menyu ochish">
+                    <span></span><span></span><span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Nav Overlay -->
+    <div class="mobile-nav-overlay" id="mobile-nav-overlay">
+        <div class="mobile-nav-content">
+            <a href="#features" class="mobile-nav-link" data-i18n="nav.features">Xususiyatlar</a>
+            <a href="#how-it-works" class="mobile-nav-link" data-i18n="nav.how">Qanday ishlaydi</a>
+            <a href="#simulator" class="mobile-nav-link" data-i18n="nav.simulator">Simulyator</a>
+            <a href="#leaderboard" class="mobile-nav-link" data-i18n="nav.leaderboard">Musobaqa</a>
+            <a href="#news" class="mobile-nav-link" data-i18n="nav.news">Yangiliklar</a>
+            <a href="#faq" class="mobile-nav-link" data-i18n="nav.faq">FAQ</a>
+            <a href="#download" class="btn btn-primary" style="margin-top:24px;" data-i18n="nav.download">Yuklab olish</a>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero-section" id="hero">
+        <div class="hero-glow-1"></div>
+        <div class="hero-glow-2"></div>
+        <div class="container hero-container">
+            <div class="hero-content reveal-left">
+                <div class="badge" id="hero-badge" data-i18n="hero.badge">O'zbekistonning Yangi Avlod Super-App</div>
+                <h1 id="hero-title" data-i18n="hero.title">Safar qiling,<br>Qadam bosing,<br><span>G'olib bo'ling!</span></h1>
+                <p class="hero-subtitle" id="hero-desc" data-i18n="hero.desc">
+                    Orbita Go — shunchaki taksi xizmati emas. Har bir bosilgan qadam uchun haq to'laymiz, qiziqarli mini-o'yinlar va haftalik turnirlar orqali real pul mukofotlari taqdim etamiz.
+                </p>
+                <div class="hero-trust">
+                    <div class="trust-item">
+                        <ion-icon name="star"></ion-icon>
+                        <span data-i18n="hero.rating">4.9 / 5 reyting</span>
+                    </div>
+                    <div class="trust-divider"></div>
+                    <div class="trust-item">
+                        <ion-icon name="people-outline"></ion-icon>
+                        <span data-i18n="hero.users">15,000+ foydalanuvchi</span>
+                    </div>
+                    <div class="trust-divider"></div>
+                    <div class="trust-item">
+                        <ion-icon name="shield-checkmark-outline"></ion-icon>
+                        <span data-i18n="hero.secure">100% xavfsiz to'lov</span>
+                    </div>
+                </div>
+                <div class="hero-actions" id="hero-cta-buttons">
+                    <a href="#download" class="btn btn-primary" id="btn-hero-download">
+                        <ion-icon name="logo-playstore"></ion-icon>
+                        <span data-i18n="hero.download">Yuklab Olish</span>
+                    </a>
+                    <a href="#simulator" class="btn btn-outline" id="btn-hero-simulator">
+                        <span data-i18n="hero.try">Sinab ko'rish</span>
+                        <ion-icon name="play-outline"></ion-icon>
+                    </a>
+                </div>
+            </div>
+            <div class="hero-image-container reveal-right">
+                <div class="phone-mockup-wrapper">
+                    <!-- Glassmorphism interactive device display -->
+                    <div class="phone-mockup">
+                        <div class="phone-glare"></div>
+                        <div class="phone-screen-simulation">
+                            <div class="sim-header">
+                                <span class="sim-time" id="sim-clock">09:41</span>
+                                <div class="sim-icons">
+                                    <ion-icon name="cellular-sharp"></ion-icon>
+                                    <ion-icon name="wifi-sharp"></ion-icon>
+                                    <ion-icon name="battery-full-sharp" style="transform: rotate(90deg);"></ion-icon>
+                                </div>
+                            </div>
+                            <div class="sim-body" style="display: flex; flex-direction: column; height: calc(100% - 30px);">
+                                <!-- Taxi Screen -->
+                                <div id="sim-screen-taxi" class="sim-tab-content" style="display: flex; flex-direction: column; gap: 12px; height: 100%;">
+                                    <div class="sim-map-preview">
+                                        <div class="sim-route-line"></div>
+                                        <div class="sim-car-icon"><ion-icon name="car-sport"></ion-icon></div>
+                                    </div>
+                                    <div class="sim-stats-container">
+                                        <div class="sim-stat-box">
+                                            <span>Qadamlar</span>
+                                            <h3>14,832</h3>
+                                        </div>
+                                        <div class="sim-stat-box">
+                                            <span>Balans</span>
+                                            <h3>42,500 UZS</h3>
+                                        </div>
+                                        <div class="sim-stat-box">
+                                            <span>Turnir</span>
+                                            <h3>#3 Joy</h3>
+                                        </div>
+                                        <div class="sim-stat-box">
+                                            <span>Daraxt</span>
+                                            <h3>🌳 Lvl 7</h3>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Games (Garden) Screen -->
+                                <div id="sim-screen-games" class="sim-tab-content" style="display: none; flex-direction: column; gap: 10px; height: 100%; text-align: center; justify-content: center; padding: 10px;">
+                                    <div style="font-size: 54px; animation: float 3s ease-in-out infinite; margin-top: 12px;" id="sim-tree-icon">🌳</div>
+                                    <h4 style="font-size: 13px; color: #fff; margin-bottom: 2px;">Katta Eman</h4>
+                                    <span style="font-size: 10px; color: var(--purple-light); font-weight: 700; background: rgba(217,70,239,0.1); padding: 4px 10px; border-radius: 12px; align-self: center;">Daraja 7</span>
+                                    <div style="margin-top: 10px;">
+                                        <div style="display: flex; justify-content: space-between; font-size: 9px; color: var(--text-hint); margin-bottom: 4px;">
+                                            <span>Sug'orilgan: <strong id="sim-tree-percent">72%</strong></span>
+                                        </div>
+                                        <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden;">
+                                            <div id="sim-tree-progress" style="width: 72%; height: 100%; background: linear-gradient(90deg, var(--purple), var(--primary-light)); border-radius: 10px; transition: width 0.5s ease;"></div>
+                                        </div>
+                                    </div>
+                                    <button id="btn-sim-water" style="margin-top: 14px; background: linear-gradient(135deg, var(--purple), var(--primary)); border: none; padding: 8px 16px; border-radius: 10px; color: #fff; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: var(--transition-fast);">
+                                        <ion-icon name="water-outline"></ion-icon> Sug'orish
+                                    </button>
+                                </div>
+
+                                <!-- Wallet Screen -->
+                                <div id="sim-screen-wallet" class="sim-tab-content" style="display: none; flex-direction: column; gap: 10px; height: 100%;">
+                                    <div style="background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01)); border: 1px solid rgba(255,255,255,0.06); padding: 14px; border-radius: 16px; text-align: center; margin-top: 12px;">
+                                        <span style="font-size: 9px; color: var(--text-hint); text-transform: uppercase;">Mening Hisobim</span>
+                                        <h3 style="font-size: 18px; color: var(--yellow); margin-top: 4px;">42,500 UZS</h3>
+                                    </div>
+                                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                                        <span style="font-size: 9px; color: var(--text-hint); text-transform: uppercase; font-weight: bold; margin-bottom: 2px;">Tranzaksiyalar</span>
+                                        <div style="display: flex; justify-content: space-between; font-size: 11px; padding: 4px 0; border-bottom: 1px dashed rgba(255,255,255,0.04);">
+                                            <span style="color: rgba(255,255,255,0.8);">🚶 Qadam bonus</span>
+                                            <strong style="color: var(--success-light);">+2,450</strong>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; font-size: 11px; padding: 4px 0; border-bottom: 1px dashed rgba(255,255,255,0.04);">
+                                            <span style="color: rgba(255,255,255,0.8);">🚖 Taksi safar</span>
+                                            <strong style="color: var(--success-light);">+15,000</strong>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; font-size: 11px; padding: 4px 0;">
+                                            <span style="color: rgba(255,255,255,0.8);">🏆 Musobaqa yutug'i</span>
+                                            <strong style="color: var(--success-light);">+25,000</strong>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Tabs navigation -->
+                                <div class="sim-nav-tabs">
+                                    <div class="sim-tab active" data-sim-tab="taxi">
+                                        <ion-icon name="car-sport-outline"></ion-icon>
+                                        <span>Taksi</span>
+                                    </div>
+                                    <div class="sim-tab" data-sim-tab="games">
+                                        <ion-icon name="leaf-outline"></ion-icon>
+                                        <span>Daraxt</span>
+                                    </div>
+                                    <div class="sim-tab" data-sim-tab="wallet">
+                                        <ion-icon name="wallet-outline"></ion-icon>
+                                        <span>Hamyon</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Moved outside phone-mockup to avoid overflow:hidden clipping -->
+                    <div class="phone-overlay">
+                        <div class="floating-stat-card card-steps" id="floating-steps">
+                            <div class="stat-icon"><ion-icon name="footsteps-sharp"></ion-icon></div>
+                            <div>
+                                <h4>+2,450 UZS</h4>
+                                <p data-i18n="hero.steps.label" style="display:inline;">Bugungi daromad</p>
+                            </div>
+                        </div>
+                        <div class="floating-stat-card card-wallet" id="floating-wallet">
+                            <div class="stat-icon"><ion-icon name="trophy"></ion-icon></div>
+                            <div>
+                                <h4>🥇 1-o'rin!</h4>
+                                <p data-i18n="hero.tournament.label" style="display:inline;">Haftalik turnir</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Scroll hint -->
+        <div class="scroll-hint">
+            <div class="scroll-hint-mouse">
+                <div class="scroll-hint-wheel"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Stats (Animated Counters) -->
+    <section class="stats-section" id="stats-counter">
+        <div class="container stats-container">
+            <div class="stat-box reveal-up" id="stat-trips">
+                <div class="stat-icon-wrap"><ion-icon name="car-sport"></ion-icon></div>
+                <h2><span class="counter" data-target="48200" data-suffix="K+">0</span></h2>
+                <p data-i18n="stats.trips">Bajarilgan safarlar</p>
+            </div>
+            <div class="stat-box reveal-up" id="stat-steps" style="--delay: 0.1s">
+                <div class="stat-icon-wrap"><ion-icon name="footsteps"></ion-icon></div>
+                <h2><span class="counter" data-target="120" data-suffix="M+">0</span></h2>
+                <p data-i18n="stats.steps">Bosilgan qadamlar</p>
+            </div>
+            <div class="stat-box reveal-up" id="stat-drivers" style="--delay: 0.2s">
+                <div class="stat-icon-wrap"><ion-icon name="person"></ion-icon></div>
+                <h2><span class="counter" data-target="320" data-suffix="+">0</span></h2>
+                <p data-i18n="stats.drivers">Faol haydovchilar</p>
+            </div>
+            <div class="stat-box reveal-up" id="stat-trees" style="--delay: 0.3s">
+                <div class="stat-icon-wrap"><ion-icon name="leaf"></ion-icon></div>
+                <h2><span class="counter" data-target="12500" data-suffix="K+">0</span></h2>
+                <p data-i18n="stats.trees">Ekilgan virtual daraxtlar</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Core Features Section -->
+    <section class="features-section" id="features">
+        <div class="container">
+            <div class="section-header reveal-up">
+                <div class="badge" data-i18n="nav.features">Ekotizim</div>
+                <h2 data-i18n="feat.title">Barchasi bitta <span>ekotizimda</span></h2>
+                <p data-i18n="feat.desc">Taksi buyurtma qiling, qadamlaringizni balansga o'tkazing va o'yinlarda bellashing.</p>
+            </div>
+            <div class="features-grid">
+                <!-- Feature 1: Taxi -->
+                <a href="pages/taxi.html" class="feature-card reveal-up" id="feat-taxi" style="--delay: 0s">
+                    <div class="feature-icon bg-yellow"><ion-icon name="car-sport-outline"></ion-icon></div>
+                    <h3 data-i18n="feat.taxi.title">Orbita Go Taksi</h3>
+                    <p data-i18n="feat.taxi.desc">Kosonsoy tumani va Namangan bo'ylab eng tezkor haydovchilar. Real-time xarita, arzon tariflar (Start, Komfort, Biznes) va xavfsiz to'lov.</p>
+                    <div class="card-arrow"><ion-icon name="arrow-forward-circle-outline"></ion-icon></div>
+                </a>
+                <!-- Feature 2: Walk -->
+                <a href="pages/walk.html" class="feature-card reveal-up" id="feat-walk" style="--delay: 0.1s">
+                    <div class="feature-icon bg-green"><ion-icon name="footsteps-outline"></ion-icon></div>
+                    <h3 data-i18n="feat.walk.title">Orbita Walk</h3>
+                    <p data-i18n="feat.walk.desc">Har bir bosgan qadamingiz hamyoningizga pul bo'lib keladi. KFC, Evos kuponlarini xarid qiling yoki taksi safarlariga sarflang.</p>
+                    <div class="card-arrow"><ion-icon name="arrow-forward-circle-outline"></ion-icon></div>
+                </a>
+                <!-- Feature 3: Games -->
+                <a href="pages/games.html" class="feature-card reveal-up" id="feat-games" style="--delay: 0.2s">
+                    <div class="feature-icon bg-purple"><ion-icon name="game-controller-outline"></ion-icon></div>
+                    <h3 data-i18n="feat.games.title">Orbita Games</h3>
+                    <p data-i18n="feat.games.desc">Virtual bog'ingizda daraxt o'stiring, do'stlaringiz bilan birga sug'oring va haftalik turnirlarda real pul mukofotlarini yutib oling.</p>
+                    <div class="card-arrow"><ion-icon name="arrow-forward-circle-outline"></ion-icon></div>
+                </a>
+                <!-- Feature 4: Cafe -->
+                <a href="pages/cafe.html" class="feature-card upcoming-card reveal-up" id="feat-cafe" style="--delay: 0.3s">
+                    <div class="upcoming-badge" data-i18n="feat.soon">Tez orada</div>
+                    <div class="feature-icon bg-red"><ion-icon name="cafe-outline"></ion-icon></div>
+                    <h3 data-i18n="feat.cafe.title">Orbita Cafe</h3>
+                    <p data-i18n="feat.cafe.desc">Qadamlaringiz va taksi safarlaridan yig'ilgan ballarni mazali taomlar, qahva va shirinliklarga almashtiring.</p>
+                </a>
+                <!-- Feature 5: Market -->
+                <a href="pages/market.html" class="feature-card upcoming-card reveal-up" id="feat-market" style="--delay: 0.4s">
+                    <div class="upcoming-badge" data-i18n="feat.soon">Tez orada</div>
+                    <div class="feature-icon bg-cyan"><ion-icon name="storefront-outline"></ion-icon></div>
+                    <h3 data-i18n="feat.market.title">Orbita Market</h3>
+                    <p data-i18n="feat.market.desc">Kundalik ehtiyojlar uchun mahsulotlar, kiyim-kechak va gadjetlarni ekotizim hamyonidagi koinlar evaziga xarid qiling.</p>
+                </a>
+                <!-- Feature 6: Delivery -->
+                <a href="pages/delivery.html" class="feature-card upcoming-card reveal-up" id="feat-delivery" style="--delay: 0.5s">
+                    <div class="upcoming-badge" data-i18n="feat.soon">Tez orada</div>
+                    <div class="feature-icon bg-orange"><ion-icon name="bicycle-outline"></ion-icon></div>
+                    <h3 data-i18n="feat.delivery.title">Orbita Yetkazish</h3>
+                    <p data-i18n="feat.delivery.desc">Hamkor kafe va do'konlardan buyurtmalarni uyingizgacha eng tezkor kuryerlarimiz orqali yetkazib berish.</p>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-section" id="how-it-works">
+        <div class="container">
+            <div class="section-header reveal-up">
+                <div class="badge" data-i18n="how.badge">Boshlash oson</div>
+                <h2 data-i18n="how.title">Atigi <span>3 qadam</span> bilan boshlang</h2>
+                <p data-i18n="how.desc">Ro'yxatdan o'ting, yurishing va g'alaba qiling — bu juda oddiy!</p>
+            </div>
+            <div class="how-grid">
+                <div class="how-card reveal-up" style="--delay: 0s">
+                    <div class="how-step-number">01</div>
+                    <div class="how-icon-wrap">
+                        <ion-icon name="phone-portrait-outline"></ion-icon>
+                    </div>
+                    <h3 data-i18n="how.s1.title">Ilovani yuklab oling</h3>
+                    <p data-i18n="how.s1.desc">Google Play yoki App Store'dan Orbita Go ilovasini bepul yuklab oling va 30 soniyada ro'yxatdan o'ting.</p>
+                </div>
+                <div class="how-connector reveal-up" style="--delay: 0.1s">
+                    <div class="connector-line"></div>
+                    <ion-icon name="arrow-forward"></ion-icon>
+                </div>
+                <div class="how-card reveal-up" style="--delay: 0.2s">
+                    <div class="how-step-number">02</div>
+                    <div class="how-icon-wrap">
+                        <ion-icon name="walk-outline"></ion-icon>
+                    </div>
+                    <h3 data-i18n="how.s2.title">Yuring va foydalaning</h3>
+                    <p data-i18n="how.s2.desc">Taksi buyurtma bering, piyoda yuring, o'yinlar o'ynang — har bir harakat uchun ball yig'ing.</p>
+                </div>
+                <div class="how-connector reveal-up" style="--delay: 0.3s">
+                    <div class="connector-line"></div>
+                    <ion-icon name="arrow-forward"></ion-icon>
+                </div>
+                <div class="how-card reveal-up" style="--delay: 0.4s">
+                    <div class="how-step-number">03</div>
+                    <div class="how-icon-wrap">
+                        <ion-icon name="gift-outline"></ion-icon>
+                    </div>
+                    <h3 data-i18n="how.s3.title">Mukofot oling</h3>
+                    <p data-i18n="how.s3.desc">To'plagan ballaringizni real pul, kuponlar yoki haftalik turnir mukofotlariga almashtiring!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Partners Logos Strip -->
+    <section class="partners-section" id="partners">
+        <div class="partners-header reveal-up">
+            <p>Bizning hamkorlarimiz</p>
+        </div>
+        <div class="partners-marquee-wrapper">
+            <div class="partners-marquee">
+                <div class="partner-logo"><ion-icon name="fast-food-outline"></ion-icon><span>KFC</span></div>
+                <div class="partner-logo"><ion-icon name="restaurant-outline"></ion-icon><span>Evos</span></div>
+                <div class="partner-logo"><ion-icon name="card-outline"></ion-icon><span>Payme</span></div>
+                <div class="partner-logo"><ion-icon name="card-outline"></ion-icon><span>Click</span></div>
+                <div class="partner-logo"><ion-icon name="bag-outline"></ion-icon><span>Baraka</span></div>
+                <div class="partner-logo"><ion-icon name="pizza-outline"></ion-icon><span>Dodo Pizza</span></div>
+                <div class="partner-logo"><ion-icon name="car-outline"></ion-icon><span>Uzum Bank</span></div>
+                <div class="partner-logo"><ion-icon name="storefront-outline"></ion-icon><span>Aloqa</span></div>
+                <!-- Duplicate set for seamless looping -->
+                <div class="partner-logo"><ion-icon name="fast-food-outline"></ion-icon><span>KFC</span></div>
+                <div class="partner-logo"><ion-icon name="restaurant-outline"></ion-icon><span>Evos</span></div>
+                <div class="partner-logo"><ion-icon name="card-outline"></ion-icon><span>Payme</span></div>
+                <div class="partner-logo"><ion-icon name="card-outline"></ion-icon><span>Click</span></div>
+                <div class="partner-logo"><ion-icon name="bag-outline"></ion-icon><span>Baraka</span></div>
+                <div class="partner-logo"><ion-icon name="pizza-outline"></ion-icon><span>Dodo Pizza</span></div>
+                <div class="partner-logo"><ion-icon name="car-outline"></ion-icon><span>Uzum Bank</span></div>
+                <div class="partner-logo"><ion-icon name="storefront-outline"></ion-icon><span>Aloqa</span></div>
+            </div>
+        </div>
+        <!-- Partnerships Call-To-Action Banner -->
+        <div class="partners-invite-banner reveal-up" style="text-align: center; margin-top: 32px; display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;">
+            <span style="font-size: 14px; color: var(--text-secondary); font-weight: 600;" data-i18n="partners.invite">🤝 Bu yerda siz ham bo'lishingiz mumkin! Biz bilan hamkorlik qiling</span>
+            <button onclick="showPartnerModal()" class="btn btn-outline" style="padding: 10px 20px; border-radius: 12px; font-size: 13px; border: 1px solid var(--border-color); color: #fff; cursor: pointer; background: none; font-family: inherit; font-weight: 600;" data-i18n="partners.contact">Bog'lanish</button>
+        </div>
+    </section>
+
+    <!-- Interactive Taxi Booking Simulator -->
+    <section class="simulator-section" id="simulator">
+        <div class="container simulator-container">
+            <div class="simulator-form-container reveal-left">
+                <div class="badge" data-i18n="sim.badge">Interaktiv Simulyator</div>
+                <h2 data-i18n="sim.title">Sayt orqali <span>sinab ko'ring</span></h2>
+                <p class="section-desc" data-i18n="sim.desc">Backendga ulangan taksi buyurtma simulyatori. Manzilni kiriting, tarifni tanlang va real buyurtma bering.</p>
+                
+                <form id="booking-form" onsubmit="event.preventDefault();">
+                    <!-- Pickup -->
+                    <div class="input-group">
+                        <label for="pickup-address" data-i18n="sim.pickup.label">Qayerdan (Pickup)</label>
+                        <div class="input-wrapper">
+                            <ion-icon name="radio-button-checked" class="input-icon icon-pickup"></ion-icon>
+                            <input type="text" id="pickup-address" placeholder="Manzilni kiriting..." data-i18n="sim.pickup.ph" data-i18n-attr="placeholder" autocomplete="off">
+                            <div class="address-dropdown" id="pickup-dropdown"></div>
+                        </div>
+                    </div>
+
+                    <!-- Destination -->
+                    <div class="input-group">
+                        <label for="destination-address" data-i18n="sim.dest.label">Qayerga (Destination)</label>
+                        <div class="input-wrapper">
+                            <ion-icon name="location" class="input-icon icon-dest"></ion-icon>
+                            <input type="text" id="destination-address" placeholder="Manzilingiz..." data-i18n="sim.dest.ph" data-i18n-attr="placeholder" autocomplete="off">
+                            <div class="address-dropdown" id="dest-dropdown"></div>
+                        </div>
+                    </div>
+
+                    <!-- Tariff selection -->
+                    <div class="tariff-picker">
+                        <label data-i18n="sim.tariff">Tarifni tanlang</label>
+                        <div class="tariff-options" id="tariff-group">
+                            <div class="tariff-card active" data-tariff="START" id="tariff-start">
+                                <ion-icon name="car-outline"></ion-icon>
+                                <span class="tariff-name">Start</span>
+                                <span class="tariff-price" id="price-start">5,000 UZS</span>
+                            </div>
+                            <div class="tariff-card" data-tariff="KOMFORT" id="tariff-komfort">
+                                <ion-icon name="car-sport-outline"></ion-icon>
+                                <span class="tariff-name">Komfort</span>
+                                <span class="tariff-price" id="price-komfort">8,000 UZS</span>
+                            </div>
+                            <div class="tariff-card" data-tariff="BIZNES" id="tariff-biznes">
+                                <ion-icon name="ribbon-outline"></ion-icon>
+                                <span class="tariff-name">Biznes</span>
+                                <span class="tariff-price" id="price-biznes">12,000 UZS</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary btn-block" id="btn-submit-order" type="button" disabled>
+                        <span data-i18n="sim.submit">Buyurtma berish</span>
+                        <ion-icon name="checkmark-circle-outline"></ion-icon>
+                    </button>
+                </form>
+            </div>
+            
+            <div class="simulator-map-container reveal-right">
+                <div class="map-overlay" id="map-status-overlay">
+                    <div class="status-indicator">
+                        <div class="pulse-ring"></div>
+                        <span id="simulator-status-text" data-i18n="sim.status.idle">Manzil kiriting...</span>
+                    </div>
+                </div>
+                <!-- Simulated Mock Map Screen -->
+                <div class="mock-map" id="map-display">
+                    <div class="map-pin pin-pickup" id="map-pickup-marker" style="display: none;">
+                        <ion-icon name="radio-button-checked"></ion-icon>
+                    </div>
+                    <div class="map-pin pin-destination" id="map-dest-marker" style="display: none;">
+                        <ion-icon name="location"></ion-icon>
+                    </div>
+                    <div class="map-pin pin-car" id="map-car-marker" style="display: none; background-color: var(--yellow); border: 2px solid #fff;">
+                        <ion-icon name="car-sport"></ion-icon>
+                    </div>
+                </div>
+                <!-- Map HUD overlays -->
+                <div class="map-hud-bottom" id="map-hud">
+                    <div class="hud-item">
+                        <ion-icon name="navigate-circle-outline"></ion-icon>
+                        <span id="hud-distance">-- km</span>
+                    </div>
+                    <div class="hud-item">
+                        <ion-icon name="time-outline"></ion-icon>
+                        <span id="hud-time">-- daqiqa</span>
+                    </div>
+                    <div class="hud-item hud-price">
+                        <ion-icon name="cash-outline"></ion-icon>
+                        <span id="hud-price">-- UZS</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================================================== -->
+    <!-- NEWS SECTION                                          -->
+    <!-- ===================================================== -->
+    <section class="news-section" id="news">
+        <div class="container">
+            <div class="section-header reveal-up">
+                <div class="badge" data-i18n="news.badge">So'nggi Yangiliklar</div>
+                <h2 data-i18n="news.title">Ilovadagi <span>yangilanishlar</span></h2>
+                <p data-i18n="news.desc">Orbita Go ekotizimidagi eng so'nggi yangiliklar, yangilanishlar va e'lonlar.</p>
+            </div>
+            <div class="news-grid">
+
+                <!-- News Card 1 -->
+                <article class="news-card news-card--featured reveal-up" id="news-card-1" style="--delay: 0s">
+                    <div class="news-card__glow"></div>
+                    <div class="news-card__top">
+                        <span class="news-tag news-tag--feature" data-i18n="news.1.tag">Yangi Xususiyat</span>
+                        <span class="news-date"><ion-icon name="calendar-outline"></ion-icon> <span data-i18n="news.1.date">8 Iyul 2026</span></span>
+                    </div>
+                    <div class="news-card__icon">
+                        <ion-icon name="footsteps-outline"></ion-icon>
+                    </div>
+                    <h3 class="news-card__title" data-i18n="news.1.title">Orbita Walk 2.0 — Yangi qadam musobaqa tizimi!</h3>
+                    <p class="news-card__desc" data-i18n="news.1.desc">Endi kunlik va haftalik qadam musobaqalarida do'stlaringiz bilan bellashing. Eng ko'p qadam bosgan 3 nafar foydalanuvchi har kuni real pul mukofot oladi.</p>
+                    <a href="#download" class="news-card__btn">
+                        <span data-i18n="news.readmore">Batafsil o'qish</span>
+                        <ion-icon name="arrow-forward-outline"></ion-icon>
+                    </a>
+                </article>
+
+                <!-- News Card 2 -->
+                <article class="news-card reveal-up" id="news-card-2" style="--delay: 0.1s">
+                    <div class="news-card__glow"></div>
+                    <div class="news-card__top">
+                        <span class="news-tag news-tag--update" data-i18n="news.2.tag">Yangilanish</span>
+                        <span class="news-date"><ion-icon name="calendar-outline"></ion-icon> <span data-i18n="news.2.date">5 Iyul 2026</span></span>
+                    </div>
+                    <div class="news-card__icon news-card__icon--yellow">
+                        <ion-icon name="car-sport-outline"></ion-icon>
+                    </div>
+                    <h3 class="news-card__title" data-i18n="news.2.title">Taksi ilovasi yangilandi — v3.2 chiqdi</h3>
+                    <p class="news-card__desc" data-i18n="news.2.desc">Haydovchilar uchun yangi daromad hisoblagichi, mijozlar uchun esa tezkor buyurtma qayta berish va turnov bonuslari qo'shildi.</p>
+                    <a href="#download" class="news-card__btn">
+                        <span data-i18n="news.readmore">Batafsil o'qish</span>
+                        <ion-icon name="arrow-forward-outline"></ion-icon>
+                    </a>
+                </article>
+
+                <!-- News Card 3 -->
+                <article class="news-card reveal-up" id="news-card-3" style="--delay: 0.2s">
+                    <div class="news-card__glow"></div>
+                    <div class="news-card__top">
+                        <span class="news-tag news-tag--promo" data-i18n="news.3.tag">Aksiya</span>
+                        <span class="news-date"><ion-icon name="calendar-outline"></ion-icon> <span data-i18n="news.3.date">1 Iyul 2026</span></span>
+                    </div>
+                    <div class="news-card__icon news-card__icon--green">
+                        <ion-icon name="pricetag-outline"></ion-icon>
+                    </div>
+                    <h3 class="news-card__title" data-i18n="news.3.title">Yoz aksiyasi: 30% chegirma taksi tariflariga!</h3>
+                    <p class="news-card__desc" data-i18n="news.3.desc">Iyul oyida barcha Start va Komfort tariflarida 30% chegirma. Orbita Go ilovasini hoziroq yuklab oling va chegirmadan foydalaning!</p>
+                    <a href="#download" class="news-card__btn">
+                        <span data-i18n="news.readmore">Batafsil o'qish</span>
+                        <ion-icon name="arrow-forward-outline"></ion-icon>
+                    </a>
+                </article>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="testimonials-section" id="testimonials">
+        <div class="container">
+            <div class="section-header reveal-up">
+                <div class="badge">Foydalanuvchilar</div>
+                <h2>Ular nima <span>deydi?</span></h2>
+                <p>Minglab foydalanuvchilarning haqiqiy izohlari</p>
+            </div>
+            <div class="testimonials-grid">
+                <div class="testimonial-card reveal-up" style="--delay: 0s">
+                    <div class="testimonial-stars">
+                        <ion-icon name="star"></ion-icon><ion-icon name="star"></ion-icon><ion-icon name="star"></ion-icon><ion-icon name="star"></ion-icon><ion-icon name="star"></ion-icon>
+                    </div>
+                    <p>"Har kuni yuraman va oyiga 50,000 UZS gacha yig'aman! Bu shunchaki ajoyib — qadamlarim endi befoyda ketmaydi."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar" style="background: linear-gradient(135deg, #6366f1, #d946ef);">Z</div>
+                        <div>
+                            <h4>Zilola Rahimova</h4>
+                            <span>Namangan, Orbita Walk foydalanuvchisi</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card reveal-up" style="--delay: 0.15s">
+                    <div class="testimonial-stars">
+                        <ion-icon name="star"></ion-icon><ion-icon name="star"></ion-icon><ion-icon name="star"></ion-icon><ion-icon name="star"></ion-icon><ion-icon name="star"></ion-icon>
+                    </div>
+                    <p>"Taksi arzon va tez! Kosonsoyda boshqa ilova yo'q edi, Orbita Go kelib juda yaxshi bo'ldi. Haydovchilar ham juda madaniyatli."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar" style="background: linear-gradient(135deg, #10b981, #6366f1);">J</div>
+                        <div>
+                            <h4>Jamshid Mirzayev</h4>
+                            <span>Kosonsoy, taksi foydalanuvchisi</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial-card reveal-up" style="--delay: 0.3s">
+                    <div class="testimonial-stars">
+                        <ion-icon name="star"></ion-icon><ion-icon name="star"></ion-icon><ion-icon name="star"></ion-icon><ion-icon name="star"></ion-icon><ion-icon name="star-half"></ion-icon>
+                    </div>
+                    <p>"Haftalik turnirda 3-o'rin oldim va real pul yutdim! Virtual daraxt o'stirish ham juda qiziqarli. Barcha do'stlarimga tavsiya qilaman."</p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar" style="background: linear-gradient(135deg, #fbbf24, #ef4444);">S</div>
+                        <div>
+                            <h4>Sardor Xasanov</h4>
+                            <span>Namangan, Orbita Games o'yinchi</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Weekly Tournament Leaderboard -->
+    <section class="leaderboard-section" id="leaderboard">
+        <div class="container leaderboard-container">
+            <div class="leaderboard-info reveal-left">
+                <div class="badge" data-i18n="lb.badge">O'yin Turnirlari</div>
+                <h2 data-i18n="lb.title">Haftalik <span>Musobaqa</span></h2>
+                <p data-i18n="lb.desc">Hafta davomida eng ko'p ball to'plagan foydalanuvchilar real pul yutuqlariga ega bo'ladilar.</p>
+                <div class="prize-pool">
+                    <div class="prize-item">
+                        <span class="prize-rank">🥇 1-o'rin</span>
+                        <span class="prize-amount">150,000 UZS</span>
+                    </div>
+                    <div class="prize-item">
+                        <span class="prize-rank">🥈 2-o'rin</span>
+                        <span class="prize-amount">80,000 UZS</span>
+                    </div>
+                    <div class="prize-item">
+                        <span class="prize-rank">🥉 3-o'rin</span>
+                        <span class="prize-amount">40,000 UZS</span>
+                    </div>
+                </div>
+                <div class="tournament-countdown" id="countdown-box">
+                    <span class="countdown-label" data-i18n="lb.countdown">Yangi turnirgacha qoldi:</span>
+                    <h3 id="timer-display">--:--:--</h3>
+                </div>
+            </div>
+            <div class="leaderboard-table-card reveal-right">
+                <div class="leaderboard-header">
+                    <span data-i18n="lb.rank">Rank</span>
+                    <span data-i18n="lb.user">Foydalanuvchi</span>
+                    <span data-i18n="lb.score">Jami Ball</span>
+                </div>
+                <div class="leaderboard-rows" id="leaderboard-list">
+                    <!-- Dynamic leaderboard rows loaded from backend API in app.js -->
+                    <div class="leaderboard-loading">
+                        <div class="spinner"></div>
+                        <span data-i18n="lb.loading">Peshqadamlarni yuklash...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="faq-section" id="faq">
+        <div class="container">
+            <div class="section-header reveal-up">
+                <div class="badge" data-i18n="faq.badge">Savol-Javob</div>
+                <h2 data-i18n="faq.title">Ko'p so'raladigan <span>savollar</span></h2>
+                <p>Quyida eng ko'p beriladigan savollarga javoblarni topasiz.</p>
+            </div>
+            <div class="faq-list reveal-up">
+                <div class="faq-item" id="faq-1">
+                    <button class="faq-question">
+                        <span>Orbita Walk qanday ishlaydi? Qadamlar qanday hisoblanadi?</span>
+                        <ion-icon name="chevron-down-outline" class="faq-icon"></ion-icon>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Orbita Walk ilovasi telefoningizning akselerometri orqali qadamlaringizni avtomatik hisoblab boradi. Har 1,000 qadam uchun taxminan 2,000–3,000 UZS gacha yig'ish mumkin. Kunlik chegara 20,000 qadam.</p>
+                    </div>
+                </div>
+                <div class="faq-item" id="faq-2">
+                    <button class="faq-question">
+                        <span>Taksi narxlari qancha? Tarif farqlari nimada?</span>
+                        <ion-icon name="chevron-down-outline" class="faq-icon"></ion-icon>
+                    </button>
+                    <div class="faq-answer">
+                        <p><strong>Start</strong> — eng arzon tarif, oddiy avtomobillar. Boshlang'ich narx 5,000 UZS.<br><strong>Komfort</strong> — yangi va qulay avtomobillar, 8,000 UZS dan.<br><strong>Biznes</strong> — premium avtomobillar, konditsioner kafolatlangan, 12,000 UZS dan.</p>
+                    </div>
+                </div>
+                <div class="faq-item" id="faq-3">
+                    <button class="faq-question">
+                        <span>To'plangan ballarni qanday pul yoki kuponlarga almashtiramiz?</span>
+                        <ion-icon name="chevron-down-outline" class="faq-icon"></ion-icon>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Ilovadagi "Hamyon" bo'limiga kirn, "Ballarni almashtirish" tugmasini bosing. Ballaringizni taksi sayohatlari, KFC/Evos kuponlari, yoki bank kartasiga naqd pul sifatida olishingiz mumkin.</p>
+                    </div>
+                </div>
+                <div class="faq-item" id="faq-4">
+                    <button class="faq-question">
+                        <span>Haydovchi bo'lish uchun qanday talablar bor?</span>
+                        <ion-icon name="chevron-down-outline" class="faq-icon"></ion-icon>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Haydovchi bo'lish uchun: 18+ yosh, haydovchilik guvohnomasi (B toifasi), texnik ko'rikdan o'tgan avtomobil va shaxsiy bank kartasi kerak. Ro'yxatdan o'tish bepul!</p>
+                    </div>
+                </div>
+                <div class="faq-item" id="faq-5">
+                    <button class="faq-question">
+                        <span>Haftalik turnir mukofoti qanday to'lanadi?</span>
+                        <ion-icon name="chevron-down-outline" class="faq-icon"></ion-icon>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Har dushanba ertalab avvalgi hafta g'oliblari aniqlanadi va mukofot summasi avtomatik ravishda ilovadagi hamyoniga o'tkaziladi. Unda siz uni bank kartangizga chiqarib olishingiz mumkin.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download Section -->
+    <section class="download-section" id="download">
+        <div class="download-glow"></div>
+        <div class="container download-container reveal-up">
+            <div class="download-content">
+                <div class="badge" data-i18n="dl.badge">Bepul yuklab oling</div>
+                <h2 data-i18n="dl.title">Hoziroq bepul <span>yuklab oling</span></h2>
+                <p data-i18n="dl.desc">Ilovani o'rnating va bugunoq qadamlaringizni pulga almashtirishni boshlang!</p>
+                <div class="download-app-rating">
+                    <div class="app-rating-stars">
+                        <ion-icon name="star"></ion-icon><ion-icon name="star"></ion-icon><ion-icon name="star"></ion-icon><ion-icon name="star"></ion-icon><ion-icon name="star"></ion-icon>
+                    </div>
+                    <span>4.9/5 — 2,400+ izoh</span>
+                </div>
+                <div class="download-badges" id="app-download-links">
+                    <a href="#" class="btn-download" id="badge-playstore">
+                        <ion-icon name="logo-google-playstore" class="download-icon"></ion-icon>
+                        <div class="download-text">
+                            <span>Yuklab oling</span>
+                            <strong>Google Play</strong>
+                        </div>
+                    </a>
+                    <a href="#" class="btn-download" id="badge-appstore">
+                        <ion-icon name="logo-apple" class="download-icon"></ion-icon>
+                        <div class="download-text">
+                            <span>Yuklab oling</span>
+                            <strong>App Store</strong>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <div class="download-mockup-preview">
+                <div class="download-phone-glow"></div>
+                <div class="download-phone-frame">
+                    <div class="download-screen-content">
+                        <div class="dl-score-ring">
+                            <div class="dl-ring-inner">
+                                <ion-icon name="trophy"></ion-icon>
+                                <span>G'OLIB!</span>
+                            </div>
+                        </div>
+                        <p class="dl-reward-text">+150,000 UZS</p>
+                        <p class="dl-reward-sub">Haftalik turnir mukofoti</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Donate / Support Section -->
+    <section class="donate-section reveal-up" id="donate">
+        <div class="container">
+            <div class="donate-card">
+                <div class="donate-icon">
+                    <ion-icon name="heart-circle-outline"></ion-icon>
+                </div>
+                <div class="badge" data-i18n="donate.badge">Bizni qo'llab-quvvatlang</div>
+                <h2 data-i18n="donate.title" style="font-size: 32px; font-weight: 800; line-height: 1.2;">Loyihani <span>rivojlantirish</span> uchun donat qiling</h2>
+                <p class="donate-text" style="max-width: 620px; margin: 18px auto; color: var(--text-secondary); font-size: 15px; line-height: 1.6;" data-i18n="donate.desc">
+                    Orbita Go ekotizimini rivojlantirishga o'z hissangizni qo'shing. Barcha xayriyalar yangi mini-o'yinlar, ko'proq hamkorlar qo'shish va taksi safarlarini yanada qulay qilishga sarflanadi.
+                </p>
+                <div class="donate-methods">
+                    <button class="donate-method-btn" onclick="showDonateModal('Payme')">
+                        <ion-icon name="card-outline" style="font-size: 20px; color: #38bdf8;"></ion-icon>
+                        <span>Payme</span>
+                    </button>
+                    <button class="donate-method-btn" onclick="showDonateModal('Click')">
+                        <ion-icon name="wallet-outline" style="font-size: 20px; color: #6366f1;"></ion-icon>
+                        <span>Click</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Donation Details Modal -->
+    <div class="donate-modal" id="donate-modal" style="display: none; position: fixed; inset: 0; z-index: 10000; background: rgba(3,0,20,0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); align-items: center; justify-content: center;">
+        <div class="donate-modal-card" style="background: rgba(10,8,30,0.95); border: 1px solid rgba(217,70,239,0.25); border-radius: 28px; padding: 32px 24px; width: 95%; max-width: 460px; text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.6);">
+            <ion-icon name="heart" style="font-size: 48px; color: var(--purple-light); margin-bottom: 12px; filter: drop-shadow(0 0 10px rgba(217,70,239,0.5));"></ion-icon>
+            <h3 style="font-size: 22px; margin-bottom: 8px;" id="donate-modal-title">Xayriya qilish</h3>
+            
+            <!-- Step 1: Input Sum and Comment -->
+            <div id="donate-step-amount" style="display: block;">
+                <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 20px;">Xayriya miqdori va izohingizni kiriting:</p>
+                
+                <div style="text-align: left; margin-bottom: 16px;">
+                    <label style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 6px; font-weight: 600;">Xayriya summasi (UZS):</label>
+                    <input type="number" id="donate-amount-input" value="20000" placeholder="Masalan: 20000" style="width: 100%; padding: 12px 14px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); color: #fff; font-size: 16px; font-weight: bold; font-family: monospace; transition: var(--transition-fast); margin-bottom: 8px;">
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                        <span onclick="setDonateAmount(10000)" style="background: rgba(255,255,255,0.05); padding: 6px 10px; border-radius: 8px; font-size: 11px; color: #fff; cursor: pointer; border: 1px solid rgba(255,255,255,0.08); font-weight: 600;">10,000</span>
+                        <span onclick="setDonateAmount(20000)" style="background: rgba(255,255,255,0.05); padding: 6px 10px; border-radius: 8px; font-size: 11px; color: #fff; cursor: pointer; border: 1px solid rgba(255,255,255,0.08); font-weight: 600;">20,000</span>
+                        <span onclick="setDonateAmount(50000)" style="background: rgba(255,255,255,0.05); padding: 6px 10px; border-radius: 8px; font-size: 11px; color: #fff; cursor: pointer; border: 1px solid rgba(255,255,255,0.08); font-weight: 600;">50,000</span>
+                        <span onclick="setDonateAmount(100000)" style="background: rgba(255,255,255,0.05); padding: 6px 10px; border-radius: 8px; font-size: 11px; color: #fff; cursor: pointer; border: 1px solid rgba(255,255,255,0.08); font-weight: 600;">100,000</span>
+                    </div>
+                </div>
+
+                <div style="text-align: left; margin-bottom: 24px;">
+                    <label style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 6px; font-weight: 600;">Izohingiz (ixtiyoriy):</label>
+                    <input type="text" id="donate-comment-input" placeholder="Masalan: Loyiha rivoji uchun..." style="width: 100%; padding: 12px 14px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); color: #fff; font-size: 13px; font-family: inherit; transition: var(--transition-fast);">
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-outline" onclick="closeDonateModal()" style="flex: 1; justify-content: center; padding: 10px; border-radius: 12px; border: 1px solid var(--border-color); color: #fff; font-weight: bold; cursor: pointer; background: transparent; font-size: 13px;">Yopish</button>
+                    <button class="btn btn-primary" onclick="goToDonateStep2()" style="flex: 1.5; justify-content: center; padding: 10px; border-radius: 12px; border: none; color: #fff; font-weight: bold; cursor: pointer; background: linear-gradient(135deg, var(--primary), var(--purple)); font-size: 13px;">Davom etish ➔</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Show Selected Bank Card & App Open Link -->
+            <div id="donate-step-card" style="display: none;">
+                <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 18px;">To'lov kartasini tanlang (Karta ustiga bosib ko'chiring):</p>
+                
+                <div style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; text-align: left;">
+                    <!-- Humo Hamkorbank Card Option -->
+                    <div id="card-option-humo" onclick="selectDonationCard('humo', '9860160430034589')" 
+                         style="background: linear-gradient(135deg, #064e3b 0%, #0d9488 100%); border: 2px solid var(--primary-light); padding: 16px; border-radius: 16px; position: relative; height: 145px; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; box-shadow: 0 10px 20px rgba(0,0,0,0.4); transition: transform 0.2s, border-color 0.2s; overflow: hidden;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; z-index: 2;">
+                            <span style="font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.85); letter-spacing: 0.5px; text-transform: uppercase;">Hamkorbank</span>
+                            <span style="font-size: 12px; font-weight: 800; color: #fff; font-family: sans-serif; font-style: italic; letter-spacing: 1px;">HUMO</span>
+                        </div>
+                        <div style="width: 24px; height: 18px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 4px; box-shadow: inset 0 1px 3px rgba(255,255,255,0.3); margin-top: 4px; z-index: 2;"></div>
+                        <div style="font-family: monospace; font-size: 16px; font-weight: bold; color: #fff; letter-spacing: 1.5px; text-shadow: 1px 2px 4px rgba(0,0,0,0.4); margin-top: 4px; display: flex; justify-content: space-between; align-items: center; width: 100%; z-index: 2;">
+                            <span>9860 1604 3003 4589</span>
+                            <ion-icon name="checkbox" id="card-check-humo" style="font-size: 18px; color: #4ade80;"></ion-icon>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end; width: 100%; margin-top: auto; z-index: 2;">
+                            <div>
+                                <div style="font-size: 8px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Karta egasi</div>
+                                <div style="font-size: 11px; font-weight: 600; color: #fff; letter-spacing: 0.5px; font-family: 'Plus Jakarta Sans', sans-serif;">A.Qambarov</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Visa Kapitalbank Card Option -->
+                    <div id="card-option-visa" onclick="selectDonationCard('visa', '4278320028493137')" 
+                         style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); border: 2px solid transparent; opacity: 0.7; padding: 16px; border-radius: 16px; position: relative; height: 145px; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; box-shadow: 0 5px 10px rgba(0,0,0,0.3); transition: transform 0.2s, border-color 0.2s; overflow: hidden;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; z-index: 2;">
+                            <span style="font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.85); letter-spacing: 0.5px; text-transform: uppercase;">Kapitalbank</span>
+                            <span style="font-size: 13px; font-weight: 900; color: #fbbf24; font-family: sans-serif; font-style: italic; letter-spacing: 1px;">VISA</span>
+                        </div>
+                        <div style="width: 24px; height: 18px; background: linear-gradient(135deg, #ffe066, #f5b041); border-radius: 4px; box-shadow: inset 0 1px 3px rgba(255,255,255,0.3); margin-top: 4px; z-index: 2;"></div>
+                        <div style="font-family: monospace; font-size: 16px; font-weight: bold; color: #fff; letter-spacing: 1.5px; text-shadow: 1px 2px 4px rgba(0,0,0,0.4); margin-top: 4px; display: flex; justify-content: space-between; align-items: center; width: 100%; z-index: 2;">
+                            <span>4278 3200 2849 3137</span>
+                            <ion-icon name="square-outline" id="card-check-visa" style="font-size: 18px; color: rgba(255,255,255,0.4);"></ion-icon>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end; width: 100%; margin-top: auto; z-index: 2;">
+                            <div>
+                                <div style="font-size: 8px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">Karta egasi</div>
+                                <div style="font-size: 11px; font-weight: 600; color: #fff; letter-spacing: 0.5px; font-family: 'Plus Jakarta Sans', sans-serif;">A.Qambarov</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Launch App Button -->
+                <button class="btn btn-primary" id="btn-pay-app" onclick="payViaApp()" style="width: 100%; justify-content: center; padding: 14px; font-size: 14px; font-weight: bold; background: linear-gradient(135deg, #10b981, #059669); margin-bottom: 16px; gap: 8px; border: none; border-radius: 12px; cursor: pointer; color: #fff; display: flex; align-items: center;">
+                    <ion-icon name="open-outline" style="font-size: 18px;"></ion-icon>
+                    <span id="btn-pay-app-text">Payme ilovasida to'lash</span>
+                </button>
+
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-outline" onclick="goBackToDonateStep1()" style="flex: 1; justify-content: center; padding: 10px; border-radius: 12px; border: 1px solid var(--border-color); color: #fff; font-weight: bold; cursor: pointer; background: transparent; font-size: 13px;">➔ Orqaga</button>
+                    <button class="btn btn-outline" onclick="closeDonateModal()" style="flex: 1; justify-content: center; padding: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15); color: #fff; font-weight: bold; cursor: pointer; background: transparent; font-size: 13px;">Yopish</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Partnership Form Modal -->
+    <div class="receipt-overlay" id="partner-modal">
+        <div class="receipt-card" style="border-color: rgba(99, 102, 241, 0.35); box-shadow: 0 30px 70px rgba(99,102,241,0.15); display: block;">
+            <div class="receipt-header">
+                <div class="receipt-header-icon" style="background: rgba(99, 102, 241, 0.12); color: var(--primary-light); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-size: 32px;">
+                     <ion-icon name="people-circle-outline"></ion-icon>
+                </div>
+                <h3 style="font-size: 22px; margin-bottom: 8px;">Hamkorlik arizasi</h3>
+                <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 20px;">Ma'lumotlaringizni qoldiring va menejerimiz siz bilan tezda bog'lanadi.</p>
+            </div>
+            
+            <form id="partner-form" onsubmit="event.preventDefault();" style="display: flex; flex-direction: column; gap: 16px;">
+                <div class="input-group" style="text-align: left;">
+                    <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-hint); text-transform: uppercase; margin-bottom: 6px;">Ismingiz</label>
+                    <input type="text" id="partner-name" placeholder="Ismingiz..." required style="width: 100%; padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); color: #fff; font-size: 13px; font-family: inherit;">
+                </div>
+                <div class="input-group" style="text-align: left;">
+                    <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-hint); text-transform: uppercase; margin-bottom: 6px;">Telefon raqamingiz</label>
+                    <input type="tel" id="partner-phone" placeholder="+998 (90) 123-45-67" required style="width: 100%; padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); color: #fff; font-size: 13px; font-family: inherit;">
+                </div>
+                <div class="input-group" style="text-align: left;">
+                    <label style="display: block; font-size: 11px; font-weight: 700; color: var(--text-hint); text-transform: uppercase; margin-bottom: 6px;">Kompaniya / Hamkorlik turi</label>
+                    <input type="text" id="partner-business" placeholder="Masalan: Evos restorani..." required style="width: 100%; padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); color: #fff; font-size: 13px; font-family: inherit;">
+                </div>
+                <button class="btn btn-primary" id="btn-submit-partner" type="submit" style="width: 100%; margin-top: 10px; padding: 12px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; background: linear-gradient(135deg, var(--primary), var(--purple)); color: #fff; justify-content: center; display: flex; align-items: center; gap: 8px;">
+                     Yuborish
+                </button>
+            </form>
+            <button class="btn btn-outline" onclick="closePartnerModal()" style="width: 100%; margin-top: 10px; padding: 10px; border-radius: 12px; border: 1px solid var(--border-color); cursor: pointer; color: #fff; justify-content: center; display: flex;">
+                 Yopish
+            </button>
+            
+            <!-- Operator Status Widget -->
+            <div class="partner-operators-status" style="margin-top: 24px; border-top: 1px dashed rgba(255,255,255,0.08); padding-top: 18px; text-align: left;">
+                <h4 style="font-size: 11px; font-weight: 700; color: var(--text-hint); text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px;">Navbatchi Operatorlar:</h4>
+                <div id="partner-operators-list" style="display: flex; flex-direction: column; gap: 10px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(99,102,241,0.15); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: #fff; font-family: sans-serif;">SM</div>
+                            <span style="color: #fff; font-weight: 600;">Sardor M.</span>
+                        </div>
+                        <span style="color: #4ade80; font-size: 12px; display: flex; align-items: center; gap: 4px; font-weight: 600;">
+                            <span style="width: 6px; height: 6px; border-radius: 50%; background: #4ade80; display: inline-block; box-shadow: 0 0 8px #4ade80;"></span>
+                            Faol
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal helper scripts -->
+    <script>
+        let selectedDonateMethod = '';
+        let activeCardType = 'humo';
+        let activeCardNumber = '9860160430034589';
+
+        function showDonateModal(method) {
+            selectedDonateMethod = method;
+            document.getElementById('donate-modal-title').textContent = method + ' orqali donat';
+            document.getElementById('donate-comment-input').value = ''; // reset comment
+            document.getElementById('donate-amount-input').value = '20000'; // reset amount
+            
+            // Show Step 1, hide Step 2
+            document.getElementById('donate-step-amount').style.display = 'block';
+            document.getElementById('donate-step-card').style.display = 'none';
+
+            document.getElementById('donate-modal').style.display = 'flex';
+        }
+
+        function closeDonateModal() {
+            document.getElementById('donate-modal').style.display = 'none';
+        }
+
+        function setDonateAmount(val) {
+            document.getElementById('donate-amount-input').value = val;
+        }
+
+        function goToDonateStep2() {
+            const amountInput = document.getElementById('donate-amount-input').value;
+            if (!amountInput || amountInput <= 0) {
+                alert("Iltimos, xayriya miqdorini kiriting.");
+                return;
+            }
+
+            // Setup Step 2 UI based on chosen payment method
+            document.getElementById('btn-pay-app-text').textContent = selectedDonateMethod + " ilovasida to'lash";
+            
+            // Highlight default card (Humo)
+            selectDonationCard('humo', '9860160430034589');
+
+            document.getElementById('donate-step-amount').style.display = 'none';
+            document.getElementById('donate-step-card').style.display = 'block';
+        }
+
+        function goBackToDonateStep1() {
+            document.getElementById('donate-step-amount').style.display = 'block';
+            document.getElementById('donate-step-card').style.display = 'none';
+        }
+
+        function selectDonationCard(type, number) {
+            activeCardType = type;
+            activeCardNumber = number;
+
+            const humoOpt = document.getElementById('card-option-humo');
+            const visaOpt = document.getElementById('card-option-visa');
+            const humoCheck = document.getElementById('card-check-humo');
+            const visaCheck = document.getElementById('card-check-visa');
+
+            if (type === 'humo') {
+                humoOpt.style.borderColor = 'var(--primary-light)';
+                humoOpt.style.opacity = '1';
+                humoOpt.style.boxShadow = '0 10px 20px rgba(0,0,0,0.4)';
+                humoCheck.setAttribute('name', 'checkbox');
+                humoCheck.style.color = '#4ade80';
+
+                visaOpt.style.borderColor = 'transparent';
+                visaOpt.style.opacity = '0.7';
+                visaOpt.style.boxShadow = '0 5px 10px rgba(0,0,0,0.3)';
+                visaCheck.setAttribute('name', 'square-outline');
+                visaCheck.style.color = 'rgba(255,255,255,0.4)';
+            } else {
+                visaOpt.style.borderColor = 'var(--primary-light)';
+                visaOpt.style.opacity = '1';
+                visaOpt.style.boxShadow = '0 10px 20px rgba(0,0,0,0.4)';
+                visaCheck.setAttribute('name', 'checkbox');
+                visaCheck.style.color = '#4ade80';
+
+                humoOpt.style.borderColor = 'transparent';
+                humoOpt.style.opacity = '0.7';
+                humoOpt.style.boxShadow = '0 5px 10px rgba(0,0,0,0.3)';
+                humoCheck.setAttribute('name', 'square-outline');
+                humoCheck.style.color = 'rgba(255,255,255,0.4)';
+            }
+        }
+
+        async function payViaApp() {
+            const amount = document.getElementById('donate-amount-input').value;
+            const comment = document.getElementById('donate-comment-input').value.trim() || 'Izohsiz';
+            const payBtn = document.getElementById('btn-pay-app');
+
+            payBtn.setAttribute('disabled', 'true');
+            payBtn.style.opacity = '0.7';
+            payBtn.textContent = 'Yuborilmoqda...';
+
+            // 1. Notify telegram of the P2P transfer intent
+            try {
+                await window.sendTelegramNotification('donate', { 
+                    method: selectedDonateMethod + ` (${activeCardType.toUpperCase()})`,
+                    amount: `${Number(amount).toLocaleString()} UZS`,
+                    comment: comment
+                });
+            } catch (err) {
+                console.error("Alert notify failed:", err);
+            }
+
+            // 2. Open link to the payment system safely
+            let link = '';
+            if (selectedDonateMethod.toLowerCase() === 'click') {
+                // Click P2P prefill link: card_number, amount (working)
+                link = `https://my.click.uz/services/p2p?card_number=${activeCardNumber}&amount=${amount}`;
+                window.open(link, '_blank');
+            } else {
+                // Payme: copy card number to clipboard and open payme.uz
+                navigator.clipboard.writeText(activeCardNumber);
+                alert("Payme uchun karta raqami nusxalandi! \nPayme ilovasiga o'tib, 'O'tkazmalar' bo'limida ushbu karta raqamini 'Joylashtirish' (Paste) qiling.");
+                link = `https://payme.uz`;
+                window.open(link, '_blank');
+            }
+
+            // 3. Show success and close modal
+            payBtn.textContent = 'Rahmat! ❤️';
+            setTimeout(() => {
+                closeDonateModal();
+                payBtn.removeAttribute('disabled');
+                payBtn.style.opacity = '1';
+            }, 1000);
+        }
+        
+        async function loadOperators() {
+            const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:3000' : '';
+            const container = document.getElementById('partner-operators-list');
+            try {
+                const res = await fetch(API_BASE + '/api/telegram/operators');
+                const operators = await res.json();
+                
+                if (operators.length === 0) {
+                    throw new Error("No active operators in backend");
+                }
+
+                container.innerHTML = operators.map(op => {
+                    const initials = op.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'OP';
+                    const isOnline = op.status === 'online';
+                    const color = isOnline ? '#4ade80' : 'var(--text-hint)';
+                    const bg = isOnline ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.05)';
+                    const statusText = isOnline ? 'Faol' : 'Oflayn';
+                    const glow = isOnline ? 'box-shadow: 0 0 8px #4ade80;' : '';
+
+                    return `
+                        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="width: 28px; height: 28px; border-radius: 50%; background: ${bg}; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: #fff; font-family: sans-serif;">${initials}</div>
+                                <span style="color: ${isOnline ? '#fff' : 'rgba(255,255,255,0.6)'}; font-weight: 600;">${op.name}</span>
+                            </div>
+                            <span style="color: ${color}; font-size: 12px; display: flex; align-items: center; gap: 4px; font-weight: 600;">
+                                <span style="width: 6px; height: 6px; border-radius: 50%; background: ${color}; display: inline-block; ${glow}"></span>
+                                ${statusText}
+                            </span>
+                        </div>
+                    `;
+                }).join('');
+            } catch (e) {
+                // Fallback to beautiful static operator list if server is offline or absent
+                container.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(99,102,241,0.15); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: #fff; font-family: sans-serif;">SM</div>
+                            <span style="color: #fff; font-weight: 600;">Sardor M.</span>
+                        </div>
+                        <span style="color: #4ade80; font-size: 12px; display: flex; align-items: center; gap: 4px; font-weight: 600;">
+                            <span style="width: 6px; height: 6px; border-radius: 50%; background: #4ade80; display: inline-block; box-shadow: 0 0 8px #4ade80;"></span>
+                            Faol
+                        </span>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px; margin-top: 10px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(217,70,239,0.15); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: #fff; font-family: sans-serif;">MA</div>
+                            <span style="color: #fff; font-weight: 600;">Madina A.</span>
+                        </div>
+                        <span style="color: #4ade80; font-size: 12px; display: flex; align-items: center; gap: 4px; font-weight: 600;">
+                            <span style="width: 6px; height: 6px; border-radius: 50%; background: #4ade80; display: inline-block; box-shadow: 0 0 8px #4ade80;"></span>
+                            Faol
+                        </span>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px; margin-top: 10px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: #aaa; font-family: sans-serif;">AK</div>
+                            <span style="color: rgba(255,255,255,0.6); font-weight: 600;">Akmal K.</span>
+                        </div>
+                        <span style="color: var(--text-hint); font-size: 12px; display: flex; align-items: center; gap: 4px; font-weight: 600;">
+                            <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--text-hint); display: inline-block;"></span>
+                            Oflayn
+                        </span>
+                    </div>
+                `;
+            }
+        }
+        
+        function showPartnerModal() {
+            document.getElementById('partner-modal').classList.add('open');
+            loadOperators();
+        }
+        function closePartnerModal() {
+            document.getElementById('partner-modal').classList.remove('open');
+        }
+
+        // Partner Form Submission
+        document.getElementById('partner-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit-partner');
+            const name = document.getElementById('partner-name').value;
+            const phone = document.getElementById('partner-phone').value;
+            const business = document.getElementById('partner-business').value;
+
+            btn.setAttribute('disabled', 'true');
+            btn.textContent = 'Yuborilmoqda...';
+
+            try {
+                // Route through unified helper script with direct Telegram API fallback
+                await window.sendTelegramNotification('partner', { name, phone, business });
+                
+                btn.textContent = 'Muvaffaqiyatli yuborildi! ✅';
+                setTimeout(() => {
+                    closePartnerModal();
+                    // Reset form
+                    document.getElementById('partner-form').reset();
+                    btn.removeAttribute('disabled');
+                    btn.textContent = 'Yuborish';
+                }, 1500);
+            } catch {
+                btn.textContent = 'Xatolik yuz berdi ❌';
+                btn.removeAttribute('disabled');
+            }
+        });
+    </script>
+
+    <!-- Main Footer -->
+    <footer class="main-footer">
+        <div class="container footer-container">
+            <div class="footer-brand">
+                <a href="#" class="logo">
+                    <div class="logo-icon"><ion-icon name="rocket-outline"></ion-icon></div>
+                    <span>Orbita<span>Go</span></span>
+                </a>
+                <p data-i18n="footer.desc">Safar qilish, fitness va o'yinlar yagona ekotizimi. Biz yo'l harakatini o'yinlashtiramiz.</p>
+                <div class="footer-socials">
+                    <a href="https://t.me/orbitago" target="_blank" rel="noopener" class="social-btn" id="social-telegram" aria-label="Telegram">
+                        <ion-icon name="paper-plane-outline"></ion-icon>
+                    </a>
+                    <a href="https://www.instagram.com/orbita_tezkor?igsh=MW5wbWRxMmFtM3dlbA%3D%3D&utm_source=qr" target="_blank" rel="noopener" class="social-btn" id="social-instagram" aria-label="Instagram">
+                        <ion-icon name="logo-instagram"></ion-icon>
+                    </a>
+                    <a href="https://www.youtube.com/@Orbita-Go" target="_blank" rel="noopener" class="social-btn" id="social-youtube" aria-label="YouTube">
+                        <ion-icon name="logo-youtube"></ion-icon>
+                    </a>
+                </div>
+            </div>
+            <div class="footer-links">
+                <h4 data-i18n="footer.nav">Navigatsiya</h4>
+                <a href="#features" data-i18n="nav.features">Xususiyatlar</a>
+                <a href="#how-it-works" data-i18n="nav.how">Qanday ishlaydi</a>
+                <a href="#simulator" data-i18n="nav.simulator">Taksi Simulyatori</a>
+                <a href="#leaderboard" data-i18n="nav.leaderboard">Musobaqa</a>
+                <a href="#faq" data-i18n="nav.faq">FAQ</a>
+            </div>
+            <div class="footer-links">
+                <h4 data-i18n="footer.services">Xizmatlar</h4>
+                <a href="#" data-i18n="feat.taxi.title">Orbita Go Taksi</a>
+                <a href="#" data-i18n="feat.walk.title">Orbita Walk</a>
+                <a href="#" data-i18n="feat.games.title">Orbita Games</a>
+                <a href="#">Orbita Cafe <span class="soon-chip" data-i18n="feat.soon">Tez orada</span></a>
+                <a href="#">Orbita Market <span class="soon-chip" data-i18n="feat.soon">Tez orada</span></a>
+            </div>
+            <div class="footer-contact">
+                <h4 data-i18n="footer.contact">Kontaktlar</h4>
+                <p><ion-icon name="location-outline"></ion-icon> Kosonsoy tumani, Namangan, O'zbekiston</p>
+                <p><ion-icon name="mail-outline"></ion-icon> support@orbitago.uz</p>
+                <p><ion-icon name="call-outline"></ion-icon> <a href="tel:+998500303555" style="color:inherit;">+998 (50) 030-35-55</a></p>
+                <p><ion-icon name="time-outline"></ion-icon> 07:00 — 24:00, har kuni</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="footer-bottom-left">
+                <p data-i18n="footer.rights">&copy; 2026 Orbita Go. Barcha huquqlar himoyalangan.</p>
+                <div class="system-status-indicator">
+                    <span class="status-dot status-checking"></span>
+                    <span class="status-text" id="system-status-text">Tizim holati tekshirilmoqda...</span>
+                </div>
+            </div>
+            <div class="footer-bottom-links">
+                <a href="pages/developer.html">Dasturchi</a>
+                <a href="pages/privacy.html">Maxfiylik siyosati</a>
+                <a href="pages/terms.html">Foydalanish shartlari</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Confetti Canvas -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- PWA Install Banner -->
+    <div class="pwa-banner" id="pwa-banner" style="display:none;">
+        <ion-icon name="phone-portrait-outline"></ion-icon>
+        <div>
+            <strong data-i18n="pwa.install">Ilovani o'rnatish</strong>
+            <span data-i18n="pwa.desc">Orbita Go'ni telefonga o'rnating!</span>
+        </div>
+        <button class="pwa-install-btn" id="pwa-install-btn">O'rnatish</button>
+        <button class="pwa-close-btn" id="pwa-close-btn" aria-label="Yopish">&times;</button>
+    </div>
+
+    <!-- AI Assistant Floating Orb Widget -->
+    <div class="ai-orb-widget" id="ai-orb-btn" title="Orbita AI Yordamchisi">
+        <ion-icon name="sparkles-outline"></ion-icon>
+        <div class="ai-orb-waves"></div>
+        <div class="ai-orb-pulse"></div>
+    </div>
+
+    <!-- AI Chat Window -->
+    <div class="ai-chat-window" id="ai-chat-box">
+        <div class="ai-chat-header">
+            <h3><span></span> Orbita AI Assistant</h3>
+            <button class="ai-chat-close" id="ai-chat-close-btn">&times;</button>
+        </div>
+        <div class="ai-chat-messages" id="ai-chat-logs">
+            <div class="chat-msg bot" data-i18n="chat.welcome">
+                Salom! Men Orbita AI yordamchisiman. Sizga qanday yordam bera olaman? 😊
+            </div>
+        </div>
+        <div class="ai-chat-chips">
+            <div class="chat-chip" data-question="nima" data-i18n="chip.nima">Orbita Go nima?</div>
+            <div class="chat-chip" data-question="taksi" data-i18n="chip.taksi">Taksi tariflari qanday?</div>
+            <div class="chat-chip" data-question="bog" data-i18n="chip.bog">Virtual bog' nima?</div>
+            <div class="chat-chip" data-question="qadam" data-i18n="chip.qadam">Qadamlarni qanday almashtiraman?</div>
+            <div class="chat-chip" data-question="donat" data-i18n="chip.donat">Loyihani qo'llab-quvvatlash</div>
+        </div>
+    </div>
+
+    <!-- =====================================================
+         DOWNLOAD MODAL — Barcha ilovalar
+         ===================================================== -->
+    <div class="dl-modal-overlay" id="dl-modal" role="dialog" aria-modal="true" aria-labelledby="dl-modal-title">
+        <div class="dl-modal-card">
+            <button class="dl-modal-close" id="dl-modal-close" aria-label="Yopish">
+                <ion-icon name="close-outline"></ion-icon>
+            </button>
+            <div class="dl-modal-header">
+                <div class="dl-modal-logo">
+                    <div class="logo-icon"><ion-icon name="rocket-outline"></ion-icon></div>
+                    <span>Orbita<span>Go</span></span>
+                </div>
+                <h2 id="dl-modal-title">Orbita Ekotizimini <span>Yuklab Oling</span></h2>
+                <p>Barcha ilovalar — bitta ekotizim. Bepul yuklab oling va bugundan boshlab daromad qiling!</p>
+            </div>
+            <div class="dl-apps-grid">
+
+                <!-- Go Taksi -->
+                <div class="dl-app-card dl-app-primary">
+                    <div class="dl-app-glow"></div>
+                    <div class="dl-app-icon" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">
+                        <ion-icon name="car-sport-outline"></ion-icon>
+                    </div>
+                    <div class="dl-app-info">
+                        <h3>Orbita Go</h3>
+                        <span class="dl-app-sub">Taksi xizmati</span>
+                        <div class="dl-app-rating">
+                            <ion-icon name="star" style="color:#fbbf24;font-size:12px;"></ion-icon>
+                            <ion-icon name="star" style="color:#fbbf24;font-size:12px;"></ion-icon>
+                            <ion-icon name="star" style="color:#fbbf24;font-size:12px;"></ion-icon>
+                            <ion-icon name="star" style="color:#fbbf24;font-size:12px;"></ion-icon>
+                            <ion-icon name="star" style="color:#fbbf24;font-size:12px;"></ion-icon>
+                            <span>4.9</span>
+                        </div>
+                    </div>
+                    <div class="dl-app-btns">
+                        <a href="https://play.google.com/store/apps/details?id=com.orbitago" target="_blank" class="dl-store-btn dl-google">
+                            <ion-icon name="logo-google-playstore"></ion-icon>
+                            <div class="dl-store-text">
+                                <span class="dl-store-label">GET IT ON</span>
+                                <span class="dl-store-name">Google Play</span>
+                            </div>
+                        </a>
+                        <a href="https://apps.apple.com/app/orbitago" target="_blank" class="dl-store-btn dl-apple">
+                            <ion-icon name="logo-apple"></ion-icon>
+                            <div class="dl-store-text">
+                                <span class="dl-store-label">Download on the</span>
+                                <span class="dl-store-name">App Store</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Driver -->
+                <div class="dl-app-card">
+                    <div class="dl-app-icon" style="background:linear-gradient(135deg,#fbbf24,#f59e0b)">
+                        <ion-icon name="navigate-outline"></ion-icon>
+                    </div>
+                    <div class="dl-app-info">
+                        <h3>Orbita Driver</h3>
+                        <span class="dl-app-sub">Haydovchilar uchun</span>
+                        <div class="dl-app-rating">
+                            <ion-icon name="star" style="color:#fbbf24;font-size:12px;"></ion-icon>
+                            <ion-icon name="star" style="color:#fbbf24;font-size:12px;"></ion-icon>
+                            <ion-icon name="star" style="color:#fbbf24;font-size:12px;"></ion-icon>
+                            <ion-icon name="star" style="color:#fbbf24;font-size:12px;"></ion-icon>
+                            <ion-icon name="star-half-outline" style="color:#fbbf24;font-size:12px;"></ion-icon>
+                            <span>4.7</span>
+                        </div>
+                    </div>
+                    <div class="dl-app-btns">
+                        <a href="https://play.google.com/store/apps/details?id=com.orbitago.driver" target="_blank" class="dl-store-btn dl-google">
+                            <ion-icon name="logo-google-playstore"></ion-icon>
+                            <div class="dl-store-text">
+                                <span class="dl-store-label">GET IT ON</span>
+                                <span class="dl-store-name">Google Play</span>
+                            </div>
+                        </a>
+                        <a href="#" class="dl-store-btn dl-apple dl-soon-btn">
+                            <ion-icon name="logo-apple"></ion-icon>
+                            <div class="dl-store-text">
+                                <span class="dl-store-label">Tez orada</span>
+                                <span class="dl-store-name">App Store</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Walk -->
+                <div class="dl-app-card">
+                    <div class="dl-app-icon" style="background:linear-gradient(135deg,#10b981,#059669)">
+                        <ion-icon name="footsteps-outline"></ion-icon>
+                    </div>
+                    <div class="dl-app-info">
+                        <h3>Orbita Walk</h3>
+                        <span class="dl-app-sub">Qadam = Daromad</span>
+                        <div class="dl-app-rating">
+                            <ion-icon name="star" style="color:#fbbf24;font-size:12px;"></ion-icon>
+                            <ion-icon name="star" style="color:#fbbf24;font-size:12px;"></ion-icon>
+                            <ion-icon name="star" style="color:#fbbf24;font-size:12px;"></ion-icon>
+                            <ion-icon name="star" style="color:#fbbf24;font-size:12px;"></ion-icon>
+                            <ion-icon name="star-outline" style="color:#fbbf24;font-size:12px;"></ion-icon>
+                            <span>4.5</span>
+                        </div>
+                    </div>
+                    <div class="dl-app-btns">
+                        <a href="https://play.google.com/store/apps/details?id=com.orbitago.walk" target="_blank" class="dl-store-btn dl-google">
+                            <ion-icon name="logo-google-playstore"></ion-icon>
+                            <div class="dl-store-text">
+                                <span class="dl-store-label">GET IT ON</span>
+                                <span class="dl-store-name">Google Play</span>
+                            </div>
+                        </a>
+                        <a href="#" class="dl-store-btn dl-apple dl-soon-btn">
+                            <ion-icon name="logo-apple"></ion-icon>
+                            <div class="dl-store-text">
+                                <span class="dl-store-label">Tez orada</span>
+                                <span class="dl-store-name">App Store</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Games -->
+                <div class="dl-app-card">
+                    <div class="dl-app-icon" style="background:linear-gradient(135deg,#d946ef,#a21caf)">
+                        <ion-icon name="game-controller-outline"></ion-icon>
+                    </div>
+                    <div class="dl-app-info">
+                        <h3>Orbita Games</h3>
+                        <span class="dl-app-sub">O'yin = Pul mukofot</span>
+                        <div class="dl-app-rating">
+                            <ion-icon name="star" style="color:#fbbf24;font-size:12px;"></ion-icon>
+                            <ion-icon name="star" style="color:#fbbf24;font-size:12px;"></ion-icon>
+                            <ion-icon name="star" style="color:#fbbf24;font-size:12px;"></ion-icon>
+                            <ion-icon name="star" style="color:#fbbf24;font-size:12px;"></ion-icon>
+                            <ion-icon name="star-half-outline" style="color:#fbbf24;font-size:12px;"></ion-icon>
+                            <span>4.8</span>
+                        </div>
+                    </div>
+                    <div class="dl-app-btns">
+                        <a href="https://play.google.com/store/apps/details?id=com.orbitago.games" target="_blank" class="dl-store-btn dl-google">
+                            <ion-icon name="logo-google-playstore"></ion-icon>
+                            <div class="dl-store-text">
+                                <span class="dl-store-label">GET IT ON</span>
+                                <span class="dl-store-name">Google Play</span>
+                            </div>
+                        </a>
+                        <a href="#" class="dl-store-btn dl-apple dl-soon-btn">
+                            <ion-icon name="logo-apple"></ion-icon>
+                            <div class="dl-store-text">
+                                <span class="dl-store-label">Tez orada</span>
+                                <span class="dl-store-name">App Store</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Cafe -->
+                <div class="dl-app-card dl-app-soon">
+                    <div class="dl-soon-badge">Tez orada</div>
+                    <div class="dl-app-icon" style="background:linear-gradient(135deg,#f97316,#ea580c)">
+                        <ion-icon name="cafe-outline"></ion-icon>
+                    </div>
+                    <div class="dl-app-info">
+                        <h3>Orbita Cafe</h3>
+                        <span class="dl-app-sub">Ballarni ovqatga</span>
+                    </div>
+                    <div class="dl-app-btns">
+                        <a href="#" class="dl-store-btn dl-google dl-soon-btn">
+                            <ion-icon name="logo-google-playstore"></ion-icon>
+                            <div class="dl-store-text">
+                                <span class="dl-store-label">Tez orada</span>
+                                <span class="dl-store-name">Google Play</span>
+                            </div>
+                        </a>
+                        <a href="#" class="dl-store-btn dl-apple dl-soon-btn">
+                            <ion-icon name="logo-apple"></ion-icon>
+                            <div class="dl-store-text">
+                                <span class="dl-store-label">Tez orada</span>
+                                <span class="dl-store-name">App Store</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Market -->
+                <div class="dl-app-card dl-app-soon">
+                    <div class="dl-soon-badge">Tez orada</div>
+                    <div class="dl-app-icon" style="background:linear-gradient(135deg,#06b6d4,#0891b2)">
+                        <ion-icon name="storefront-outline"></ion-icon>
+                    </div>
+                    <div class="dl-app-info">
+                        <h3>Orbita Market</h3>
+                        <span class="dl-app-sub">Koinga xarid</span>
+                    </div>
+                    <div class="dl-app-btns">
+                        <a href="#" class="dl-store-btn dl-google dl-soon-btn">
+                            <ion-icon name="logo-google-playstore"></ion-icon>
+                            <div class="dl-store-text">
+                                <span class="dl-store-label">Tez orada</span>
+                                <span class="dl-store-name">Google Play</span>
+                            </div>
+                        </a>
+                        <a href="#" class="dl-store-btn dl-apple dl-soon-btn">
+                            <ion-icon name="logo-apple"></ion-icon>
+                            <div class="dl-store-text">
+                                <span class="dl-store-label">Tez orada</span>
+                                <span class="dl-store-name">App Store</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+            <div class="dl-modal-footer">
+                <ion-icon name="shield-checkmark-outline"></ion-icon>
+                <span>Barcha ilovalar 100% bepul · Xavfsiz · Reklama yo'q</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================================
+         NEWS ARTICLE MODAL
+         ===================================================== -->
+    <div class="news-modal-overlay" id="news-modal" role="dialog" aria-modal="true">
+        <div class="news-modal-card">
+            <button class="news-modal-close" id="news-modal-close" aria-label="Yopish">
+                <ion-icon name="close-outline"></ion-icon>
+            </button>
+            <div class="news-modal-tag-row">
+                <span class="news-tag" id="nm-tag"></span>
+                <span class="news-date" id="nm-date"><ion-icon name="calendar-outline"></ion-icon> <span></span></span>
+            </div>
+            <div class="news-modal-icon" id="nm-icon"></div>
+            <h2 id="nm-title"></h2>
+            <div class="news-modal-body" id="nm-body"></div>
+            <a href="#download" class="news-modal-cta" id="nm-cta" onclick="closeNewsModal()">
+                <ion-icon name="download-outline"></ion-icon>
+                <span>Ilovani yuklab olish</span>
+            </a>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Dynamically load Socket.io only if on localhost (dev), skip on production
+        (function() {
+            const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+            if (isLocal) {
+                const s = document.createElement('script');
+                s.src = 'http://localhost:3000/socket.io/socket.io.js';
+                s.onerror = () => console.warn('Socket.io not available — offline mode active');
+                document.head.appendChild(s);
+            }
+        })();
+    </script>
+    <script src="translations.js?v=1.1.0"></script>
+    <script src="telegram-gateway.js?v=1.1.0"></script>
+    <script src="app.js?v=1.1.0"></script>
+    <script>
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').catch(() => {});
+        }
+    </script>
+</body>
+</html>
