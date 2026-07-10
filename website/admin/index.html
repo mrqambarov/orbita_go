@@ -494,6 +494,11 @@
     </button>
 
     <span class="nav-section-label">Tizim</span>
+    <button class="nav-item" data-page="emails" id="nav-emails">
+        <ion-icon name="mail-outline"></ion-icon>
+        <span>Xabarlar (Email)</span>
+        <span class="nav-badge" id="badge-emails" style="display:none;background:var(--red);">0</span>
+    </button>
     <button class="nav-item" data-page="settings" id="nav-settings">
         <ion-icon name="settings-outline"></ion-icon>
         <span>Sozlamalar</span>
@@ -955,6 +960,37 @@
             <button class="login-btn" id="btn-save-settings" style="display: inline-flex; width: auto; padding: 14px 40px;">
                 <ion-icon name="save-outline"></ion-icon> Sozlamalarni Saqlash
             </button>
+        </div>
+    </section>
+
+    <!-- ========== EMAILS SECTION ========== -->
+    <section class="page-section" id="page-emails">
+        <div class="table-card">
+            <div class="table-header">
+                <h3>✉️ Tizim Pochtasi (info@orbitago.uz / support@orbitago.uz)</h3>
+                <div style="display:flex; gap:10px;">
+                    <select id="email-filter" class="login-input" style="width:230px; padding:8px 12px; margin:0; background:rgba(255,255,255,0.03); border:1px solid var(--border); color:#fff; border-radius:12px; outline:none;" onchange="loadEmails()">
+                        <option value="ALL">Barchasi (All Accounts)</option>
+                        <option value="info@orbitago.uz">info@orbitago.uz</option>
+                        <option value="support@orbitago.uz">support@orbitago.uz</option>
+                    </select>
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:180px;">Kelgan Vaqti</th>
+                        <th style="width:150px;">Hisob (To)</th>
+                        <th style="width:200px;">Kimdan (From)</th>
+                        <th>Xabar Mavzusi (Subject)</th>
+                        <th style="width:100px;">Holat</th>
+                        <th style="width:120px;">Amallar</th>
+                    </tr>
+                </thead>
+                <tbody id="emails-table-body">
+                    <tr class="loading-row"><td colspan="6"><span class="spinner"></span>Yuklanmoqda...</td></tr>
+                </tbody>
+            </table>
         </div>
     </section>
 </main>

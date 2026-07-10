@@ -100,7 +100,7 @@ function showAdmin() {
     // Start auto polling refresh every 6 seconds for real-time stats
     if (refreshInterval) clearInterval(refreshInterval);
     refreshInterval = setInterval(async () => {
-        await Promise.all([loadStats(), loadOrders(), loadDrivers()]);
+        await Promise.all([loadStats(), loadOrders(), loadDrivers(), loadEmails()]);
     }, 6000);
 }
 
@@ -189,7 +189,7 @@ function switchPage(page) {
     if (section) section.classList.add('active');
     if (btn)     btn.classList.add('active');
 
-    const titles = { dashboard:'Dashboard', orders:'Buyurtmalar', drivers:"Haydovchilar", users:"Foydalanuvchilar", leaderboard:"Peshqadamlar", settings:"Tizim Sozlamalari" };
+    const titles = { dashboard:'Dashboard', orders:'Buyurtmalar', drivers:"Haydovchilar", users:"Foydalanuvchilar", leaderboard:"Peshqadamlar", settings:"Tizim Sozlamalari", emails:"Tizim Pochtasi (Inbound Mail)" };
     document.getElementById('topbar-title').textContent = titles[page] || page;
 }
 
@@ -213,7 +213,7 @@ window.switchSettingsTab = switchSettingsTab; // Make it global for inline oncli
    DATA LOADING
    ============================================================ */
 async function loadAll() {
-    await Promise.all([loadStats(), loadOrders(), loadDrivers(), loadUsers(), loadLeaderboard(), fetchSettings(), fetchEnvSettings()]);
+    await Promise.all([loadStats(), loadOrders(), loadDrivers(), loadUsers(), loadLeaderboard(), fetchSettings(), fetchEnvSettings(), loadEmails()]);
     initCharts();
 }
 
@@ -906,3 +906,190 @@ function randomColor(seed = '') {
     for (let c of String(seed)) h = ((h << 5) - h) + c.charCodeAt(0);
     return colors[Math.abs(h) % colors.length];
 }
+
+/* ============================================================
+   EMAILS SECTION LOGIC (info@orbitago.uz / support@orbitago.uz)
+   ============================================================ */
+let allEmails = [];
+
+async function loadEmails() {
+    const tableBody = document.getElementById('emails-table-body');
+    if (!tableBody) return;
+
+    try {
+        const filterVal = document.getElementById('email-filter')?.value || 'ALL';
+        let url = API + '/api/admin/emails';
+        if (filterVal !== 'ALL') {
+            url += '?account=' + encodeURIComponent(filterVal);
+        }
+
+        const res = await adminFetch(url);
+        const d = await res.json();
+        
+        if (d.success && d.emails) {
+            allEmails = d.emails;
+            renderEmailsTable(d.emails);
+            updateEmailBadgeCount(d.emails);
+        } else {
+            renderEmailsEmptyState();
+        }
+    } catch (err) {
+        console.error("Failed to fetch emails:", err);
+        renderEmailsEmptyState();
+    }
+}
+
+function renderEmailsTable(emails) {
+    const tableBody = document.getElementById('emails-table-body');
+    if (!tableBody) return;
+
+    if (emails.length === 0) {
+        renderEmailsEmptyState();
+        return;
+    }
+
+    tableBody.innerHTML = emails.map(m => {
+        const dateStr = new Date(m.createdAt).toLocaleString('uz-UZ');
+        const badgeClass = m.isRead ? 'status-completed' : 'status-pending';
+        const badgeLabel = m.isRead ? 'O\'qilgan' : 'Yangi';
+        const accountBadgeColor = m.account === 'support@orbitago.uz' ? 'var(--purple)' : 'var(--p)';
+
+        return `
+            <tr>
+                <td>${dateStr}</td>
+                <td><span style="background:${accountBadgeColor}; color:#fff; padding:4px 8px; border-radius:8px; font-size:11px; font-weight:700;">${m.account}</span></td>
+                <td><strong>${m.from}</strong></td>
+                <td><a href="javascript:void(0)" onclick="inspectEmail('${m.id}')" style="color:var(--p-l); font-weight:600; text-decoration:underline;">${escapeHtml(m.subject)}</a></td>
+                <td><span class="status-badge ${badgeClass}">${badgeLabel}</span></td>
+                <td>
+                    <div style="display:flex; gap:8px;">
+                        <button class="filter-btn" style="padding:6px 10px; font-size:12px;" onclick="toggleEmailRead('${m.id}')">
+                            <ion-icon name="${m.isRead ? 'mail-unread-outline' : 'mail-open-outline'}"></ion-icon>
+                        </button>
+                        <button class="filter-btn danger" style="padding:6px 10px; font-size:12px; background:rgba(239,68,68,0.15); color:var(--red);" onclick="deleteEmail('${m.id}')">
+                            <ion-icon name="trash-outline"></ion-icon>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function renderEmailsEmptyState() {
+    const tableBody = document.getElementById('emails-table-body');
+    if (tableBody) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="6">
+                    <div class="empty-state">
+                        <ion-icon name="mail-open-outline"></ion-icon>
+                        <p>Xabarlar mavjud emas</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }
+}
+
+function updateEmailBadgeCount(emails) {
+    const unreadCount = emails.filter(m => !m.isRead).length;
+    const badge = document.getElementById('badge-emails');
+    if (badge) {
+        if (unreadCount > 0) {
+            badge.textContent = unreadCount;
+            badge.style.display = 'inline-flex';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+}
+
+async function toggleEmailRead(id) {
+    try {
+        const res = await adminFetch(API + `/api/admin/emails/${id}/read`, {
+            method: 'PATCH'
+        });
+        const d = await res.json();
+        if (d.success) {
+            showToast('Muvaffaqiyat', 'Xabar holati o\'zgartirildi', 'checkmark-circle', '#34d399');
+            loadEmails();
+        }
+    } catch (err) {
+        showToast('Xato', 'Xabar holatini o\'zgartirib bo\'lmadi', 'alert-circle', '#f87171');
+    }
+}
+
+async function deleteEmail(id) {
+    if (!confirm("Ushbu xabarni butunlay o'chirmoqchimisiz?")) return;
+
+    try {
+        const res = await adminFetch(API + `/api/admin/emails/${id}`, {
+            method: 'DELETE'
+        });
+        const d = await res.json();
+        if (d.success) {
+            showToast('Muvaffaqiyat', 'Xabar o\'chirildi', 'checkmark-circle', '#34d399');
+            loadEmails();
+        }
+    } catch (err) {
+        showToast('Xato', 'Xabarni o\'chirib bo\'lmadi', 'alert-circle', '#f87171');
+    }
+}
+
+function inspectEmail(id) {
+    const m = allEmails.find(x => x.id === id);
+    if (!m) return;
+
+    // Mark as read automatically when opened if it's unread
+    if (!m.isRead) {
+        toggleEmailRead(id);
+    }
+
+    const titleEl = document.getElementById('modal-title');
+    const bodyEl = document.getElementById('modal-details-body');
+    if (!titleEl || !bodyEl) return;
+
+    titleEl.innerHTML = `✉️ Xabar Tafsilotlari`;
+    
+    bodyEl.innerHTML = `
+        <div style="display:flex; flex-direction:column; gap:16px;">
+            <div class="modal-info-row">
+                <span>Kimga (Account)</span>
+                <span style="color:var(--p-l);">${m.account}</span>
+            </div>
+            <div class="modal-info-row">
+                <span>Kimdan (From)</span>
+                <span>${m.from}</span>
+            </div>
+            <div class="modal-info-row">
+                <span>Mavzu (Subject)</span>
+                <span style="font-weight:800; color:#fff;">${escapeHtml(m.subject)}</span>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
+                <span style="color:var(--text-muted); font-size:13px;">Xabar matni (Body):</span>
+                <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px; padding:16px; font-size:14px; line-height:1.6; color:#e2e8f0; white-space:pre-wrap; max-height:300px; overflow-y:auto;">
+                    ${escapeHtml(m.body)}
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('inspector-modal').classList.add('show');
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+window.loadEmails = loadEmails;
+window.toggleEmailRead = toggleEmailRead;
+window.deleteEmail = deleteEmail;
+window.inspectEmail = inspectEmail;
+

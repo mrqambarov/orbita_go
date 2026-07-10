@@ -264,3 +264,14 @@ model GeoQuest {
   rewardCoins Int
   rewardCouponCode String?
 }
+
+model EmailMessage {
+  id        String   @id @default(cuid())
+  account   String   // "info@orbitago.uz" yoki "support@orbitago.uz"
+  from      String   // Kimdan keldi (e.g. "klient@mail.ru")
+  subject   String   // Xabar mavzusi
+  body      String   // Xabar matni
+  isRead    Boolean  @default(false) // O'qilganlik holati
+  createdAt DateTime @default(now()) // Kelgan vaqti
+}
+

@@ -21,6 +21,41 @@ const adminAuth = (req: Request, res: Response, next: NextFunction): void => {
     next();
 };
 
+/* ============================================================
+   POST /api/admin/emails/incoming — Public Webhook for incoming emails
+   cPanel Email Pipe or webhook parses and posts here.
+   ============================================================ */
+router.post('/emails/incoming', async (req: Request, res: Response) => {
+    try {
+        const token = req.query.token || req.headers['x-webhook-token'];
+        const validToken = process.env.EMAIL_WEBHOOK_SECRET || 'orbita-email-webhook-token-2026';
+        
+        if (token !== validToken) {
+            res.status(401).json({ success: false, message: "Unauthorized webhook token" });
+            return;
+        }
+
+        const { account, from, subject, body } = req.body;
+        if (!account || !from || !subject || !body) {
+            res.status(400).json({ success: false, message: "Missing required fields" });
+            return;
+        }
+
+        const newEmail = await prisma.emailMessage.create({
+            data: {
+                account,
+                from,
+                subject,
+                body
+            }
+        });
+
+        res.json({ success: true, message: "Email message saved", id: newEmail.id });
+    } catch (err: any) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
 // Apply auth middleware to all admin endpoints
 router.use(adminAuth);
 
@@ -371,6 +406,61 @@ router.post('/env', async (req: Request, res: Response) => {
         });
 
         res.json({ success: true, message: "Muhit o'zgaruvchilari saqlandi. Tizim qayta ishga tushmoqda..." });
+    } catch (err: any) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+/* ============================================================
+   GET /api/admin/emails — Retrieve all email messages
+   ============================================================ */
+router.get('/emails', async (req: Request, res: Response) => {
+    try {
+        const account = req.query.account as string | undefined; // Optional filter by "info@orbitago.uz" or "support@orbitago.uz"
+        
+        const where: any = {};
+        if (account) where.account = account;
+
+        const emails = await prisma.emailMessage.findMany({
+            where,
+            orderBy: { createdAt: 'desc' }
+        });
+
+        res.json({ success: true, emails });
+    } catch (err: any) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+/* ============================================================
+   PATCH /api/admin/emails/:id/read — Toggle email read status
+   ============================================================ */
+router.patch('/emails/:id/read', async (req: Request, res: Response) => {
+    try {
+        const email = await prisma.emailMessage.findUnique({ where: { id: req.params.id } });
+        if (!email) {
+            res.status(404).json({ success: false, message: "Email topilmadi" });
+            return;
+        }
+
+        const updated = await prisma.emailMessage.update({
+            where: { id: req.params.id },
+            data: { isRead: !email.isRead }
+        });
+
+        res.json({ success: true, isRead: updated.isRead });
+    } catch (err: any) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+/* ============================================================
+   DELETE /api/admin/emails/:id — Delete an email message
+   ============================================================ */
+router.delete('/emails/:id', async (req: Request, res: Response) => {
+    try {
+        await prisma.emailMessage.delete({ where: { id: req.params.id } });
+        res.json({ success: true, message: "Xabar o'chirildi" });
     } catch (err: any) {
         res.status(500).json({ success: false, message: err.message });
     }
