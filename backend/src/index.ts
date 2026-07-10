@@ -36,12 +36,18 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
   : [];
 
+const isOriginAllowed = (origin: string | undefined): boolean => {
+  if (!origin || NODE_ENV === 'development') return true;
+  if (allowedOrigins.includes(origin)) return true;
+  // Always trust any subdomains of orbitago.uz
+  if (origin.endsWith('orbitago.uz') || origin.includes('orbitago.uz')) return true;
+  return false;
+};
+
 const io = new Server(httpServer, {
   cors: {
     origin: (origin, cb) => {
-      // Flutter mobile'da origin yo'q bo'ladi
-      if (!origin || NODE_ENV === 'development') return cb(null, true);
-      if (allowedOrigins.includes(origin)) return cb(null, true);
+      if (isOriginAllowed(origin)) return cb(null, true);
       cb(new Error(`CORS: ${origin} ruxsat etilmagan`));
     },
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
@@ -54,12 +60,11 @@ const io = new Server(httpServer, {
 
 app.use(cors({
   origin: (origin, cb) => {
-    if (!origin || NODE_ENV === 'development') return cb(null, true);
-    if (allowedOrigins.includes(origin)) return cb(null, true);
+    if (isOriginAllowed(origin)) return cb(null, true);
     cb(new Error(`CORS: ${origin} ruxsat etilmagan`));
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-key'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-admin-key', 'x-webhook-token'],
   credentials: true,
 }));
 
