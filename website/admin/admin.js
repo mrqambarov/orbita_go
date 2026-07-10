@@ -646,6 +646,9 @@ function renderUsers(users) {
     if (!tbody) return;
     tbody.innerHTML = users.map(u => {
         const date = u.createdAt ? new Date(u.createdAt).toLocaleDateString('uz-UZ') : '—';
+        const blocked = u.isBlocked;
+        const statusC = blocked ? 'chip-red' : 'chip-green';
+        const statusL = blocked ? 'Bloklangan' : 'Faol';
         return '<tr>' +
             '<td><div class="user-cell" style="cursor:pointer" onclick="inspectUser(\'' + u.id + '\')"><div class="mini-avatar" style="background:' + randomColor(u.id) + '">' + (u.fullName||'U').charAt(0) + '</div><div><div class="mini-name">' + (u.fullName||'Noma\'lum') + '</div><div class="mini-sub">' + (u.email||'') + '</div></div></div></td>' +
             '<td>' + (u.phone||'—') + '</td>' +
@@ -653,8 +656,109 @@ function renderUsers(users) {
             '<td style="font-weight:700;color:var(--green);">' + (u.score||0).toLocaleString() + '</td>' +
             '<td>' + (u.totalOrders||0) + '</td>' +
             '<td style="font-size:12.5px;color:var(--text-muted);">' + date + '</td>' +
+            '<td><span class="chip ' + statusC + '">' + statusL + '</span></td>' +
+            '<td>' +
+                '<div style="display:flex;gap:6px;">' +
+                    '<button class="act-btn" style="padding:4px 8px;font-size:11.5px;" onclick="inspectUser(\'' + u.id + '\')">Boshqarish</button>' +
+                    '<button class="act-btn danger" style="padding:4px 8px;font-size:11.5px;" onclick="blockUser(\'' + u.id + '\',\'' + (u.fullName||'') + '\',' + blocked + ')">' + (blocked?'Ochish':'Bloklash') + '</button>' +
+                    '<button class="act-btn danger" style="padding:4px 8px;font-size:11.5px;background:rgba(239,68,68,0.1);color:var(--red);border-color:rgba(239,68,68,0.2);" onclick="deleteUser(\'' + u.id + '\',\'' + (u.fullName||'') + '\')">O\'chirish</button>' +
+                '</div>' +
+            '</td>' +
             '</tr>';
-    }).join('') || '<tr><td colspan="6" class="loading-row">Foydalanuvchilar topilmadi</td></tr>';
+    }).join('') || '<tr><td colspan="8" class="loading-row">Foydalanuvchilar topilmadi</td></tr>';
+}
+
+async function blockUser(id, name, currentlyBlocked) {
+    try {
+        const res = await adminFetch(API + '/api/admin/user/' + id + '/block', { method: 'PATCH' });
+        const d = await res.json();
+        if (d.success) {
+            showToast(
+                d.isBlocked ? 'Bloklandi' : 'Blok ochildi', 
+                name + ' muvaffaqiyatli ' + (d.isBlocked ? 'bloklandi' : 'faollashtirildi'),
+                d.isBlocked ? 'ban' : 'checkmark-circle',
+                d.isBlocked ? '#f87171' : '#34d399'
+            );
+            loadUsers();
+        } else {
+            showToast('Xato', d.message || 'Bajarib bo\'lmadi', 'alert-circle', '#f87171');
+        }
+    } catch {
+        showToast('Xato', 'Server bilan ulanib bo\'lmadi', 'alert-circle', '#f87171');
+    }
+}
+
+async function deleteUser(id, name) {
+    if (!confirm(name + " foydalanuvchisini butunlay o'chirib yubormoqchimisiz? Ushbu amal orqaga qaytmaydi!")) return;
+    try {
+        const res = await adminFetch(API + '/api/admin/user/' + id, { method: 'DELETE' });
+        const d = await res.json();
+        if (d.success) {
+            showToast('O\'chirildi', name + ' tizimdan muvaffaqiyatli o\'chirildi', 'trash-outline', '#ef4444');
+            loadUsers();
+        } else {
+            showToast('Xato', d.message || 'O\'chirib bo\'lmadi', 'alert-circle', '#f87171');
+        }
+    } catch {
+        showToast('Xato', 'Server bilan ulanib bo\'lmadi', 'alert-circle', '#f87171');
+    }
+}
+
+async function editUserBalance(userId) {
+    const valInput = document.getElementById('edit-usr-balance');
+    if (!valInput) return;
+    const balance = parseFloat(valInput.value);
+    if (isNaN(balance)) {
+        alert("Noto'g'ri raqam kiritildi!");
+        return;
+    }
+
+    try {
+        const res = await adminFetch(API + '/api/admin/user/' + userId + '/balance', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ balance })
+        });
+        const d = await res.json();
+        if (d.success) {
+            showToast('Muvaffaqiyat', 'Foydalanuvchi balansi o\'zgartirildi', 'checkmark-circle', '#34d399');
+            closeInspector();
+            loadUsers();
+        } else {
+            showToast('Xato', d.message || 'O\'zgartirib bo\'lmadi', 'alert-circle', '#f87171');
+        }
+    } catch {
+        showToast('Xato', 'Server bilan ulanib bo\'lmadi', 'alert-circle', '#f87171');
+    }
+}
+
+async function saveDriverCar(driverId) {
+    const model = document.getElementById('edit-drv-model')?.value;
+    const color = document.getElementById('edit-drv-color')?.value;
+    const number = document.getElementById('edit-drv-number')?.value;
+
+    if (!model || !color || !number) {
+        alert("Barcha avtomobil ma'lumotlarini kiriting!");
+        return;
+    }
+
+    try {
+        const res = await adminFetch(API + '/api/admin/driver/' + driverId + '/car', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ carModel: model, carColor: color, carNumber: number })
+        });
+        const d = await res.json();
+        if (d.success) {
+            showToast('Muvaffaqiyat', 'Haydovchi mashina ma\'lumotlari saqlandi', 'checkmark-circle', '#34d399');
+            closeInspector();
+            loadDrivers();
+        } else {
+            showToast('Xato', d.message || 'Saqlab bo\'lmadi', 'alert-circle', '#f87171');
+        }
+    } catch {
+        showToast('Xato', 'Server bilan ulanib bo\'lmadi', 'alert-circle', '#f87171');
+    }
 }
 
 /* ---- Leaderboard ---- */
@@ -710,16 +814,30 @@ function inspectDriver(driverId) {
     const d = allDrivers.find(drv => drv.id === driverId);
     if (!d) return;
 
-    document.getElementById('modal-title').textContent = 'Haydovchi Profili';
+    document.getElementById('modal-title').textContent = 'Haydovchi Profili & Boshqaruv';
     const body = document.getElementById('modal-details-body');
     body.innerHTML = 
         '<div class="modal-info-row"><span>Ismi</span><span>' + d.fullName + '</span></div>' +
         '<div class="modal-info-row"><span>Telefon</span><span>' + d.phone + '</span></div>' +
-        '<div class="modal-info-row"><span>Avtomobil</span><span>' + d.carModel + ' (' + d.carColor + ')</span></div>' +
-        '<div class="modal-info-row"><span>Davlat raqami</span><span>' + d.carNumber + '</span></div>' +
-        '<div class="modal-info-row"><span>Reytingi</span><span>⭐ ' + d.rating.toFixed(2) + '</span></div>' +
-        '<div class="modal-info-row"><span>Jami safarlar</span><span>' + d.totalTrips + ' ta</span></div>' +
-        '<div class="modal-info-row"><span>Bloklanganlik</span><span>' + (d.isBlocked ? 'Ha' : 'Yo\'q') + '</span></div>';
+        '<div class="modal-info-row"><span>Reytingi</span><span>⭐ ' + (d.rating || 5).toFixed(2) + '</span></div>' +
+        '<div class="modal-info-row"><span>Jami safarlar</span><span>' + (d.totalTrips || 0) + ' ta</span></div>' +
+        '<div class="modal-info-row"><span>Holati</span><span>' + (d.isBlocked ? '🔴 Bloklangan' : '🟢 Faol') + '</span></div>' +
+        '<div style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px;">' +
+            '<h4 style="font-size:14px;margin-bottom:12px;color:var(--p-l)">🚗 Avtomobil ma\'lumotlarini tahrirlash:</h4>' +
+            '<div class="form-group" style="margin-bottom:10px;">' +
+                '<label style="font-size:11px;">Mashina modeli</label>' +
+                '<input type="text" id="edit-drv-model" class="form-control" style="padding:8px 12px;font-size:13px;" value="' + (d.carModel || '') + '">' +
+            '</div>' +
+            '<div class="form-group" style="margin-bottom:10px;">' +
+                '<label style="font-size:11px;">Mashina rangi</label>' +
+                '<input type="text" id="edit-drv-color" class="form-control" style="padding:8px 12px;font-size:13px;" value="' + (d.carColor || '') + '">' +
+            '</div>' +
+            '<div class="form-group" style="margin-bottom:14px;">' +
+                '<label style="font-size:11px;">Mashina raqami</label>' +
+                '<input type="text" id="edit-drv-number" class="form-control" style="padding:8px 12px;font-size:13px;" value="' + (d.carNumber || '') + '">' +
+            '</div>' +
+            '<button class="login-btn" style="padding:10px;font-size:13px;" onclick="saveDriverCar(\'' + d.id + '\')">💾 Avtomobil Ma\'lumotlarini Saqlash</button>' +
+        '</div>';
 
     document.getElementById('inspector-modal').classList.add('show');
 }
@@ -728,16 +846,25 @@ function inspectUser(userId) {
     const u = allUsers.find(usr => usr.id === userId);
     if (!u) return;
 
-    document.getElementById('modal-title').textContent = 'Foydalanuvchi Tafsilotlari';
+    document.getElementById('modal-title').textContent = 'Foydalanuvchi Boshqaruvi';
     const body = document.getElementById('modal-details-body');
     body.innerHTML = 
         '<div class="modal-info-row"><span>Ismi</span><span>' + u.fullName + '</span></div>' +
         '<div class="modal-info-row"><span>Telefon</span><span>' + u.phone + '</span></div>' +
         '<div class="modal-info-row"><span>Email</span><span>' + (u.email || '—') + '</span></div>' +
-        '<div class="modal-info-row"><span>Jami qadamlar</span><span>🏃 ' + u.totalSteps.toLocaleString() + '</span></div>' +
-        '<div class="modal-info-row"><span>Orbita tangalari (Score)</span><span style="color:var(--purple)">🪙 ' + u.score.toLocaleString() + '</span></div>' +
-        '<div class="modal-info-row"><span>Jami buyurtmalar</span><span>' + u.totalOrders + ' ta</span></div>' +
-        '<div class="modal-info-row"><span>Ro\'yxatdan o\'tgan</span><span>' + new Date(u.createdAt).toLocaleDateString() + '</span></div>';
+        '<div class="modal-info-row"><span>Jami qadamlar</span><span>🏃 ' + (u.totalSteps || 0).toLocaleString() + '</span></div>' +
+        '<div class="modal-info-row"><span>Hozirgi balans (Score)</span><span style="color:var(--purple);font-weight:900;">🪙 ' + (u.score || 0).toLocaleString() + ' UZS</span></div>' +
+        '<div class="modal-info-row"><span>Tizim holati</span><span>' + (u.isBlocked ? '🔴 Bloklangan' : '🟢 Faol') + '</span></div>' +
+        '<div style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px;">' +
+            '<h4 style="font-size:14px;margin-bottom:12px;color:var(--purple)">🪙 Balansni (Tanga miqdorini) o\'zgartirish:</h4>' +
+            '<div class="form-group" style="margin-bottom:14px;display:flex;gap:10px;align-items:flex-end;">' +
+                '<div style="flex:1;">' +
+                    '<label style="font-size:11px;">Yangi balans (UZS tanga)</label>' +
+                    '<input type="number" id="edit-usr-balance" class="form-control" style="padding:8px 12px;font-size:13px;margin:0;" value="' + (u.score || 0) + '">' +
+                '</div>' +
+                '<button class="login-btn" style="padding:10px;font-size:13px;width:auto;margin:0;white-space:nowrap;" onclick="editUserBalance(\'' + u.id + '\')">Tuzatish</button>' +
+            '</div>' +
+        '</div>';
 
     document.getElementById('inspector-modal').classList.add('show');
 }

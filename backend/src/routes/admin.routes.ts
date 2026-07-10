@@ -201,6 +201,7 @@ router.get('/users', async (req: Request, res: Response) => {
                 email: true,
                 totalStepsRedeemed: true,
                 walletBalance: true,
+                isVerified: true,
                 createdAt: true,
                 _count: { select: { clientOrders: true } }
             }
@@ -214,6 +215,7 @@ router.get('/users', async (req: Request, res: Response) => {
             email: u.email || '',
             totalSteps: u.totalStepsRedeemed,
             score: u.walletBalance,
+            isBlocked: !u.isVerified,
             totalOrders: u._count.clientOrders,
             createdAt: u.createdAt
         }));
@@ -243,6 +245,100 @@ router.patch('/driver/:id/block', async (req: Request, res: Response) => {
             message: !updated.isVerified ? 'Driver blocked' : 'Driver active',
             isBlocked: !updated.isVerified,
         });
+    } catch (err: any) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+/* ============================================================
+   PATCH /api/admin/driver/:id/car — Edit Driver Car Information
+   ============================================================ */
+router.patch('/driver/:id/car', async (req: Request, res: Response) => {
+    try {
+        const { carModel, carColor, carNumber } = req.body;
+        if (!carModel || !carColor || !carNumber) {
+            res.status(400).json({ success: false, message: "Barcha avtomobil ma'lumotlarini kiriting" });
+            return;
+        }
+        
+        const updated = await prisma.driverProfile.update({
+            where: { id: req.params.id },
+            data: { carModel, carColor, carNumber },
+        });
+        
+        res.json({ success: true, message: "Avtomobil ma'lumotlari yangilandi", driver: updated });
+    } catch (err: any) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+/* ============================================================
+   PATCH /api/admin/user/:id/block — Block/Unblock User
+   ============================================================ */
+router.patch('/user/:id/block', async (req: Request, res: Response) => {
+    try {
+        const user = await prisma.user.findUnique({ where: { id: req.params.id } });
+        if (!user) {
+            res.status(404).json({ success: false, message: "Foydalanuvchi topilmadi" });
+            return;
+        }
+        
+        const updated = await prisma.user.update({
+            where: { id: req.params.id },
+            data: { isVerified: !user.isVerified },
+        });
+        
+        res.json({
+            success: true,
+            message: !updated.isVerified ? 'Foydalanuvchi bloklandi' : 'Foydalanuvchi blokdan chiqarildi',
+            isBlocked: !updated.isVerified,
+        });
+    } catch (err: any) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+/* ============================================================
+   PATCH /api/admin/user/:id/balance — Update User Wallet Balance
+   ============================================================ */
+router.patch('/user/:id/balance', async (req: Request, res: Response) => {
+    try {
+        const { balance } = req.body;
+        if (balance === undefined || isNaN(parseFloat(balance))) {
+            res.status(400).json({ success: false, message: "Noto'g'ri balans qiymati" });
+            return;
+        }
+        
+        const user = await prisma.user.update({
+            where: { id: req.params.id },
+            data: { walletBalance: parseFloat(balance) },
+        });
+        
+        // Tranzaksiya jurnaliga yozish
+        await prisma.transaction.create({
+            data: {
+                userId: user.id,
+                title: "Admin Balans Tuzatmasi",
+                subtitle: "Tizim administratori tomonidan o'zgartirildi",
+                amount: parseFloat(balance),
+                isCredit: true,
+                type: "TOPUP"
+            }
+        });
+        
+        res.json({ success: true, message: "Foydalanuvchi balansi yangilandi", balance: user.walletBalance });
+    } catch (err: any) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+/* ============================================================
+   DELETE /api/admin/user/:id — Delete User Account
+   ============================================================ */
+router.delete('/user/:id', async (req: Request, res: Response) => {
+    try {
+        await prisma.user.delete({ where: { id: req.params.id } });
+        res.json({ success: true, message: "Foydalanuvchi tizimdan o'chirib yuborildi" });
     } catch (err: any) {
         res.status(500).json({ success: false, message: err.message });
     }
