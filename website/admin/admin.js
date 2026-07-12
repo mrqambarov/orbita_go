@@ -145,48 +145,64 @@ function connectAdminSocket() {
    SIMULATED API LOGGER TICKER
    ============================================================ */
 function startSimulatedLogger() {
+    if (loggerTimer) clearInterval(loggerTimer);
+    fetchRealLogs();
+    loggerTimer = setInterval(fetchRealLogs, 4000);
+}
+
+async function fetchRealLogs() {
     const loggerBody = document.getElementById('system-logs-body');
     if (!loggerBody) return;
-    loggerBody.innerHTML = '';
 
-    const paths = [
-        '/api/orders', '/api/drivers/location', '/api/users/profile', 
-        '/api/games/tournament/weekly', '/api/steps/submit', 
-        '/api/market/products', '/api/auth/verify', '/api/admin/stats'
-    ];
-    const methods = ['GET', 'POST', 'PATCH'];
+    try {
+        const type = activeLogFilter === 'ERRORS' ? 'error' : 'combined';
+        const res = await adminFetch(API + `/api/admin/logs?type=${type}`);
+        const d = await res.json();
+        
+        if (d.success && d.logs) {
+            // Filter logs based on UI selected type if combined
+            let filteredLogs = d.logs;
+            if (activeLogFilter === 'API') {
+                filteredLogs = d.logs.filter(line => line.includes('🌐') || line.includes('GET') || line.includes('POST') || line.includes('PATCH'));
+            } else if (activeLogFilter === 'WS') {
+                filteredLogs = d.logs.filter(line => line.toLowerCase().includes('ws') || line.toLowerCase().includes('socket') || line.toLowerCase().includes('websocket'));
+            }
 
-    if (loggerTimer) clearInterval(loggerTimer);
-    loggerTimer = setInterval(() => {
-        const method = methods[Math.floor(Math.random() * methods.length)];
-        const path = paths[Math.floor(Math.random() * paths.length)];
-        const status = Math.random() > 0.95 ? 400 : 200;
-        addSystemLog(method, path, status);
-    }, 4000);
+            loggerBody.innerHTML = filteredLogs.map(line => {
+                const cleanLine = escapeHTML(line);
+                let cls = 'log-info';
+                let style = 'color: #94a3b8;';
+                if (cleanLine.includes('[ERROR]')) {
+                    cls = 'log-error';
+                    style = 'color: #ef4444; font-weight: 700;';
+                } else if (cleanLine.includes('[WARN]')) {
+                    cls = 'log-warn';
+                    style = 'color: #fbbf24;';
+                } else if (cleanLine.includes('🌐')) {
+                    style = 'color: #60a5fa;'; // API request color blue
+                } else if (cleanLine.toLowerCase().includes('ws') || cleanLine.toLowerCase().includes('socket')) {
+                    style = 'color: #c084fc;'; // WebSocket color purple
+                }
+                
+                return `<div class="log-row ${cls}" style="font-family: monospace; font-size: 11px; padding: 4px 10px; border-bottom: 1px solid rgba(255,255,255,0.015); white-space: pre-wrap; display: flex; align-items: center; gap: 8px; ${style}">${cleanLine}</div>`;
+            }).join('');
+            
+            loggerBody.scrollTop = loggerBody.scrollHeight;
+        }
+    } catch (err) {
+        console.warn('Failed to load real logs from server', err);
+    }
+}
+
+function escapeHTML(str) {
+    return str.replace(/[&<>'"]/g, 
+        tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+    );
 }
 
 function addSystemLog(method, path, status) {
-    const loggerBody = document.getElementById('system-logs-body');
-    if (!loggerBody) return;
-
-    const row = document.createElement('div');
-    row.className = 'log-row';
-
-    const now = new Date();
-    const timeStr = now.toTimeString().split(' ')[0];
-
-    row.innerHTML = '<span class="log-time">[' + timeStr + ']</span>' +
-                    '<span class="log-method">' + method + '</span>' +
-                    '<span>' + path + '</span>' +
-                    '<span class="log-status-' + status + '">' + status + '</span>';
-
-    row.style.display = matchesLogFilter(method, path, status) ? 'flex' : 'none';
-
-    loggerBody.appendChild(row);
-    if (loggerBody.childNodes.length > 25) {
-        loggerBody.removeChild(loggerBody.firstChild);
-    }
-    loggerBody.scrollTop = loggerBody.scrollHeight;
+    // Left as legacy wrapper if called elsewhere
+    fetchRealLogs();
 }
 
 /* ============================================================
@@ -891,7 +907,7 @@ function closeInspector() {
 /* ============================================================
    CHARTS (Chart.js)
    ============================================================ */
-function initCharts() {
+async function initCharts() {
     const ctxOrders  = document.getElementById('chart-orders');
     const ctxTariffs = document.getElementById('chart-tariffs');
     if (!ctxOrders || !ctxTariffs || typeof Chart === 'undefined') return;
@@ -902,8 +918,25 @@ function initCharts() {
     if (chartOrders)  { chartOrders.destroy();  chartOrders  = null; }
     if (chartTariffs) { chartTariffs.destroy(); chartTariffs = null; }
 
-    const days = ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sha', 'Ya'];
-    const weekData = days.map(() => Math.floor(Math.random() * 120 + 40));
+    let days = ['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sha', 'Ya'];
+    let weekData = days.map(() => Math.floor(Math.random() * 120 + 40));
+    let startVal = 58, komfortVal = 32, biznesVal = 10;
+
+    try {
+        const res = await adminFetch(API + '/api/admin/analytics');
+        const d = await res.json();
+        if (d.success && d.analytics) {
+            days = d.analytics.ordersOverTime.map(item => item.day);
+            weekData = d.analytics.ordersOverTime.map(item => item.count);
+            
+            const tf = d.analytics.tariffs;
+            startVal = tf.START || 0;
+            komfortVal = tf.KOMFORT || 0;
+            biznesVal = tf.BIZNES || 0;
+        }
+    } catch (err) {
+        console.warn('Could not load analytics from server, using default charts data.', err);
+    }
 
     chartOrders = new Chart(ctxOrders, {
         type: 'bar',
@@ -929,17 +962,12 @@ function initCharts() {
         }
     });
 
-    const tariffCounts = allOrders.reduce((acc, o) => {
-        acc[o.tariff || 'START'] = (acc[o.tariff || 'START'] || 0) + 1;
-        return acc;
-    }, { START: 0, KOMFORT: 0, BIZNES: 0 });
-
     chartTariffs = new Chart(ctxTariffs, {
         type: 'doughnut',
         data: {
             labels: ['Start', 'Komfort', 'Biznes'],
             datasets: [{
-                data: [tariffCounts.START || 58, tariffCounts.KOMFORT || 32, tariffCounts.BIZNES || 10],
+                data: [startVal, komfortVal, biznesVal],
                 backgroundColor: ['rgba(99,102,241,0.75)', 'rgba(217,70,239,0.75)', 'rgba(251,191,36,0.75)'],
                 borderColor: ['#6366f1', '#d946ef', '#fbbf24'],
                 borderWidth: 2,
@@ -1426,23 +1454,10 @@ function filterLogs(filterType, btn) {
     document.querySelectorAll('.logger-header .filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     activeLogFilter = filterType;
-
-    const loggerBody = document.getElementById('system-logs-body');
-    if (!loggerBody) return;
-    loggerBody.querySelectorAll('.log-row').forEach(row => {
-        const method = row.querySelector('.log-method')?.textContent || '';
-        const path = row.querySelector('span:nth-child(3)')?.textContent || '';
-        const status = parseInt(row.querySelector('span:last-child')?.textContent || '200');
-        
-        row.style.display = matchesLogFilter(method, path, status) ? 'flex' : 'none';
-    });
+    fetchRealLogs();
 }
 
 function matchesLogFilter(method, path, status) {
-    if (activeLogFilter === 'ALL') return true;
-    if (activeLogFilter === 'API') return method !== 'WS';
-    if (activeLogFilter === 'WS') return method === 'WS';
-    if (activeLogFilter === 'ERRORS') return status >= 400;
     return true;
 }
 

@@ -7,6 +7,7 @@ import rateLimit from 'express-rate-limit';
 import https from 'https';
 import prisma from './lib/prisma';
 import { queueManager } from './lib/queue';
+import logger from './lib/logger';
 
 import authRoutes from './routes/auth.routes';
 import orderRoutes from './routes/order.routes';
@@ -72,7 +73,9 @@ app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 app.use((req, _res, next) => {
-  console.log(`🌐 [${new Date().toISOString()}] ${req.method} ${req.url} - body:`, req.body);
+  const logMsg = `🌐 ${req.method} ${req.url} - body: ${JSON.stringify(req.body)}`;
+  console.log(logMsg);
+  logger.info(logMsg);
   next();
 });
 
@@ -350,91 +353,11 @@ app.post('/api/telegram/callback', async (req, res) => {
   if (!callback_query) {
     return res.sendStatus(200);
   }
-
-  // Operatorni ro'yxatga olamiz/yangilaymiz
-  registerOperator(callback_query.from);
-
-  const token = process.env.TELEGRAM_BOT_TOKEN;
-  const callbackId = callback_query.id;
-
-  // Operator ism-familiyasini yig'amiz
-  const fromUser = callback_query.from;
-  const firstName = fromUser.first_name || '';
-  const lastName = fromUser.last_name || '';
-  let operatorName = `${firstName} ${lastName}`.trim();
-  if (!operatorName) {
-    operatorName = fromUser.username || `Operator #${fromUser.id}`;
+  try {
+    await handleTelegramUpdate(req.body);
+  } catch (err: any) {
+    console.error('Webhook handleTelegramUpdate error:', err.message);
   }
-
-  const originalText = callback_query.message.text || '';
-  const messageId = callback_query.message.message_id;
-  const chatId = callback_query.message.chat.id;
-  const action = callback_query.data;
-
-  let statusText = '';
-  if (action === 'contacted') {
-    statusText = `\n\n✅ <b>Aloqaga chiqildi:</b> <code>${operatorName} tomondan</code>`;
-  } else if (action === 'rejected') {
-    statusText = `\n\n❌ <b>Bekor qilindi:</b> <code>${operatorName} tomondan</code>`;
-  }
-
-  const newText = originalText + statusText;
-
-  // Answer Callback Query
-  const answerData = JSON.stringify({
-    callback_query_id: callbackId,
-    text: action === 'contacted' ? 'Muvaffaqiyatli qabul qilindi!' : 'Rad etildi!'
-  });
-
-  const answerOptions = {
-    hostname: 'api.telegram.org',
-    port: 443,
-    path: `/bot${token}/answerCallbackQuery`,
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Content-Length': Buffer.byteLength(answerData, 'utf8')
-    }
-  };
-
-  const answerReq = https.request(answerOptions);
-  answerReq.on('error', (err) => console.error('Callback Answer Error:', err.message));
-  answerReq.write(answerData);
-  answerReq.end();
-
-  // Edit Message Text to update status and remove inline buttons
-  const editData = JSON.stringify({
-    chat_id: chatId,
-    message_id: messageId,
-    text: newText,
-    parse_mode: 'HTML',
-    reply_markup: {
-      inline_keyboard: []
-    }
-  });
-
-  const editOptions = {
-    hostname: 'api.telegram.org',
-    port: 443,
-    path: `/bot${token}/editMessageText`,
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Content-Length': Buffer.byteLength(editData, 'utf8')
-    }
-  };
-
-  const editReq = https.request(editOptions, (editRes) => {
-    let editBody = '';
-    editRes.on('data', (d) => editBody += d);
-    editRes.on('end', () => {
-      console.log('🤖 Telegram xabari yangilandi:', editBody);
-    });
-  });
-  editReq.on('error', (err) => console.error('Message Edit Error:', err.message));
-  editReq.write(editData);
-  editReq.end();
-
   res.sendStatus(200);
 });
 
@@ -579,7 +502,7 @@ io.on('connection', (socket) => {
 
 let lastUpdateId = 0;
 
-function handleTelegramUpdate(update: any) {
+async function handleTelegramUpdate(update: any) {
   const { callback_query } = update;
   if (!callback_query) return;
 
@@ -604,10 +527,40 @@ function handleTelegramUpdate(update: any) {
   const action = callback_query.data;
 
   let statusText = '';
+  let answerText = 'Muvaffaqiyatli bajarildi!';
+
   if (action === 'contacted') {
     statusText = `\n\n✅ <b>Aloqaga chiqildi:</b> <code>${operatorName} tomondan</code>`;
+    answerText = 'Aloqaga chiqildi!';
   } else if (action === 'rejected') {
     statusText = `\n\n❌ <b>Bekor qilindi:</b> <code>${operatorName} tomondan</code>`;
+    answerText = 'Bekor qilindi!';
+  } else if (action.startsWith('verify_drv:')) {
+    const userId = action.split(':')[1];
+    try {
+      await prisma.$transaction([
+        prisma.user.update({ where: { id: userId }, data: { isVerified: true } }),
+        prisma.driverProfile.update({ where: { userId }, data: { isVerified: true, isOnline: true } })
+      ]);
+      statusText = `\n\n✅ <b>Tasdiqlandi va faollashtirildi:</b> <code>${operatorName} tomondan</code>`;
+      answerText = 'Haydovchi muvaffaqiyatli tasdiqlandi!';
+    } catch (e: any) {
+      statusText = `\n\n⚠️ <b>Xatolik (Tasdiqlashda):</b> <code>${e.message}</code>`;
+      answerText = 'Tasdiqlashda xatolik yuz berdi!';
+    }
+  } else if (action.startsWith('reject_drv:')) {
+    const userId = action.split(':')[1];
+    try {
+      await prisma.$transaction([
+        prisma.user.update({ where: { id: userId }, data: { isVerified: false } }),
+        prisma.driverProfile.update({ where: { userId }, data: { isVerified: false, isOnline: false } })
+      ]);
+      statusText = `\n\n❌ <b>Rad etildi:</b> <code>${operatorName} tomondan</code>`;
+      answerText = 'Haydovchilik so\'rovi rad etildi!';
+    } catch (e: any) {
+      statusText = `\n\n⚠️ <b>Xatolik (Rad etishda):</b> <code>${e.message}</code>`;
+      answerText = 'Rad etishda xatolik yuz berdi!';
+    }
   }
 
   const newText = originalText + statusText;
@@ -615,7 +568,7 @@ function handleTelegramUpdate(update: any) {
   // Answer Callback Query
   const answerData = JSON.stringify({
     callback_query_id: callbackId,
-    text: action === 'contacted' ? 'Muvaffaqiyatli qabul qilindi!' : 'Rad etildi!'
+    text: answerText
   });
 
   const answerOptions = {

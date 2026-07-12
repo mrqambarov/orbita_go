@@ -8,6 +8,7 @@ import prisma from '../lib/prisma';
 import fs from 'fs';
 import path from 'path';
 import bcrypt from 'bcryptjs';
+import https from 'https';
 
 const router = Router();
 
@@ -97,6 +98,75 @@ router.get('/stats', async (_req: Request, res: Response) => {
                 activePlayers: Math.round(totalUsers * 0.14) || 0,
             }
         });
+    } catch (err: any) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+/* ============================================================
+   GET /api/admin/analytics — Analytics Data for Charts
+   ============================================================ */
+router.get('/analytics', async (_req: Request, res: Response) => {
+    try {
+        const orderCounts = [];
+        const days = ['Ya', 'Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sha'];
+        const today = new Date();
+        
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(today.getDate() - i);
+            const startOfDay = new Date(d.setHours(0,0,0,0));
+            const endOfDay = new Date(d.setHours(23,59,59,999));
+            
+            const count = await prisma.order.count({
+                where: {
+                    createdAt: {
+                        gte: startOfDay,
+                        lte: endOfDay
+                    }
+                }
+            });
+            const dayLabel = days[startOfDay.getDay()];
+            orderCounts.push({ day: dayLabel, count });
+        }
+
+        const startCount = await prisma.order.count({ where: { tariff: 'START' } });
+        const komfortCount = await prisma.order.count({ where: { tariff: 'KOMFORT' } });
+        const biznesCount = await prisma.order.count({ where: { tariff: 'BIZNES' } });
+
+        res.json({
+            success: true,
+            analytics: {
+                ordersOverTime: orderCounts,
+                tariffs: {
+                    START: startCount,
+                    KOMFORT: komfortCount,
+                    BIZNES: biznesCount
+                }
+            }
+        });
+    } catch (err: any) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+/* ============================================================
+   GET /api/admin/logs — Read Winston System Logs
+   ============================================================ */
+router.get('/logs', async (req: Request, res: Response) => {
+    try {
+        const type = req.query.type as string || 'combined';
+        const logFile = path.join(process.cwd(), 'logs', `${type}.log`);
+        
+        if (!fs.existsSync(logFile)) {
+            res.json({ success: true, logs: ["Log file does not exist yet."] });
+            return;
+        }
+
+        const data = fs.readFileSync(logFile, 'utf8');
+        const lines = data.trim().split('\n').slice(-100).reverse();
+        
+        res.json({ success: true, logs: lines });
     } catch (err: any) {
         res.status(500).json({ success: false, message: err.message });
     }
@@ -659,7 +729,7 @@ router.post('/driver', async (req: Request, res: Response) => {
                     phoneNumber: cleanPhone,
                     fullName,
                     role: 'DRIVER',
-                    isVerified: true,
+                    isVerified: false,
                     walletBalance: 0.0
                 }
             });
@@ -672,15 +742,64 @@ router.post('/driver', async (req: Request, res: Response) => {
                     carNumber,
                     rating: 5.0,
                     totalTrips: 0,
-                    isOnline: true,
-                    isVerified: true
+                    isOnline: false,
+                    isVerified: false
                 }
             });
 
             return { user, profile };
         });
 
-        res.json({ success: true, message: "Haydovchi muvaffaqiyatli ro'yxatga olindi", driver: { id: result.profile.id, fullName, phone: cleanPhone } });
+        // Notify via Telegram Bot with verify/reject buttons if configured
+        const tgToken = process.env.TELEGRAM_BOT_TOKEN;
+        const tgChatId = process.env.TELEGRAM_CHAT_ID;
+
+        if (tgToken && tgChatId) {
+            const tgText = `🚖 <b>── YANGI HAYDOVCHI RO'YXATDAN O'TDI ──</b>\n\n` +
+                           `👤 <b>Ismi:</b> <code>${fullName}</code>\n` +
+                           `📞 <b>Telefon:</b> <code>${cleanPhone}</code>\n` +
+                           `🚗 <b>Mashina:</b> <code>${carModel} (${carColor})</code>\n` +
+                           `🔢 <b>Raqami:</b> <code>${carNumber}</code>\n\n` +
+                           `Siz ushbu haydovchini tasdiqlashingiz yoki rad etishingiz mumkin.`;
+
+            const replyMarkup = {
+                inline_keyboard: [
+                    [
+                        { text: '✅ Tasdiqlash', callback_data: `verify_drv:${result.user.id}` },
+                        { text: '❌ Rad etish', callback_data: `reject_drv:${result.user.id}` }
+                    ]
+                ]
+            };
+
+            const postData = JSON.stringify({
+                chat_id: tgChatId,
+                text: tgText,
+                parse_mode: 'HTML',
+                reply_markup: replyMarkup
+            });
+
+            const options = {
+                hostname: 'api.telegram.org',
+                port: 443,
+                path: `/bot${tgToken}/sendMessage`,
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': Buffer.byteLength(postData, 'utf8')
+                }
+            };
+
+            const reqTelegram = https.request(options, (resTg) => {
+                resTg.resume();
+            });
+            reqTelegram.on('error', (err) => {
+                console.error('⚠️ Telegram notification error for new driver:', err.message);
+            });
+            reqTelegram.write(postData);
+            reqTelegram.end();
+        }
+
+        res.json({ success: true, message: "Haydovchi muvaffaqiyatli ro'yxatga olindi. Tasdiqlash uchun operatorga so'rov yuborildi.", driver: { id: result.profile.id, fullName, phone: cleanPhone } });
     } catch (err: any) {
         res.status(500).json({ success: false, message: err.message });
     }
