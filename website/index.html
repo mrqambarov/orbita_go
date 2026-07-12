@@ -51,6 +51,22 @@
     <!-- Particle Canvas Background -->
     <canvas id="particle-canvas"></canvas>
 
+    <!-- Top System Live Stats Bar -->
+    <div class="top-stats-bar" style="background: rgba(3, 0, 20, 0.85); border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 11px; padding: 6px 0; color: var(--text-secondary); position: relative; z-index: 1000; font-family: 'Plus Jakarta Sans', sans-serif;">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <div style="display: flex; gap: 16px; align-items: center;">
+                <span style="display: inline-flex; align-items: center; gap: 6px;">
+                    <span id="pub-status-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #64748b; display: inline-block;"></span>
+                    <span id="pub-status-text">Tizim holati: Tekshirilmoqda...</span>
+                </span>
+            </div>
+            <div style="display: flex; gap: 20px; align-items: center; font-weight: 600;">
+                <span>🚖 Faol haydovchilar: <strong id="pub-online-drivers" style="color: var(--yellow);">--</strong></span>
+                <span>📅 Bugungi buyurtmalar: <strong id="pub-today-orders" style="color: var(--primary-light);">--</strong></span>
+            </div>
+        </div>
+    </div>
+
     <!-- Header Navigation -->
     <header class="main-header" id="navbar">
         <div class="container header-container">

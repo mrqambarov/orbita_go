@@ -8,37 +8,36 @@ datasource db {
 }
 
 model User {
-  id                      String         @id @default(cuid())
-  orbitaId                String         @unique
+  id                      String            @id @default(cuid())
+  orbitaId                String            @unique
   password                String?
-  phoneNumber             String?        @unique
-  email                   String?        @unique
+  phoneNumber             String?           @unique
+  email                   String?           @unique
   fullName                String?
-  username                String?        @unique
-  role                    String         @default("CLIENT")
-  isVerified              Boolean        @default(false)
+  username                String?           @unique
+  role                    String            @default("CLIENT")
+  isVerified              Boolean           @default(false)
   avatarUrl               String?
-  walletBalance           Float          @default(5000)
-  createdAt               DateTime       @default(now())
-  updatedAt               DateTime       @updatedAt
-  // Referral system
+  walletBalance           Float             @default(5000)
+  createdAt               DateTime          @default(now())
+  updatedAt               DateTime          @updatedAt
   referredById            String?
-  referredBy              User?          @relation("Referrals", fields: [referredById], references: [id])
-  referrals               User[]         @relation("Referrals")
-  isReferralRewardClaimed Boolean        @default(false)
-  totalStepsRedeemed      Int            @default(0)
+  isReferralRewardClaimed Boolean           @default(false)
+  totalStepsRedeemed      Int               @default(0)
   lastCheckInAt           DateTime?
-  checkInStreak           Int            @default(0)
-  gameStats     GameStat[]
-  userMissions  UserMission[]
-  inventory     UserInventory[]
-  garden        GardenState?
-  driverProfile DriverProfile?
-  driverOrders  Order[]        @relation("DriverOrders")
-  clientOrders  Order[]        @relation("ClientOrders")
-  transactions  Transaction[]
-  favoriteAddresses FavoriteAddress[]
-  rideQuests        UserRideQuest[]
+  checkInStreak           Int               @default(0)
+  driverProfile           DriverProfile?
+  favoriteAddresses       FavoriteAddress[]
+  gameStats               GameStat[]
+  garden                  GardenState?
+  clientOrders            Order[]           @relation("ClientOrders")
+  driverOrders            Order[]           @relation("DriverOrders")
+  transactions            Transaction[]
+  referredBy              User?             @relation("Referrals", fields: [referredById], references: [id])
+  referrals               User[]            @relation("Referrals")
+  inventory               UserInventory[]
+  userMissions            UserMission[]
+  rideQuests              UserRideQuest[]
 }
 
 model Otp {
@@ -71,31 +70,31 @@ model DriverProfile {
 }
 
 model Order {
-  id           String    @id @default(cuid())
-  clientId     String
-  driverId     String?
-  fromLat      Float
-  fromLng      Float
-  fromAddress  String
-  toLat        Float
-  toLng        Float
-  toAddress    String
-  tariff       String    @default("standard")
-  price        Float
-  distanceKm   Float?
-  durationMin  Int?
-  status       String    @default("SEARCHING")
-  clientRating Int?
-  driverRating Int?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  arrivedAt    DateTime?
-  stopAddress  String?
-  stopLat      Float?
-  stopLng      Float?
+  id            String    @id @default(cuid())
+  clientId      String
+  driverId      String?
+  fromLat       Float
+  fromLng       Float
+  fromAddress   String
+  toLat         Float
+  toLng         Float
+  toAddress     String
+  tariff        String    @default("standard")
+  price         Float
+  distanceKm    Float?
+  durationMin   Int?
+  status        String    @default("SEARCHING")
+  clientRating  Int?
+  driverRating  Int?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  arrivedAt     DateTime?
+  stopAddress   String?
+  stopLat       Float?
+  stopLng       Float?
   paymentMethod String    @default("CASH")
-  driver       User?     @relation("DriverOrders", fields: [driverId], references: [id])
-  client       User      @relation("ClientOrders", fields: [clientId], references: [id])
+  client        User      @relation("ClientOrders", fields: [clientId], references: [id])
+  driver        User?     @relation("DriverOrders", fields: [driverId], references: [id])
 
   @@index([clientId, createdAt])
   @@index([driverId, status])
@@ -127,8 +126,8 @@ model Transaction {
   title     String
   subtitle  String
   amount    Float
-  isCredit  Boolean  // true = (+), false = (-)
-  type      String   // REGISTRATION_BONUS, TOPUP, COMMISSION, TRIP_EARNING
+  isCredit  Boolean
+  type      String
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -138,7 +137,7 @@ model Transaction {
 model GameStat {
   id        String   @id @default(cuid())
   userId    String
-  gameType  String   // "GRAVITY_RUN", "MATH_DASH", "WORD_QUEST", "MEMORY"
+  gameType  String
   highScore Int      @default(0)
   level     Int      @default(1)
   updatedAt DateTime @updatedAt
@@ -151,7 +150,7 @@ model DailyMission {
   id          String   @id @default(cuid())
   title       String
   description String
-  reward      Int      // In coins
+  reward      Int
   goalValue   Int
   gameType    String
   isActive    Boolean  @default(true)
@@ -170,31 +169,31 @@ model UserMission {
 }
 
 model ShopItem {
-  id          String   @id @default(cuid())
+  id          String  @id @default(cuid())
   name        String
   description String
-  price       Int      // In coins
-  category    String   // "SKIN", "POWERUP"
+  price       Int
+  category    String
   imageUrl    String?
-  isActive    Boolean  @default(true)
+  isActive    Boolean @default(true)
 }
 
 model UserInventory {
-  id         String   @id @default(cuid())
+  id         String  @id @default(cuid())
   userId     String
   itemId     String
-  quantity   Int      @default(1)
-  isEquipped Boolean  @default(false)
-  user       User     @relation(fields: [userId], references: [id])
+  quantity   Int     @default(1)
+  isEquipped Boolean @default(false)
+  user       User    @relation(fields: [userId], references: [id])
 }
 
 model GardenState {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  level     Int      @default(1)
-  water     Int      @default(0)
-  treeType  String   @default("OAK")
-  user      User     @relation(fields: [userId], references: [id])
+  id       String @id @default(cuid())
+  userId   String @unique
+  level    Int    @default(1)
+  water    Int    @default(0)
+  treeType String @default("OAK")
+  user     User   @relation(fields: [userId], references: [id])
 }
 
 model PromoCode {
@@ -209,11 +208,11 @@ model PromoCode {
 model FavoriteAddress {
   id        String   @id @default(cuid())
   userId    String
-  label     String   // e.g. "Uy", "Ish"
+  label     String
   address   String
   lat       Float
   lng       Float
-  iconType  String   @default("HOME") // HOME, WORK, HEART, STAR
+  iconType  String   @default("HOME")
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -221,13 +220,13 @@ model FavoriteAddress {
 }
 
 model RideQuest {
-  id          String             @id @default(cuid())
+  id          String          @id @default(cuid())
   title       String
   description String
   targetCount Int
   rewardPrice Float
-  isActive    Boolean            @default(true)
-  createdAt   DateTime           @default(now())
+  isActive    Boolean         @default(true)
+  createdAt   DateTime        @default(now())
   userQuests  UserRideQuest[]
 }
 
@@ -239,39 +238,38 @@ model UserRideQuest {
   isCompleted  Boolean   @default(false)
   isClaimed    Boolean   @default(false)
   updatedAt    DateTime  @updatedAt
-  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   quest        RideQuest @relation(fields: [questId], references: [id], onDelete: Cascade)
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, questId])
 }
 
 model GardenCoopAction {
-  id          String   @id @default(cuid())
-  giverId     String
-  receiverId  String
-  createdAt   DateTime @default(now())
-  
+  id         String   @id @default(cuid())
+  giverId    String
+  receiverId String
+  createdAt  DateTime @default(now())
+
   @@index([giverId, createdAt])
 }
 
 model GeoQuest {
-  id          String   @id @default(cuid())
-  title       String
-  lat         Float
-  lng         Float
-  radius      Float    // in meters
-  goalSteps   Int
-  rewardCoins Int
+  id               String  @id @default(cuid())
+  title            String
+  lat              Float
+  lng              Float
+  radius           Float
+  goalSteps        Int
+  rewardCoins      Int
   rewardCouponCode String?
 }
 
 model EmailMessage {
   id        String   @id @default(cuid())
-  account   String   // "info@orbitago.uz" yoki "support@orbitago.uz"
-  from      String   // Kimdan keldi (e.g. "klient@mail.ru")
-  subject   String   // Xabar mavzusi
-  body      String   // Xabar matni
-  isRead    Boolean  @default(false) // O'qilganlik holati
-  createdAt DateTime @default(now()) // Kelgan vaqti
+  account   String
+  from      String
+  subject   String
+  body      String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
 }
-

@@ -158,6 +158,19 @@ app.get('/api/health', async (_req, res) => {
     dbStatus = 'error';
   }
 
+  let onlineDrivers = 0;
+  let todayOrders = 0;
+  try {
+    if (dbStatus === 'ok') {
+      onlineDrivers = await prisma.driverProfile.count({ where: { isOnline: true } });
+      todayOrders = await prisma.order.count({
+        where: { createdAt: { gte: new Date(new Date().setHours(0,0,0,0)) } }
+      });
+    }
+  } catch (e) {
+    // ignore
+  }
+
   const uptime = process.uptime();
   const memUsage = process.memoryUsage();
 
@@ -175,6 +188,10 @@ app.get('/api/health', async (_req, res) => {
       heapUsedMb: Math.round(memUsage.heapUsed / 1024 / 1024),
       heapTotalMb: Math.round(memUsage.heapTotal / 1024 / 1024),
     },
+    stats: {
+      onlineDrivers,
+      todayOrders
+    }
   });
 });
 

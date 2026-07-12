@@ -1,5 +1,6 @@
-#!/usr/local/bin/php -q
+#!/usr/bin/php -q
 <?php
+file_put_contents(__DIR__ . '/mail_debug.log', "Ishga tushdi: " . date('Y-m-d H:i:s') . "\n", FILE_APPEND);
 /* ==========================================================================
    Orbita Go — cPanel Email Pipe Script (mail_pipe.php)
    ========================================================================== */

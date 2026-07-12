@@ -19,6 +19,9 @@
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Leaflet Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         /* ===== GLOBAL STYLES & RESET ===== */
         *, *::before, *::after {
@@ -504,6 +507,16 @@
         <span>Sozlamalar</span>
     </button>
 
+    <span class="nav-section-label">Xabarlar & Moliya</span>
+    <button class="nav-item" data-page="broadcast" id="nav-broadcast">
+        <ion-icon name="megaphone-outline"></ion-icon>
+        <span>Bildirishnoma yuborish</span>
+    </button>
+    <button class="nav-item" data-page="transactions" id="nav-transactions">
+        <ion-icon name="receipt-outline"></ion-icon>
+        <span>Tranzaksiyalar</span>
+    </button>
+
     <div class="sidebar-footer">
         <button class="nav-item" id="logout-btn">
             <ion-icon name="log-out-outline"></ion-icon>
@@ -576,11 +589,46 @@
             </div>
         </div>
 
+        <!-- Live Map & Server Metrics -->
+        <div class="charts-grid" style="margin-bottom: 28px;">
+            <div class="chart-card" style="display: flex; flex-direction: column;">
+                <h3>🗺️ Jonli Xarita (Real-time Live Map)</h3>
+                <div id="admin-map" style="height: 280px; border-radius: 16px; overflow: hidden; border: 1px solid var(--border); z-index: 5;"></div>
+            </div>
+            <div class="chart-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+                <h3>🖥️ Server Ko'rsatkichlari (Live Metrics)</h3>
+                <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); padding:10px 14px; border-radius:12px; border:1px solid var(--border);">
+                        <span style="font-size:12px; color:var(--text-muted);">Database status</span>
+                        <span id="metric-db-status" class="chip chip-gray">Tekshirilmoqda...</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); padding:10px 14px; border-radius:12px; border:1px solid var(--border);">
+                        <span style="font-size:12px; color:var(--text-muted);">Database Latency</span>
+                        <span id="metric-db-latency" style="font-weight:700; color:var(--text-muted);">-- ms</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); padding:10px 14px; border-radius:12px; border:1px solid var(--border);">
+                        <span style="font-size:12px; color:var(--text-muted);">Node Memory Used</span>
+                        <span id="metric-mem" style="font-weight:700; color:var(--text-muted);">-- MB</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); padding:10px 14px; border-radius:12px; border:1px solid var(--border);">
+                        <span style="font-size:12px; color:var(--text-muted);">Server Uptime</span>
+                        <span id="metric-uptime" style="font-weight:700; color:var(--text-muted);">--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- System live request ticker -->
         <div class="logger-card">
             <div class="logger-header">
                 <h4><ion-icon name="pulse-outline" style="color: var(--green)"></ion-icon> Tizimning Jonli So'rovlar Logi (Simulated API Log)</h4>
-                <span style="font-size:10px;color:var(--text-hint);">FPS: 60 · STATUS: NOMINAL</span>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <button class="filter-btn active" style="padding: 4px 10px; font-size: 11px; font-weight: 700; border-radius: 8px;" onclick="filterLogs('ALL', this)">Barchasi</button>
+                    <button class="filter-btn" style="padding: 4px 10px; font-size: 11px; font-weight: 700; border-radius: 8px;" onclick="filterLogs('API', this)">API</button>
+                    <button class="filter-btn" style="padding: 4px 10px; font-size: 11px; font-weight: 700; border-radius: 8px;" onclick="filterLogs('WS', this)">WS</button>
+                    <button class="filter-btn" style="padding: 4px 10px; font-size: 11px; font-weight: 700; border-radius: 8px;" onclick="filterLogs('ERRORS', this)">Xatoliklar</button>
+                </div>
+                <span style="font-size:10px;color:var(--text-hint);">STATUS: NOMINAL</span>
             </div>
             <div class="logger-body" id="system-logs-body">
                 <!-- Log entries added dynamically via js -->
@@ -644,6 +692,9 @@
                     <button class="filter-btn active" data-filter="ALL" onclick="filterDrivers(this)">Barchasi</button>
                     <button class="filter-btn" data-filter="ACTIVE" onclick="filterDrivers(this)">Faol</button>
                     <button class="filter-btn" data-filter="BLOCKED" onclick="filterDrivers(this)">Bloklangan</button>
+                    <button class="login-btn" style="padding: 8px 16px; border-radius: 12px; font-size: 12px; font-weight: 700; width: auto; display: inline-flex; align-items: center; gap: 6px;" onclick="openAddDriverModal()">
+                        <ion-icon name="person-add-outline" style="font-size: 16px;"></ion-icon> Yangi Qo'shish
+                    </button>
                 </div>
             </div>
             <table>
@@ -684,7 +735,12 @@
         <div class="table-card">
             <div class="table-header">
                 <h3>🏆 Haftalik Peshqadamlar</h3>
-                <div class="live-badge"><span class="live-dot"></span> Real-time</div>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <div class="live-badge"><span class="live-dot"></span> Real-time</div>
+                    <button class="login-btn danger" style="padding: 8px 16px; border-radius: 12px; font-size: 12px; font-weight: 700; width: auto; display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, var(--red), #b91c1c);" onclick="resetLeaderboard()">
+                        <ion-icon name="refresh-circle-outline" style="font-size: 16px;"></ion-icon> Turnirni Yakunlash & Sovrin Tarqatish
+                    </button>
+                </div>
             </div>
             <table>
                 <thead>
@@ -988,6 +1044,73 @@
                     </tr>
                 </thead>
                 <tbody id="emails-table-body">
+                    <tr class="loading-row"><td colspan="6"><span class="spinner"></span>Yuklanmoqda...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ========== BROADCAST SECTION ========== -->
+    <section class="page-section" id="page-broadcast">
+        <div class="settings-card" style="max-width: 650px; margin: 0 auto;">
+            <h3>📢 Tizim Bildirishnomasi (Real-time Broadcast)</h3>
+            <p style="font-size:12.5px;color:var(--text-muted);margin-bottom:20px;">
+                Ushbu bo'lim orqali ulangan barcha foydalanuvchilar va haydovchilar ilovalariga real-time rejimda xabarnomalar (alertlar) yuborishingiz mumkin.
+            </p>
+            <div class="form-group">
+                <label for="broadcast-title">Xabarnoma Sarlavhasi</label>
+                <input type="text" id="broadcast-title" class="form-control" placeholder="Masalan: Texnik ishlar boshlanadi!">
+            </div>
+            <div class="form-group">
+                <label for="broadcast-message">Xabar Matni</label>
+                <textarea id="broadcast-message" class="form-control" style="height: 100px; resize: vertical;" placeholder="Barcha foydalanuvchilarga ko'rsatiladigan xabar matni..."></textarea>
+            </div>
+            <div class="settings-grid-2">
+                <div class="form-group">
+                    <label for="broadcast-target">Kimlarga yuboriladi (Target)</label>
+                    <select id="broadcast-target" class="login-input" style="width:100%; border-radius:16px; padding: 8px 12px; margin: 0;">
+                        <option value="ALL">Barcha foydalanuvchi va haydovchilarga</option>
+                        <option value="CLIENTS">Faqat Mijozlarga</option>
+                        <option value="DRIVERS">Faqat Haydovchilarga</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="broadcast-type">Xabarnoma turi (Style)</label>
+                    <select id="broadcast-type" class="login-input" style="width:100%; border-radius:16px; padding: 8px 12px; margin: 0;">
+                        <option value="info">Info (Ko'k rangli bildirishnoma)</option>
+                        <option value="success">Success (Yashil rangli xabar)</option>
+                        <option value="warning">Warning (Sariq ogohlantirish)</option>
+                        <option value="danger">Danger (Qizil xavf xabari)</option>
+                    </select>
+                </div>
+            </div>
+            <div style="text-align: right; margin-top: 28px;">
+                <button class="login-btn" id="btn-send-broadcast" onclick="sendBroadcast()" style="display: inline-flex; width: auto; padding: 14px 40px;">
+                    <ion-icon name="paper-plane-outline"></ion-icon> &nbsp; 🚀 Bildirishnomani Yuborish
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== TRANSACTIONS SECTION ========== -->
+    <section class="page-section" id="page-transactions">
+        <div class="table-card">
+            <div class="table-header">
+                <h3>🪙 Hamyon Tranzaksiyalar tarixi</h3>
+                <div class="live-badge"><span class="live-dot"></span> Real-time</div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:180px;">Sana</th>
+                        <th>Foydalanuvchi</th>
+                        <th>Mavzu (Title)</th>
+                        <th>Tafsilot (Subtitle)</th>
+                        <th>Turi (Type)</th>
+                        <th>Miqdor (Amount)</th>
+                    </tr>
+                </thead>
+                <tbody id="transactions-body">
                     <tr class="loading-row"><td colspan="6"><span class="spinner"></span>Yuklanmoqda...</td></tr>
                 </tbody>
             </table>

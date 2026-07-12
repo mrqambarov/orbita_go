@@ -7,6 +7,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import prisma from '../lib/prisma';
 import fs from 'fs';
 import path from 'path';
+import bcrypt from 'bcryptjs';
 
 const router = Router();
 
@@ -562,4 +563,224 @@ router.delete('/emails/:id', async (req: Request, res: Response) => {
     }
 });
 
+/* ============================================================
+   POST /api/admin/broadcast — Send real-time notification to apps
+   ============================================================ */
+router.post('/broadcast', async (req: Request, res: Response) => {
+    try {
+        const { title, message, target, type } = req.body;
+        if (!title || !message) {
+            res.status(400).json({ success: false, message: "Sarlavha va xabar matnini kiriting" });
+            return;
+        }
+
+        const io = (global as any).io;
+        if (io) {
+            io.emit('broadcast_notification', {
+                title,
+                message,
+                target: target || 'ALL',
+                type: type || 'info',
+                createdAt: new Date()
+            });
+        }
+
+        res.json({ success: true, message: "Xabarnoma muvaffaqiyatli yuborildi" });
+    } catch (err: any) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+/* ============================================================
+   GET /api/admin/transactions — Retrieve all wallet transactions
+   ============================================================ */
+router.get('/transactions', async (req: Request, res: Response) => {
+    try {
+        const limit = Math.min(parseInt(req.query.limit as string) || 50, 200);
+        const skip  = parseInt(req.query.skip as string) || 0;
+
+        const transactions = await prisma.transaction.findMany({
+            orderBy: { createdAt: 'desc' },
+            take: limit,
+            skip,
+            include: {
+                user: { select: { fullName: true, phoneNumber: true } }
+            }
+        });
+        const total = await prisma.transaction.count();
+
+        res.json({ success: true, transactions, total, limit, skip });
+    } catch (err: any) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+/* ============================================================
+   POST /api/admin/driver — Manual Driver Registration
+   ============================================================ */
+router.post('/driver', async (req: Request, res: Response) => {
+    try {
+        const { fullName, phoneNumber, password, carModel, carColor, carNumber } = req.body;
+        if (!fullName || !phoneNumber || !password || !carModel || !carColor || !carNumber) {
+            res.status(400).json({ success: false, message: "Barcha ma'lumotlarni kiriting" });
+            return;
+        }
+
+        const cleanPhone = '+' + phoneNumber.replace(/\D/g, '');
+
+        const userExists = await prisma.user.findFirst({
+            where: {
+                OR: [
+                    { phoneNumber: cleanPhone }
+                ]
+            }
+        });
+        if (userExists) {
+            res.status(400).json({ success: false, message: "Ushbu telefon raqamli foydalanuvchi allaqachon mavjud" });
+            return;
+        }
+
+        const carExists = await prisma.driverProfile.findUnique({
+            where: { carNumber }
+        });
+        if (carExists) {
+            res.status(400).json({ success: false, message: "Ushbu davlat raqamli mashina allaqachon ro'yxatdan o'tgan" });
+            return;
+        }
+
+        const hashedPw = await bcrypt.hash(password, 10);
+        const orbitaId = `ORB-${Math.floor(100000 + Math.random() * 900000)}`;
+
+        const result = await prisma.$transaction(async (tx) => {
+            const user = await tx.user.create({
+                data: {
+                    orbitaId,
+                    password: hashedPw,
+                    phoneNumber: cleanPhone,
+                    fullName,
+                    role: 'DRIVER',
+                    isVerified: true,
+                    walletBalance: 0.0
+                }
+            });
+
+            const profile = await tx.driverProfile.create({
+                data: {
+                    userId: user.id,
+                    carModel,
+                    carColor,
+                    carNumber,
+                    rating: 5.0,
+                    totalTrips: 0,
+                    isOnline: true,
+                    isVerified: true
+                }
+            });
+
+            return { user, profile };
+        });
+
+        res.json({ success: true, message: "Haydovchi muvaffaqiyatli ro'yxatga olindi", driver: { id: result.profile.id, fullName, phone: cleanPhone } });
+    } catch (err: any) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+/* ============================================================
+   POST /api/admin/emails/:id/reply — Send Mock Helpdesk Email Reply
+   ============================================================ */
+router.post('/emails/:id/reply', async (req: Request, res: Response) => {
+    try {
+        const { message } = req.body;
+        if (!message) {
+            res.status(400).json({ success: false, message: "Javob xabari bo'sh bo'lishi mumkin emas" });
+            return;
+        }
+
+        const email = await prisma.emailMessage.findUnique({ where: { id: req.params.id } });
+        if (!email) {
+            res.status(404).json({ success: false, message: "Email topilmadi" });
+            return;
+        }
+
+        await prisma.emailMessage.update({
+            where: { id: req.params.id },
+            data: { isRead: true }
+        });
+
+        console.log(`✉️ Mock email replied to: ${email.from} (Subject: RE: ${email.subject}) -> Body: ${message}`);
+
+        res.json({ success: true, message: "Javob muvaffaqiyatli yuborildi (Mock)" });
+    } catch (err: any) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+/* ============================================================
+   POST /api/admin/leaderboard/reset — Reset Tournament & Award Prizes
+   ============================================================ */
+router.post('/leaderboard/reset', async (req: Request, res: Response) => {
+    try {
+        const gameStats = await prisma.gameStat.findMany({
+            orderBy: { highScore: 'desc' },
+            take: 3,
+            include: { user: true }
+        });
+
+        if (gameStats.length === 0) {
+            res.json({ success: true, message: "Turnir ishtirokchilari yo'q, mukofot tarqatilmadi" });
+            return;
+        }
+
+        const prizePool = [150000, 80000, 40000];
+
+        const results = await prisma.$transaction(async (tx) => {
+            const payed = [];
+            for (let i = 0; i < gameStats.length; i++) {
+                const stat = gameStats[i];
+                const prize = prizePool[i] || 10000;
+
+                const updatedUser = await tx.user.update({
+                    where: { id: stat.userId },
+                    data: { walletBalance: { increment: prize } }
+                });
+
+                await tx.transaction.create({
+                    data: {
+                        userId: stat.userId,
+                        title: `Turnir G'olibi (${i+1}-o'rin)`,
+                        subtitle: `Haftalik o'yin turniri mukofoti`,
+                        amount: prize,
+                        isCredit: true,
+                        type: "TOURNAMENT"
+                    }
+                });
+
+                payed.push({
+                    name: updatedUser.fullName || stat.userId,
+                    rank: i + 1,
+                    prize
+                });
+            }
+
+            await tx.gameStat.updateMany({
+                data: { highScore: 0 }
+            });
+
+            return payed;
+        });
+
+        const io = (global as any).io;
+        if (io) {
+            io.emit('tournament_reset', { winners: results });
+        }
+
+        res.json({ success: true, message: "Haftalik turnir yakunlandi, sovrinlar tarqatildi!", winners: results });
+    } catch (err: any) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
 export default router;
+
+

@@ -6,7 +6,7 @@
    ========================================================================== */
 
 // Auto-detect API base: use localhost only in dev environment
-const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:')
     ? 'http://localhost:3000'
     : 'https://api.orbitago.uz';
 const KOSONSOY = [40.9983, 71.1522]; // Default center: Kosonsoy
@@ -621,7 +621,10 @@ function haversine(a, b) {
 function initSystemHealthCheck() {
     const statusDot = document.querySelector('.status-dot');
     const statusText = document.getElementById('system-status-text');
-    if (!statusDot || !statusText) return;
+    const pubDot = document.getElementById('pub-status-dot');
+    const pubText = document.getElementById('pub-status-text');
+    const pubDrivers = document.getElementById('pub-online-drivers');
+    const pubOrders = document.getElementById('pub-today-orders');
 
     // Uses global API_BASE (auto-detected at top of file)
 
@@ -629,34 +632,73 @@ function initSystemHealthCheck() {
         try {
             const res = await fetch(`${API_BASE}/api/health`);
             const data = await res.json();
+            const lang = localStorage.getItem('orbita_lang') || 'uz';
+
+            if (pubDrivers && data.stats) {
+                pubDrivers.textContent = data.stats.onlineDrivers;
+            }
+            if (pubOrders && data.stats) {
+                pubOrders.textContent = data.stats.todayOrders;
+            }
+
             if (data.status === 'ok') {
-                statusDot.className = 'status-dot status-online';
-                const lang = localStorage.getItem('orbita_lang') || 'uz';
+                if (statusDot) statusDot.className = 'status-dot status-online';
                 const texts = {
                     uz: 'Tizim: API Onlayn (Baza ok)',
                     ru: 'Система: API Онлайн (БД ок)',
                     en: 'System: API Online (DB ok)'
                 };
-                statusText.textContent = texts[lang] || texts.uz;
+                if (statusText) statusText.textContent = texts[lang] || texts.uz;
+
+                if (pubDot) pubDot.style.background = 'var(--success)';
+                if (pubText) {
+                    const pubTexts = {
+                        uz: 'Tizim holati: FAOL (Onlayn)',
+                        ru: 'Статус системы: АКТИВЕН (Онлайн)',
+                        en: 'System Status: ACTIVE (Online)'
+                    };
+                    pubText.textContent = pubTexts[lang] || pubTexts.uz;
+                }
             } else {
-                statusDot.className = 'status-dot status-degraded';
-                const lang = localStorage.getItem('orbita_lang') || 'uz';
+                if (statusDot) statusDot.className = 'status-dot status-degraded';
                 const texts = {
                     uz: 'Tizim: Cheklangan rejim',
                     ru: 'Система: Ограниченный режим',
                     en: 'System: Degraded mode'
                 };
-                statusText.textContent = texts[lang] || texts.uz;
+                if (statusText) statusText.textContent = texts[lang] || texts.uz;
+
+                if (pubDot) pubDot.style.background = 'var(--yellow)';
+                if (pubText) {
+                    const pubTexts = {
+                        uz: 'Tizim holati: CHEKLANGAN',
+                        ru: 'Статус системы: ОГРАНИЧЕН',
+                        en: 'System Status: DEGRADED'
+                    };
+                    pubText.textContent = pubTexts[lang] || pubTexts.uz;
+                }
             }
         } catch (err) {
-            statusDot.className = 'status-dot status-offline';
             const lang = localStorage.getItem('orbita_lang') || 'uz';
+            if (statusDot) statusDot.className = 'status-dot status-offline';
             const texts = {
                 uz: 'Tizim: API Oflayn (Ulanish xatosi)',
                 ru: 'Система: API Оффлайн (Ошибка соединения)',
                 en: 'System: API Offline (Connection Error)'
             };
-            statusText.textContent = texts[lang] || texts.uz;
+            if (statusText) statusText.textContent = texts[lang] || texts.uz;
+
+            if (pubDot) pubDot.style.background = 'var(--red-color)';
+            if (pubText) {
+                const pubTexts = {
+                    uz: 'Tizim holati: OFLAYN',
+                    ru: 'Статус системы: ОФФЛАЙН',
+                    en: 'System Status: OFFLINE'
+                };
+                pubText.textContent = pubTexts[lang] || pubTexts.uz;
+            }
+            if (pubDrivers) pubDrivers.textContent = '--';
+            if (pubOrders) pubOrders.textContent = '--';
         }
     }
 

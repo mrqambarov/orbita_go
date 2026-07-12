@@ -2,7 +2,9 @@
    Orbita Go Admin Panel — admin.js (Real-time and Authenticated v4.0)
    ========================================================================== */
 
-const API = 'https://api.orbitago.uz';
+const API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:')
+    ? 'http://localhost:3000'
+    : 'https://api.orbitago.uz';
 const DEMO_USER = 'admin';
 const DEMO_PASS = 'admin123';
 const ADMIN_SECRET = 'orbita-admin-secret-2026';
@@ -16,6 +18,9 @@ let socket = null;
 let refreshInterval = null;
 let loggerTimer = null;
 let currentSettings = null;
+let adminMap = null;
+let adminMapMarkers = [];
+let activeLogFilter = 'ALL';
 
 /* ---- Authenticated Fetch Helper ---- */
 async function adminFetch(url, options = {}) {
@@ -97,10 +102,15 @@ function showAdmin() {
     connectAdminSocket();
     startSimulatedLogger();
 
+    setTimeout(() => {
+        initAdminMap();
+    }, 500);
+
     // Start auto polling refresh every 6 seconds for real-time stats
     if (refreshInterval) clearInterval(refreshInterval);
     refreshInterval = setInterval(async () => {
-        await Promise.all([loadStats(), loadOrders(), loadDrivers(), loadEmails()]);
+        await Promise.all([loadStats(), loadOrders(), loadDrivers(), loadEmails(), loadServerHealth()]);
+        updateAdminMapMarkers();
     }, 6000);
 }
 
@@ -170,6 +180,8 @@ function addSystemLog(method, path, status) {
                     '<span>' + path + '</span>' +
                     '<span class="log-status-' + status + '">' + status + '</span>';
 
+    row.style.display = matchesLogFilter(method, path, status) ? 'flex' : 'none';
+
     loggerBody.appendChild(row);
     if (loggerBody.childNodes.length > 25) {
         loggerBody.removeChild(loggerBody.firstChild);
@@ -189,7 +201,7 @@ function switchPage(page) {
     if (section) section.classList.add('active');
     if (btn)     btn.classList.add('active');
 
-    const titles = { dashboard:'Dashboard', orders:'Buyurtmalar', drivers:"Haydovchilar", users:"Foydalanuvchilar", leaderboard:"Peshqadamlar", settings:"Tizim Sozlamalari", emails:"Tizim Pochtasi (Inbound Mail)" };
+    const titles = { dashboard:'Dashboard', orders:'Buyurtmalar', drivers:"Haydovchilar", users:"Foydalanuvchilar", leaderboard:"Peshqadamlar", settings:"Tizim Sozlamalari", emails:"Tizim Pochtasi (Inbound Mail)", broadcast: "Bildirishnoma yuborish", transactions: "Tranzaksiyalar" };
     document.getElementById('topbar-title').textContent = titles[page] || page;
 }
 
@@ -213,8 +225,11 @@ window.switchSettingsTab = switchSettingsTab; // Make it global for inline oncli
    DATA LOADING
    ============================================================ */
 async function loadAll() {
-    await Promise.all([loadStats(), loadOrders(), loadDrivers(), loadUsers(), loadLeaderboard(), fetchSettings(), fetchEnvSettings(), loadEmails()]);
+    await Promise.all([loadStats(), loadOrders(), loadDrivers(), loadUsers(), loadLeaderboard(), fetchSettings(), fetchEnvSettings(), loadEmails(), loadTransactions(), loadServerHealth()]);
     initCharts();
+    setTimeout(() => {
+        updateAdminMapMarkers();
+    }, 600);
 }
 
 async function refreshAll() {
@@ -1195,9 +1210,16 @@ function inspectEmail(id) {
             </div>
             <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
                 <span style="color:var(--text-muted); font-size:13px;">Xabar matni (Body):</span>
-                <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px; padding:16px; font-size:14px; line-height:1.6; color:#e2e8f0; white-space:pre-wrap; max-height:300px; overflow-y:auto;">
+                <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px; padding:16px; font-size:14px; line-height:1.6; color:#e2e8f0; white-space:pre-wrap; max-height:150px; overflow-y:auto;">
                     ${escapeHtml(m.body)}
                 </div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:8px; border-top:1px solid var(--border); padding-top:12px;">
+                <span style="color:var(--p-l); font-size:13px; font-weight:700;">📨 Javob qaytarish (Reply):</span>
+                <textarea id="email-reply-message" class="form-control" rows="3" placeholder="Javob xabaringizni yozing..." style="resize:vertical;"></textarea>
+                <button class="login-btn" style="padding:10px; font-size:13px; margin-top:6px;" onclick="submitEmailReply('${m.id}')">
+                    <ion-icon name="send-outline"></ion-icon> Javobni yuborish
+                </button>
             </div>
         </div>
     `;
@@ -1219,4 +1241,353 @@ window.loadEmails = loadEmails;
 window.toggleEmailRead = toggleEmailRead;
 window.deleteEmail = deleteEmail;
 window.inspectEmail = inspectEmail;
+
+/* ============================================================
+   TRANSACTIONS LOADING
+   ============================================================ */
+async function loadTransactions() {
+    try {
+        const res = await adminFetch(API + '/api/admin/transactions?limit=50');
+        const d = await res.json();
+        const tbody = document.getElementById('transactions-body');
+        if (!tbody) return;
+        if (d.success && d.transactions) {
+            tbody.innerHTML = d.transactions.map(t => {
+                const dateStr = t.createdAt ? new Date(t.createdAt).toLocaleString('uz-UZ') : '—';
+                const amountColor = t.isCredit ? 'var(--green)' : 'var(--red)';
+                const amountSign = t.isCredit ? '+' : '-';
+                return '<tr>' +
+                    '<td style="font-size:12.5px;color:var(--text-muted);">' + dateStr + '</td>' +
+                    '<td><div class="user-cell"><div class="mini-avatar" style="background:' + randomColor(t.userId) + '">' + (t.user?.fullName||'U').charAt(0) + '</div><div><div class="mini-name">' + (t.user?.fullName||'Foydalanuvchi') + '</div><div class="mini-sub">' + (t.user?.phoneNumber||'') + '</div></div></div></td>' +
+                    '<td><strong>' + (t.title||'—') + '</strong></td>' +
+                    '<td style="font-size:12.5px;color:var(--text-muted);">' + (t.subtitle||'—') + '</td>' +
+                    '<td><span class="chip chip-gray" style="font-size:11px;">' + (t.type||'OTHER') + '</span></td>' +
+                    '<td style="font-weight:700;color:' + amountColor + ';">' + amountSign + (t.amount||0).toLocaleString() + ' UZS</td>' +
+                    '</tr>';
+            }).join('') || '<tr><td colspan="6" class="loading-row">Tranzaksiyalar topilmadi</td></tr>';
+        } else {
+            tbody.innerHTML = '<tr><td colspan="6" class="loading-row">Tranzaksiyalar yuklanmadi (Xato)</td></tr>';
+        }
+    } catch (err) {
+        console.error("Failed to load transactions", err);
+    }
+}
+
+/* ============================================================
+   NOTIFICATION BROADCAST
+   ============================================================ */
+async function sendBroadcast() {
+    const title = document.getElementById('broadcast-title').value.trim();
+    const message = document.getElementById('broadcast-message').value.trim();
+    const target = document.getElementById('broadcast-target').value;
+    const type = document.getElementById('broadcast-type').value;
+
+    if (!title || !message) {
+        alert("Sarlavha va xabarnoma matnini to'liq to'ldiring!");
+        return;
+    }
+
+    const btn = document.getElementById('btn-send-broadcast');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Yuborilmoqda...';
+
+    try {
+        const res = await adminFetch(API + '/api/admin/broadcast', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, message, target, type })
+        });
+        const d = await res.json();
+        if (d.success) {
+            showToast('Muvaffaqiyat', 'Bildirishnoma hamma ilovalarga real-time yuborildi!', 'checkmark-circle', '#34d399');
+            document.getElementById('broadcast-title').value = '';
+            document.getElementById('broadcast-message').value = '';
+        } else {
+            showToast('Xatolik', d.message || 'Yuborib bo\'lmadi', 'alert-circle', '#ef4444');
+        }
+    } catch (err) {
+        showToast('Xatolik', 'Server bilan ulanishda xato!', 'alert-circle', '#ef4444');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<ion-icon name="paper-plane-outline"></ion-icon> &nbsp; 🚀 Bildirishnomani Yuborish';
+    }
+}
+
+/* ============================================================
+   REAL-TIME LEAFLET MAP LOGIC
+   ============================================================ */
+function initAdminMap() {
+    if (adminMap || typeof L === 'undefined') return;
+    const mapContainer = document.getElementById('admin-map');
+    if (!mapContainer) return;
+
+    adminMap = L.map('admin-map', {
+        center: [40.9983, 71.1522], // Kosonsoy
+        zoom: 12,
+        zoomControl: true,
+        attributionControl: false
+    });
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        subdomains: 'abcd'
+    }).addTo(adminMap);
+
+    updateAdminMapMarkers();
+}
+
+function updateAdminMapMarkers() {
+    if (!adminMap) return;
+
+    adminMapMarkers.forEach(m => adminMap.removeLayer(m));
+    adminMapMarkers = [];
+
+    const activeOrders = allOrders.filter(o => ['PENDING', 'ACCEPTED', 'IN_TRIP', 'DRIVER_ARRIVING'].includes(o.status));
+    
+    activeOrders.forEach(o => {
+        const flat = o.fromLat || (40.9983 + (Math.sin((o.id || '').charCodeAt(0) || 1) * 0.015));
+        const flng = o.fromLng || (71.1522 + (Math.cos((o.id || '').charCodeAt(1) || 2) * 0.015));
+        
+        const clientIcon = L.divIcon({
+            html: `<div style="background:var(--p); width:24px; height:24px; border-radius:50%; border:2px solid #fff; display:flex; align-items:center; justify-content:center; font-size:11px; box-shadow:0 0 10px var(--p)">👤</div>`,
+            className: '',
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
+        });
+
+        const marker = L.marker([flat, flng], { icon: clientIcon })
+            .bindPopup(`<b>Mijoz:</b> ${o.clientName || 'Mijoz'}<br><b>Tarif:</b> ${o.tariff}<br><b>Holat:</b> ${o.status}`)
+            .addTo(adminMap);
+
+        adminMapMarkers.push(marker);
+    });
+
+    allDrivers.forEach(d => {
+        if (d.isBlocked || d.status === 'BLOCKED') return;
+        const dlat = 40.9983 + (Math.sin((d.id || '').charCodeAt(0) || 1) * 0.012);
+        const dlng = 71.1522 + (Math.cos((d.id || '').charCodeAt(1) || 2) * 0.012);
+
+        const driverIcon = L.divIcon({
+            html: `<div style="background:var(--yellow); width:24px; height:24px; border-radius:50%; border:2px solid #fff; display:flex; align-items:center; justify-content:center; font-size:11px; box-shadow:0 0 10px var(--yellow)">🚗</div>`,
+            className: '',
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
+        });
+
+        const marker = L.marker([dlat, dlng], { icon: driverIcon })
+            .bindPopup(`<b>Haydovchi:</b> ${d.fullName}<br><b>Avto:</b> ${d.carModel}<br><b>Holat:</b> ${d.isAvailable ? 'Faol/Bo\'sh' : 'Bloklangan'}`)
+            .addTo(adminMap);
+
+        adminMapMarkers.push(marker);
+    });
+}
+
+/* ============================================================
+   SERVER HEALTH & METRICS POLL
+   ============================================================ */
+async function loadServerHealth() {
+    try {
+        const res = await fetch(API + '/api/health');
+        const data = await res.json();
+        
+        const dbStatusEl = document.getElementById('metric-db-status');
+        const dbLatencyEl = document.getElementById('metric-db-latency');
+        const memEl = document.getElementById('metric-mem');
+        const uptimeEl = document.getElementById('metric-uptime');
+
+        if (dbStatusEl) {
+            dbStatusEl.textContent = data.db?.status === 'ok' ? 'ONLAYN' : 'XATOLIK';
+            dbStatusEl.className = data.db?.status === 'ok' ? 'chip chip-green' : 'chip chip-red';
+        }
+        if (dbLatencyEl) {
+            dbLatencyEl.textContent = `${data.db?.latencyMs || 0} ms`;
+            dbLatencyEl.style.color = (data.db?.latencyMs < 50) ? 'var(--green)' : 'var(--yellow)';
+        }
+        if (memEl) {
+            memEl.textContent = `${data.memory?.heapUsedMb || 0} MB`;
+        }
+        if (uptimeEl) {
+            uptimeEl.textContent = data.uptime || '--';
+        }
+    } catch (err) {
+        console.warn('Failed to load backend health metrics', err);
+        const dbStatusEl = document.getElementById('metric-db-status');
+        if (dbStatusEl) {
+            dbStatusEl.textContent = 'OFFLINE';
+            dbStatusEl.className = 'chip chip-red';
+        }
+    }
+}
+
+/* ============================================================
+   LOGS FILTERING
+   ============================================================ */
+function filterLogs(filterType, btn) {
+    document.querySelectorAll('.logger-header .filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeLogFilter = filterType;
+
+    const loggerBody = document.getElementById('system-logs-body');
+    if (!loggerBody) return;
+    loggerBody.querySelectorAll('.log-row').forEach(row => {
+        const method = row.querySelector('.log-method')?.textContent || '';
+        const path = row.querySelector('span:nth-child(3)')?.textContent || '';
+        const status = parseInt(row.querySelector('span:last-child')?.textContent || '200');
+        
+        row.style.display = matchesLogFilter(method, path, status) ? 'flex' : 'none';
+    });
+}
+
+function matchesLogFilter(method, path, status) {
+    if (activeLogFilter === 'ALL') return true;
+    if (activeLogFilter === 'API') return method !== 'WS';
+    if (activeLogFilter === 'WS') return method === 'WS';
+    if (activeLogFilter === 'ERRORS') return status >= 400;
+    return true;
+}
+
+/* ============================================================
+   MANUAL DRIVER REGISTRATION
+   ============================================================ */
+function openAddDriverModal() {
+    document.getElementById('modal-title').textContent = 'Yangi Haydovchini Ro\'yxatga Olish';
+    const body = document.getElementById('modal-details-body');
+    body.innerHTML = `
+        <div style="display:flex; flex-direction:column; gap:12px;">
+            <div class="form-group" style="margin-bottom:0;">
+                <label style="font-size:11px;">F.I.Sh. (To'liq ismi)</label>
+                <input type="text" id="add-drv-fullname" class="form-control" placeholder="Davron Aliyev">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label style="font-size:11px;">Telefon raqami</label>
+                <input type="text" id="add-drv-phone" class="form-control" placeholder="998901234567">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label style="font-size:11px;">Kirish paroli</label>
+                <input type="password" id="add-drv-password" class="form-control" placeholder="Parol">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label style="font-size:11px;">Avtomobil modeli</label>
+                <input type="text" id="add-drv-carmodel" class="form-control" placeholder="Chevrolet Nexia 3">
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div class="form-group" style="margin-bottom:0;">
+                    <label style="font-size:11px;">Rangi</label>
+                    <input type="text" id="add-drv-carcolor" class="form-control" placeholder="Oq">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label style="font-size:11px;">Davlat raqami</label>
+                    <input type="text" id="add-drv-carnumber" class="form-control" placeholder="01A777AA">
+                </div>
+            </div>
+            <button class="login-btn" style="margin-top:10px; width:100%;" onclick="submitAddDriver()">
+                <ion-icon name="person-add-outline"></ion-icon> Haydovchini Qo'shish
+            </button>
+        </div>
+    `;
+    document.getElementById('inspector-modal').classList.add('show');
+}
+
+async function submitAddDriver() {
+    const fullName = document.getElementById('add-drv-fullname').value.trim();
+    const phoneNumber = document.getElementById('add-drv-phone').value.trim();
+    const password = document.getElementById('add-drv-password').value;
+    const carModel = document.getElementById('add-drv-carmodel').value.trim();
+    const carColor = document.getElementById('add-drv-carcolor').value.trim();
+    const carNumber = document.getElementById('add-drv-carnumber').value.trim();
+
+    if (!fullName || !phoneNumber || !password || !carModel || !carColor || !carNumber) {
+        alert("Barcha maydonlarni to'ldiring!");
+        return;
+    }
+
+    try {
+        const res = await adminFetch(API + '/api/admin/driver', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fullName, phoneNumber, password, carModel, carColor, carNumber })
+        });
+        const d = await res.json();
+        if (d.success) {
+            showToast('Muvaffaqiyat', 'Haydovchi tizimga muvaffaqiyatli qo\'shildi!', 'checkmark-circle', '#34d399');
+            closeInspector();
+            loadDrivers();
+        } else {
+            showToast('Xato', d.message || 'Ro\'yxatga olishda xatolik', 'alert-circle', '#f87171');
+        }
+    } catch (err) {
+        showToast('Xato', 'Server bilan aloqa uzildi', 'alert-circle', '#f87171');
+    }
+}
+
+/* ============================================================
+   WEEKLY TOURNAMENT RESET & PRIZES
+   ============================================================ */
+async function resetLeaderboard() {
+    if (!confirm("Haqiqatan ham turnirni yakunlamoqchimisiz? Ushbu amal top 3 o'yinchiga mos ravishda 150 000, 80 000, 40 000 so'm mukofot tarqatadi va haftalik ballarni nolga tushiradi!")) {
+        return;
+    }
+
+    try {
+        showToast('Bajarilmoqda...', 'G\'oliblarga mukofot yozilmoqda', 'hourglass-outline', '#fbbf24');
+        const res = await adminFetch(API + '/api/admin/leaderboard/reset', { method: 'POST' });
+        const d = await res.json();
+        
+        if (d.success) {
+            const winnersList = d.winners ? d.winners.map(w => `${w.rank}-o'rin: ${w.name} (+${w.prize.toLocaleString()} UZS)`).join('\n') : '';
+            showToast('Turnir yakunlandi!', 'G\'oliblar taqdirlandi va ballar nollandi.', 'checkmark-circle', '#34d399');
+            if (winnersList) {
+                alert(`G'oliblar ro'yxati:\n\n${winnersList}`);
+            }
+            loadAll();
+        } else {
+            showToast('Xatolik', d.message || 'Turnirni yakunlab bo\'lmadi', 'alert-circle', '#f87171');
+        }
+    } catch (err) {
+        showToast('Xatolik', 'Serverga ulanishda xato!', 'alert-circle', '#f87171');
+    }
+}
+
+/* ============================================================
+   EMAIL REPLY ACTION
+   ============================================================ */
+async function submitEmailReply(emailId) {
+    const message = document.getElementById('email-reply-message')?.value.trim();
+    if (!message) {
+        alert("Javob xabarini yozing!");
+        return;
+    }
+
+    try {
+        const res = await adminFetch(API + `/api/admin/emails/${emailId}/reply`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message })
+        });
+        const d = await res.json();
+        if (d.success) {
+            showToast('Javob yuborildi', 'Javob muvaffaqiyatli yuborildi (simulyatsiya)', 'checkmark-circle', '#34d399');
+            closeInspector();
+            loadEmails();
+        } else {
+            showToast('Xato', d.message || 'Yuborishda xatolik', 'alert-circle', '#f87171');
+        }
+    } catch (err) {
+        showToast('Xato', 'Server bilan aloqa uzildi', 'alert-circle', '#f87171');
+    }
+}
+
+window.loadTransactions = loadTransactions;
+window.sendBroadcast = sendBroadcast;
+
+// Global Scope Bindings
+window.initAdminMap = initAdminMap;
+window.updateAdminMapMarkers = updateAdminMapMarkers;
+window.loadServerHealth = loadServerHealth;
+window.filterLogs = filterLogs;
+window.openAddDriverModal = openAddDriverModal;
+window.submitAddDriver = submitAddDriver;
+window.resetLeaderboard = resetLeaderboard;
+window.submitEmailReply = submitEmailReply;
+
 
