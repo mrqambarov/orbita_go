@@ -3,7 +3,7 @@
    Offline caching strategy: Cache-first for assets, Network-first for API
    ========================================================================== */
 
-const CACHE_NAME = 'orbita-go-v1';
+const CACHE_NAME = 'orbita-go-v2';
 const STATIC_ASSETS = [
     '/',
     '/index.html',
@@ -44,6 +44,9 @@ self.addEventListener('activate', event => {
 
 // Fetch — Cache-first for assets, Network-first for API
 self.addEventListener('fetch', event => {
+    // Only intercept http/https requests
+    if (!event.request.url.startsWith('http')) return;
+
     const url = new URL(event.request.url);
 
     // API requests: network-first
@@ -58,16 +61,24 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    // External CDNs: network-first with cache fallback
+    // External CDNs (e.g. Ionicons, Google Fonts): network-first with cache fallback
     if (url.hostname !== location.hostname) {
         event.respondWith(
             fetch(event.request)
                 .then(response => {
-                    const clone = response.clone();
-                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+                    // Only cache successful GET responses (including opaque 0 responses from external CDNs)
+                    if (event.request.method === 'GET' && (response.status === 200 || response.type === 'opaque')) {
+                        const clone = response.clone();
+                        caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+                    }
                     return response;
                 })
-                .catch(() => caches.match(event.request))
+                .catch(async () => {
+                    const cached = await caches.match(event.request);
+                    if (cached) return cached;
+                    // Return offline placeholder or pass-through if nothing in cache
+                    return new Response('', { status: 408, statusText: 'Network Error' });
+                })
         );
         return;
     }
@@ -77,9 +88,14 @@ self.addEventListener('fetch', event => {
         caches.match(event.request).then(cached => {
             if (cached) return cached;
             return fetch(event.request).then(response => {
-                const clone = response.clone();
-                caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+                if (event.request.method === 'GET' && response.status === 200) {
+                    const clone = response.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+                }
                 return response;
+            }).catch(() => {
+                // Return fallback if fetch fails and no cache
+                return new Response('Offline content', { status: 503, statusText: 'Offline' });
             });
         })
     );
