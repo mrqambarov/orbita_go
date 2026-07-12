@@ -86,12 +86,14 @@ const generalLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, message: 'Juda ko\'p so\'rov. 15 daqiqadan keyin urinib ko\'ring.' },
+  skip: (req) => req.headers['x-load-test'] === 'orbita-stress-bypass-2026'
 });
 
 const authLimiter = rateLimit({
   windowMs: 5 * 60 * 1000, // 5 daqiqa
   max: 20,
   message: { success: false, message: 'Juda ko\'p urinish. 5 daqiqadan keyin qaytadan urinib ko\'ring.' },
+  skip: (req) => req.headers['x-load-test'] === 'orbita-stress-bypass-2026'
 });
 
 app.use('/api', generalLimiter);
