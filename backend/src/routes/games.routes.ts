@@ -506,7 +506,7 @@ router.post('/dev/seed', async (req: Request, res: Response) => {
 });
 
 // GET /api/games/tournament/weekly — Haftalik o'yin turniri natijalari
-router.get('/tournament/weekly', authenticateToken, async (req: AuthRequest, res: Response) => {
+router.get('/tournament/weekly', async (req: Request, res: Response) => {
   try {
     const stats = await prisma.gameStat.findMany({
       include: {

@@ -265,31 +265,34 @@ router.get('/users', async (req: Request, res: Response) => {
             orderBy: { createdAt: 'desc' },
             take: limit,
             skip,
-            select: {
-                id: true,
-                fullName: true,
-                phoneNumber: true,
-                email: true,
-                totalStepsRedeemed: true,
-                walletBalance: true,
-                isVerified: true,
-                createdAt: true,
+            include: {
+                gameStats: true,
                 _count: { select: { clientOrders: true } }
             }
         });
         const total = await prisma.user.count();
 
-        const mapped = users.map(u => ({
-            id: u.id,
-            fullName: u.fullName || '—',
-            phone: u.phoneNumber || '—',
-            email: u.email || '',
-            totalSteps: u.totalStepsRedeemed,
-            score: u.walletBalance,
-            isBlocked: !u.isVerified,
-            totalOrders: u._count.clientOrders,
-            createdAt: u.createdAt
-        }));
+        const mapped = users.map(u => {
+            const totalGameScore = u.gameStats.reduce((sum, stat) => sum + stat.highScore, 0);
+            const gamesList = u.gameStats.map(s => `${s.gameType}: ${s.highScore}`).join(', ') || 'yo\'q';
+            const loyaltyPoints = Math.round(u.totalStepsRedeemed / 100) + (u._count.clientOrders * 50);
+
+            return {
+                id: u.id,
+                fullName: u.fullName || '—',
+                phone: u.phoneNumber || '—',
+                email: u.email || '',
+                totalSteps: u.totalStepsRedeemed,
+                walletBalance: u.walletBalance,
+                score: u.walletBalance,
+                isBlocked: !u.isVerified,
+                totalOrders: u._count.clientOrders,
+                createdAt: u.createdAt,
+                loyaltyPoints,
+                totalGameScore,
+                gamesList
+            };
+        });
 
         res.json({ success: true, users: mapped, total, limit, skip });
     } catch (err: any) {

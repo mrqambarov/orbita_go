@@ -5,8 +5,12 @@
 const API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:')
     ? 'http://localhost:3000'
     : 'https://api.orbitago.uz';
-const DEMO_USER = 'admin';
-const DEMO_PASS = 'admin123';
+const ADMIN_USERS = {
+    mrqambarov: { pass: 'Madinam12', role: 'SUPERADMIN' },
+    operator: { pass: 'operator123', role: 'OPERATOR' },
+    bugalter: { pass: 'bugalter123', role: 'BUGALTER' },
+    boshqaruvchi: { pass: 'boshqaruvchi123', role: 'BOSHQARUVCHI' }
+};
 const ADMIN_SECRET = 'orbita-admin-secret-2026';
 
 let allOrders  = [];
@@ -85,8 +89,11 @@ function doLogin() {
     const pass = document.getElementById('admin-pass').value;
     const err  = document.getElementById('login-err');
 
-    if (user === DEMO_USER && pass === DEMO_PASS) {
+    const found = ADMIN_USERS[user];
+    if (found && found.pass === pass) {
         sessionStorage.setItem('orbita_admin', '1');
+        sessionStorage.setItem('orbita_admin_role', found.role);
+        sessionStorage.setItem('orbita_admin_username', user);
         document.getElementById('login-screen').style.display = 'none';
         showAdmin();
     } else {
@@ -98,20 +105,88 @@ function doLogin() {
 
 function showAdmin() {
     document.getElementById('login-screen').style.display = 'none';
+    applyRoleVisibility();
+
+    const role = sessionStorage.getItem('orbita_admin_role') || 'SUPERADMIN';
+    if (role === 'SUPERADMIN' || role === 'OPERATOR' || role === 'BOSHQARUVCHI') {
+        setTimeout(() => {
+            initAdminMap();
+        }, 500);
+    }
+
     loadAll();
     connectAdminSocket();
     startSimulatedLogger();
 
-    setTimeout(() => {
-        initAdminMap();
-    }, 500);
-
     // Start auto polling refresh every 6 seconds for real-time stats
     if (refreshInterval) clearInterval(refreshInterval);
     refreshInterval = setInterval(async () => {
-        await Promise.all([loadStats(), loadOrders(), loadDrivers(), loadEmails(), loadServerHealth()]);
-        updateAdminMapMarkers();
+        const currentRole = sessionStorage.getItem('orbita_admin_role') || 'SUPERADMIN';
+        const calls = [loadStats()];
+        if (currentRole === 'SUPERADMIN' || currentRole === 'OPERATOR') {
+            calls.push(loadOrders(), loadDrivers());
+        }
+        if (currentRole === 'SUPERADMIN' || currentRole === 'OPERATOR') {
+            calls.push(loadEmails());
+        }
+        if (currentRole === 'SUPERADMIN' || currentRole === 'BOSHQARUVCHI') {
+            calls.push(loadServerHealth());
+        }
+        await Promise.all(calls);
+
+        if (currentRole === 'SUPERADMIN' || currentRole === 'OPERATOR' || currentRole === 'BOSHQARUVCHI') {
+            updateAdminMapMarkers();
+        }
     }, 6000);
+}
+
+function applyRoleVisibility() {
+    const role = sessionStorage.getItem('orbita_admin_role') || 'SUPERADMIN';
+    const username = sessionStorage.getItem('orbita_admin_username') || 'admin';
+    
+    const topTitle = document.getElementById('topbar-title');
+    if (topTitle) {
+        topTitle.innerHTML = `Dashboard <span style="font-size:12px; color:var(--text-hint); font-weight:normal;">(${role}: ${username})</span>`;
+    }
+
+    const menus = {
+        SUPERADMIN: ['dashboard', 'orders', 'drivers', 'users', 'leaderboard', 'emails', 'settings', 'broadcast', 'transactions'],
+        OPERATOR: ['dashboard', 'orders', 'drivers', 'emails'],
+        BUGALTER: ['dashboard', 'transactions'],
+        BOSHQARUVCHI: ['dashboard', 'settings']
+    };
+
+    const allowed = menus[role] || [];
+    
+    document.querySelectorAll('.sidebar .nav-item[data-page]').forEach(el => {
+        const page = el.dataset.page;
+        if (allowed.includes(page)) {
+            el.style.display = 'flex';
+        } else {
+            el.style.display = 'none';
+        }
+    });
+
+    const labels = document.querySelectorAll('.sidebar .nav-section-label');
+    labels.forEach((label, idx) => {
+        if (role === 'OPERATOR') {
+            if (idx === 0 || idx === 1 || idx === 3) label.style.display = 'block';
+            else label.style.display = 'none';
+        } else if (role === 'BUGALTER') {
+            if (idx === 0 || idx === 4) label.style.display = 'block';
+            else label.style.display = 'none';
+        } else if (role === 'BOSHQARUVCHI') {
+            if (idx === 0 || idx === 3) label.style.display = 'block';
+            else label.style.display = 'none';
+        } else {
+            label.style.display = 'block'; // SUPERADMIN
+        }
+    });
+
+    const resetTourBtn = document.querySelector('button[onclick="resetLeaderboard()"]');
+    if (resetTourBtn) {
+        resetTourBtn.style.display = (role === 'SUPERADMIN') ? 'inline-flex' : 'none';
+    }
 }
 
 /* ============================================================
@@ -241,11 +316,34 @@ window.switchSettingsTab = switchSettingsTab; // Make it global for inline oncli
    DATA LOADING
    ============================================================ */
 async function loadAll() {
-    await Promise.all([loadStats(), loadOrders(), loadDrivers(), loadUsers(), loadLeaderboard(), fetchSettings(), fetchEnvSettings(), loadEmails(), loadTransactions(), loadServerHealth()]);
+    const role = sessionStorage.getItem('orbita_admin_role') || 'SUPERADMIN';
+    const calls = [loadStats()];
+    if (role === 'SUPERADMIN' || role === 'OPERATOR') {
+        calls.push(loadOrders(), loadDrivers());
+    }
+    if (role === 'SUPERADMIN') {
+        calls.push(loadUsers(), loadLeaderboard(), fetchSettings(), fetchEnvSettings(), loadEmails(), loadTransactions(), loadServerHealth());
+    } else if (role === 'OPERATOR') {
+        calls.push(loadEmails());
+    } else if (role === 'BUGALTER') {
+        calls.push(loadTransactions());
+    } else if (role === 'BOSHQARUVCHI') {
+        calls.push(fetchSettings(), loadServerHealth());
+    }
+
+    try {
+        await Promise.all(calls);
+    } catch (e) {
+        console.warn('Error loading resource calls in loadAll', e);
+    }
+
     initCharts();
-    setTimeout(() => {
-        updateAdminMapMarkers();
-    }, 600);
+    
+    if (role === 'SUPERADMIN' || role === 'OPERATOR' || role === 'BOSHQARUVCHI') {
+        setTimeout(() => {
+            updateAdminMapMarkers();
+        }, 600);
+    }
 }
 
 async function refreshAll() {
@@ -877,26 +975,38 @@ function inspectUser(userId) {
     const u = allUsers.find(usr => usr.id === userId);
     if (!u) return;
 
+    const role = sessionStorage.getItem('orbita_admin_role') || 'SUPERADMIN';
+
     document.getElementById('modal-title').textContent = 'Foydalanuvchi Boshqaruvi';
     const body = document.getElementById('modal-details-body');
-    body.innerHTML = 
+    
+    let html = 
         '<div class="modal-info-row"><span>Ismi</span><span>' + u.fullName + '</span></div>' +
         '<div class="modal-info-row"><span>Telefon</span><span>' + u.phone + '</span></div>' +
         '<div class="modal-info-row"><span>Email</span><span>' + (u.email || '—') + '</span></div>' +
-        '<div class="modal-info-row"><span>Jami qadamlar</span><span>🏃 ' + (u.totalSteps || 0).toLocaleString() + '</span></div>' +
-        '<div class="modal-info-row"><span>Hozirgi balans (Score)</span><span style="color:var(--purple);font-weight:900;">🪙 ' + (u.score || 0).toLocaleString() + ' UZS</span></div>' +
-        '<div class="modal-info-row"><span>Tizim holati</span><span>' + (u.isBlocked ? '🔴 Bloklangan' : '🟢 Faol') + '</span></div>' +
-        '<div style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px;">' +
-            '<h4 style="font-size:14px;margin-bottom:12px;color:var(--purple)">🪙 Balansni (Tanga miqdorini) o\'zgartirish:</h4>' +
-            '<div class="form-group" style="margin-bottom:14px;display:flex;gap:10px;align-items:flex-end;">' +
-                '<div style="flex:1;">' +
-                    '<label style="font-size:11px;">Yangi balans (UZS tanga)</label>' +
-                    '<input type="number" id="edit-usr-balance" class="form-control" style="padding:8px 12px;font-size:13px;margin:0;" value="' + (u.score || 0) + '">' +
-                '</div>' +
-                '<button class="login-btn" style="padding:10px;font-size:13px;width:auto;margin:0;white-space:nowrap;" onclick="editUserBalance(\'' + u.id + '\')">Tuzatish</button>' +
-            '</div>' +
-        '</div>';
+        '<div class="modal-info-row"><span>Jami qadamlar (Walk)</span><span>🏃 ' + (u.totalSteps || 0).toLocaleString() + '</span></div>' +
+        '<div class="modal-info-row"><span>Sodiqlik ballari (Loyalty)</span><span>⭐ ' + (u.loyaltyPoints || 0).toLocaleString() + ' ball</span></div>' +
+        '<div class="modal-info-row"><span>O\'yinlar oliy balli (Games)</span><span>🎮 ' + (u.totalGameScore || 0).toLocaleString() + ' (' + (u.gamesList || 'yo\'q') + ')</span></div>' +
+        '<div class="modal-info-row"><span>Hozirgi balans (Wallet)</span><span style="color:var(--green);font-weight:900;">🪙 ' + (u.score || 0).toLocaleString() + ' UZS</span></div>' +
+        '<div class="modal-info-row"><span>Tizim holati</span><span>' + (u.isBlocked ? '🔴 Bloklangan' : '🟢 Faol') + '</span></div>';
 
+    if (role === 'SUPERADMIN' || role === 'BUGALTER') {
+        html += 
+            '<div style="margin-top:16px;border-top:1px solid var(--border);padding-top:16px;">' +
+                '<h4 style="font-size:14px;margin-bottom:12px;color:var(--purple)">🪙 Balansni (Haqiqiy pul miqdorini) o\'zgartirish:</h4>' +
+                '<div class="form-group" style="margin-bottom:14px;display:flex;gap:10px;align-items:flex-end;">' +
+                    '<div style="flex:1;">' +
+                        '<label style="font-size:11px;">Yangi balans (UZS tanga)</label>' +
+                        '<input type="number" id="edit-usr-balance" class="form-control" style="padding:8px 12px;font-size:13px;margin:0;" value="' + (u.score || 0) + '">' +
+                    '</div>' +
+                    '<button class="login-btn" style="padding:10px;font-size:13px;width:auto;margin:0;white-space:nowrap;" onclick="editUserBalance(\'' + u.id + '\')">Tuzatish</button>' +
+                '</div>' +
+            '</div>';
+    } else {
+        html += '<div style="margin-top:16px; font-size:12px; color:var(--text-hint); text-align:center;">⚠️ Balansni o\'zgartirish faqat Buxgalter yoki Superadmin uchun ruxsat etilgan.</div>';
+    }
+
+    body.innerHTML = html;
     document.getElementById('inspector-modal').classList.add('show');
 }
 
