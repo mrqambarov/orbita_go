@@ -86,7 +86,7 @@ const generalLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, message: 'Juda ko\'p so\'rov. 15 daqiqadan keyin urinib ko\'ring.' },
-  skip: (req) => req.headers['x-load-test'] === 'orbita-stress-bypass-2026' || req.path.includes('/emails/incoming')
+  skip: (req) => req.headers['x-load-test'] === 'orbita-stress-bypass-2026' || req.path.includes('/emails/incoming') || req.path.includes('/health')
 });
 
 const authLimiter = rateLimit({
