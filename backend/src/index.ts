@@ -40,8 +40,13 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
 const isOriginAllowed = (origin: string | undefined): boolean => {
   if (!origin || NODE_ENV === 'development') return true;
   if (allowedOrigins.includes(origin)) return true;
-  // Always trust any subdomains of orbitago.uz
-  if (origin.endsWith('orbitago.uz') || origin.includes('orbitago.uz')) return true;
+  // Faqat aniq orbitago.uz domeni yoki uning subdomenlari (nuqta bilan chegaralangan)
+  try {
+    const { hostname } = new URL(origin);
+    if (hostname === 'orbitago.uz' || hostname.endsWith('.orbitago.uz')) return true;
+  } catch {
+    return false;
+  }
   return false;
 };
 
@@ -72,28 +77,45 @@ app.use(cors({
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+const SENSITIVE_BODY_KEYS = ['password', 'code', 'otp', 'token', 'secret'];
+function maskSensitive(body: any) {
+  if (!body || typeof body !== 'object') return body;
+  const masked: any = Array.isArray(body) ? [...body] : { ...body };
+  for (const key of Object.keys(masked)) {
+    if (SENSITIVE_BODY_KEYS.some(s => key.toLowerCase().includes(s))) {
+      masked[key] = '***';
+    }
+  }
+  return masked;
+}
+
 app.use((req, _res, next) => {
-  const logMsg = `🌐 ${req.method} ${req.url} - body: ${JSON.stringify(req.body)}`;
+  const logMsg = `🌐 ${req.method} ${req.url} - body: ${JSON.stringify(maskSensitive(req.body))}`;
   console.log(logMsg);
   logger.info(logMsg);
   next();
 });
 
 // ── RATE LIMITING ─────────────────────────────────────
+// Load-test bypass faqat production'dan tashqarida va faqat ENVdan o'qilgan qiymat bilan ishlaydi
+const LOAD_TEST_BYPASS = process.env.LOAD_TEST_BYPASS_KEY;
+const isLoadTestBypass = (req: express.Request) =>
+  NODE_ENV !== 'production' && !!LOAD_TEST_BYPASS && req.headers['x-load-test'] === LOAD_TEST_BYPASS;
+
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 daqiqa
   max: 200,
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, message: 'Juda ko\'p so\'rov. 15 daqiqadan keyin urinib ko\'ring.' },
-  skip: (req) => req.headers['x-load-test'] === 'orbita-stress-bypass-2026' || req.path.includes('/emails/incoming') || req.path.includes('/health')
+  skip: (req) => isLoadTestBypass(req) || req.path === '/api/emails/incoming' || req.path === '/api/health'
 });
 
 const authLimiter = rateLimit({
   windowMs: 5 * 60 * 1000, // 5 daqiqa
   max: 20,
   message: { success: false, message: 'Juda ko\'p urinish. 5 daqiqadan keyin qaytadan urinib ko\'ring.' },
-  skip: (req) => req.headers['x-load-test'] === 'orbita-stress-bypass-2026'
+  skip: (req) => isLoadTestBypass(req)
 });
 
 app.use('/api', generalLimiter);

@@ -47,15 +47,19 @@ NODE_ENV=production
 # ─── XAVFSIZLIK ───
 # Kuchli random kalit yarating (Masalan terminalda: openssl rand -hex 32)
 JWT_SECRET="af25c6b...your_strong_secret...6a12b"
-# Admin panel bilan backend aloqasi kaliti
-ADMIN_SECRET="orbita-admin-secret-2026"
+# Admin panel JWT tokenlarini imzolash uchun kalit (openssl rand -hex 32)
+ADMIN_SECRET="c91e4a...another_strong_random_secret...8f03d"
 
 # ─── DATABASE ───
 DATABASE_URL="postgresql://orbita_user:strong_password_here@localhost:5432/orbita_go?schema=public"
 
 # ─── TELEGRAM INTEGRATSIYA ───
-TELEGRAM_BOT_TOKEN="8720940640:AAFDCpDHgY9p8Nmyk8dLiVqm7_NV90xV_RU"
-TELEGRAM_CHAT_ID="-5265526977"
+TELEGRAM_BOT_TOKEN="123456789:your_real_bot_token_here"
+TELEGRAM_CHAT_ID="-1000000000"
+
+# ─── EMAIL WEBHOOK ───
+# cPanel/mail_pipe.php dan kelayotgan so'rovlarni tasdiqlash uchun tasodifiy token
+EMAIL_WEBHOOK_SECRET="af25c6b...openssl_rand_hex_32_bilan_generatsiya_qiling...6a12b"
 ```
 
 ---

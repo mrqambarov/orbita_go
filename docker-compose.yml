@@ -8,10 +8,9 @@ services:
     restart: always
     environment:
       POSTGRES_USER: orbitago
-      POSTGRES_PASSWORD: orbitago_password_2026
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD .env faylida yoki shell muhitida o'rnatilishi shart}
       POSTGRES_DB: orbita_go
-    ports:
-      - "5432:5432"
+    # Tashqi portga chiqarilmagan — faqat backend docker tarmog'i ichidan ulanadi
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -29,12 +28,14 @@ services:
     restart: always
     ports:
       - "3001:3001"
+    env_file:
+      - ./backend/.env
     environment:
       PORT: 3001
       NODE_ENV: production
-      DATABASE_URL: "postgresql://orbitago:orbitago_password_2026@postgres:5432/orbita_go?schema=public"
-      JWT_SECRET: "kuchli_random_jwt_secret_orbita_go_2026"
-      ADMIN_SECRET: "orbita-admin-secret-2026"
+      DATABASE_URL: "postgresql://orbitago:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD kerak}@postgres:5432/orbita_go?schema=public"
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET .env faylida yoki shell muhitida o'rnatilishi shart (openssl rand -hex 32)}
+      ADMIN_SECRET: ${ADMIN_SECRET:?ADMIN_SECRET .env faylida yoki shell muhitida o'rnatilishi shart (openssl rand -hex 32)}
     depends_on:
       postgres:
         condition: service_healthy

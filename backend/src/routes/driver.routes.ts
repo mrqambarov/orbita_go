@@ -246,7 +246,7 @@ router.patch('/location', authenticateToken, async (req: AuthRequest, res: Respo
   const io = (global as any).io;
   if (io && orderId) {
     const order = await prisma.order.findUnique({ where: { id: orderId } });
-    if (order) {
+    if (order && order.driverId === req.user!.id) {
       io.to(`client_${order.clientId}`).emit('driver_location_update', {
         lat: Number(lat), lng: Number(lng), orderId,
       });
@@ -258,6 +258,11 @@ router.patch('/location', authenticateToken, async (req: AuthRequest, res: Respo
 
 // POST /api/driver/arrived/:orderId — Yetib keldi
 router.post('/arrived/:orderId', authenticateToken, async (req: AuthRequest, res: Response) => {
+  const existing = await prisma.order.findUnique({ where: { id: req.params.orderId } });
+  if (!existing || existing.driverId !== req.user!.id) {
+    return res.status(403).json({ success: false, message: 'Bu buyurtma sizga tegishli emas' });
+  }
+
   const order = await prisma.order.update({
     where: { id: req.params.orderId },
     data: { status: 'DRIVER_ARRIVED' },
@@ -276,6 +281,11 @@ router.post('/arrived/:orderId', authenticateToken, async (req: AuthRequest, res
 
 // POST /api/driver/start/:orderId — Sayohat boshlash
 router.post('/start/:orderId', authenticateToken, async (req: AuthRequest, res: Response) => {
+  const existing = await prisma.order.findUnique({ where: { id: req.params.orderId } });
+  if (!existing || existing.driverId !== req.user!.id) {
+    return res.status(403).json({ success: false, message: 'Bu buyurtma sizga tegishli emas' });
+  }
+
   const order = await prisma.order.update({
     where: { id: req.params.orderId },
     data: { status: 'IN_TRIP' },

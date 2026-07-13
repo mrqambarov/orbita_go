@@ -8,19 +8,60 @@ import prisma from '../lib/prisma';
 import fs from 'fs';
 import path from 'path';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import https from 'https';
 
 const router = Router();
 
-/* ---- Admin Auth Middleware ---- */
+/* ---- Admin foydalanuvchilari (parollar faqat server-side, bcrypt hash) ----
+   Login: POST /api/admin/login { username, password } -> { token }
+   Keyingi so'rovlar: x-admin-key: <token> (JWT, ADMIN_SECRET bilan imzolangan) */
+const ADMIN_USERS: Record<string, { hash: string; role: string }> = {
+    mrqambarov:   { hash: '$2a$10$LcCOe7XMWRZcwC7cgsIrNOo9D43aaTCA7tbhsnBLa4fnyfZsdO05q', role: 'SUPERADMIN' },
+    operator:     { hash: '$2a$10$yx0eztrQfQQ2AYWZrLjop.J30PS53ABTDQYfVyABCCcHdriIW.PBq', role: 'OPERATOR' },
+    bugalter:     { hash: '$2a$10$BTs77GZuvN7oKPm1u1106utbE6qRRObjlD7AdEMxwwOcZFLlG/ODC', role: 'BUGALTER' },
+    boshqaruvchi: { hash: '$2a$10$YVMhw6vfcGpAfFmaJs3JMumpfB9oAV84OavIH5wMI9WB7sGCZyEjG', role: 'BOSHQARUVCHI' },
+};
+
+function getAdminSecret(): string {
+    const secret = process.env.ADMIN_SECRET;
+    if (!secret) throw new Error('ADMIN_SECRET .env da o\'rnatilmagan');
+    return secret;
+}
+
+/* ============================================================
+   POST /api/admin/login — Username/parol bilan JWT token olish
+   ============================================================ */
+router.post('/login', async (req: Request, res: Response) => {
+    try {
+        const { username, password } = req.body || {};
+        const user = username ? ADMIN_USERS[username] : undefined;
+        const valid = user && await bcrypt.compare(password || '', user.hash);
+        if (!valid || !user) {
+            res.status(401).json({ success: false, message: 'Login yoki parol noto\'g\'ri' });
+            return;
+        }
+        const token = jwt.sign({ username, role: user.role }, getAdminSecret(), { expiresIn: '12h' });
+        res.json({ success: true, token, role: user.role, username });
+    } catch (err: any) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+/* ---- Admin Auth Middleware (JWT) ---- */
 const adminAuth = (req: Request, res: Response, next: NextFunction): void => {
-    const key = req.headers['x-admin-key'] || req.query.adminKey;
-    const secret = process.env.ADMIN_SECRET || 'orbita-admin-secret-2026';
-    if (key !== secret) {
+    const key = (req.headers['x-admin-key'] || req.query.adminKey) as string | undefined;
+    if (!key) {
         res.status(401).json({ success: false, message: "Admin privileges required" });
         return;
     }
-    next();
+    try {
+        const payload = jwt.verify(key, getAdminSecret()) as { username: string; role: string };
+        (req as any).admin = payload;
+        next();
+    } catch {
+        res.status(401).json({ success: false, message: "Admin privileges required" });
+    }
 };
 
 /* ============================================================
@@ -30,9 +71,9 @@ const adminAuth = (req: Request, res: Response, next: NextFunction): void => {
 router.post('/emails/incoming', async (req: Request, res: Response) => {
     try {
         const token = req.query.token || req.headers['x-webhook-token'];
-        const validToken = process.env.EMAIL_WEBHOOK_SECRET || 'orbita-email-webhook-token-2026';
-        
-        if (token !== validToken) {
+        const validToken = process.env.EMAIL_WEBHOOK_SECRET;
+
+        if (!validToken || token !== validToken) {
             res.status(401).json({ success: false, message: "Unauthorized webhook token" });
             return;
         }
@@ -499,83 +540,6 @@ router.post('/settings', async (req: Request, res: Response) => {
         fs.writeFileSync(publicFilePath, JSON.stringify(req.body, null, 2), 'utf8');
         
         res.json({ success: true, message: "Settings updated successfully" });
-    } catch (err: any) {
-        res.status(500).json({ success: false, message: err.message });
-    }
-});
-
-/* ============================================================
-   GET /api/admin/env — Retrieve backend environment variables (.env)
-   ============================================================ */
-router.get('/env', async (_req: Request, res: Response) => {
-    try {
-        const envPath = path.join(__dirname, '../../.env');
-        if (!fs.existsSync(envPath)) {
-            return res.status(404).json({ success: false, message: '.env fayli topilmadi' });
-        }
-        const content = fs.readFileSync(envPath, 'utf8');
-        
-        const envObj: Record<string, string> = {};
-        const lines = content.split('\n');
-        lines.forEach(line => {
-            const trimmed = line.trim();
-            if (!trimmed || trimmed.startsWith('#')) return;
-            const index = trimmed.indexOf('=');
-            if (index > 0) {
-                const key = trimmed.substring(0, index).trim();
-                let val = trimmed.substring(index + 1).trim();
-                if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
-                    val = val.substring(1, val.length - 1);
-                }
-                envObj[key] = val;
-            }
-        });
-
-        res.json({ success: true, env: envObj });
-    } catch (err: any) {
-        res.status(500).json({ success: false, message: err.message });
-    }
-});
-
-/* ============================================================
-   POST /api/admin/env — Save backend environment variables (.env)
-   ============================================================ */
-router.post('/env', async (req: Request, res: Response) => {
-    try {
-        const envPath = path.join(__dirname, '../../.env');
-        if (!fs.existsSync(envPath)) {
-            return res.status(404).json({ success: false, message: '.env fayli topilmadi' });
-        }
-        
-        const updatedEnv = req.body;
-        let content = fs.readFileSync(envPath, 'utf8');
-        const lines = content.split('\n');
-        
-        const newLines = lines.map(line => {
-            const trimmed = line.trim();
-            if (!trimmed || trimmed.startsWith('#')) return line;
-            const index = trimmed.indexOf('=');
-            if (index > 0) {
-                const key = trimmed.substring(0, index).trim();
-                if (Object.prototype.hasOwnProperty.call(updatedEnv, key)) {
-                    let val = updatedEnv[key];
-                    if (val.includes(' ') || val.includes('#') || val.includes('$') || val.includes('"') || val.includes("'") || val.includes('@') || val.includes(':')) {
-                        val = `"${val.replace(/"/g, '\\"')}"`;
-                    }
-                    return `${key}=${val}`;
-                }
-            }
-            return line;
-        });
-        
-        fs.writeFileSync(envPath, newLines.join('\n'), 'utf8');
-        
-        // Update current process env
-        Object.keys(updatedEnv).forEach(key => {
-            process.env[key] = updatedEnv[key];
-        });
-
-        res.json({ success: true, message: "Muhit o'zgaruvchilari saqlandi. Tizim qayta ishga tushmoqda..." });
     } catch (err: any) {
         res.status(500).json({ success: false, message: err.message });
     }
