@@ -5,13 +5,6 @@
 const API = (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:')
     ? 'http://localhost:3000'
     : 'https://api.orbitago.uz';
-const ADMIN_USERS = {
-    mrqambarov: { pass: 'Madinam12', role: 'SUPERADMIN' },
-    operator: { pass: 'operator123', role: 'OPERATOR' },
-    bugalter: { pass: 'bugalter123', role: 'BUGALTER' },
-    boshqaruvchi: { pass: 'boshqaruvchi123', role: 'BOSHQARUVCHI' }
-};
-const ADMIN_SECRET = 'orbita-admin-secret-2026';
 
 let allOrders  = [];
 let allDrivers = [];
@@ -30,9 +23,16 @@ let activeLogFilter = 'ALL';
 async function adminFetch(url, options = {}) {
     options.headers = {
         ...options.headers,
-        'x-admin-key': ADMIN_SECRET
+        'x-admin-key': sessionStorage.getItem('orbita_admin_token') || ''
     };
-    return fetch(url, options);
+    const res = await fetch(url, options);
+    if (res.status === 401) {
+        // Token muddati tugagan yoki noto'g'ri — qayta login qildiramiz
+        sessionStorage.removeItem('orbita_admin');
+        sessionStorage.removeItem('orbita_admin_token');
+        location.reload();
+    }
+    return res;
 }
 
 /* ============================================================
@@ -53,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Logout
     document.getElementById('logout-btn').addEventListener('click', () => {
         sessionStorage.removeItem('orbita_admin');
+        sessionStorage.removeItem('orbita_admin_token');
         if (socket) socket.disconnect();
         if (refreshInterval) clearInterval(refreshInterval);
         if (loggerTimer) clearInterval(loggerTimer);
@@ -84,23 +85,33 @@ document.addEventListener('DOMContentLoaded', () => {
 /* ============================================================
    LOGIN
    ============================================================ */
-function doLogin() {
+async function doLogin() {
     const user = document.getElementById('admin-user').value.trim();
     const pass = document.getElementById('admin-pass').value;
     const err  = document.getElementById('login-err');
 
-    const found = ADMIN_USERS[user];
-    if (found && found.pass === pass) {
-        sessionStorage.setItem('orbita_admin', '1');
-        sessionStorage.setItem('orbita_admin_role', found.role);
-        sessionStorage.setItem('orbita_admin_username', user);
-        document.getElementById('login-screen').style.display = 'none';
-        showAdmin();
-    } else {
-        err.style.display = 'block';
-        document.getElementById('admin-pass').value = '';
-        setTimeout(() => err.style.display = 'none', 3000);
+    try {
+        const res = await fetch(`${API}/api/admin/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: user, password: pass })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+            sessionStorage.setItem('orbita_admin', '1');
+            sessionStorage.setItem('orbita_admin_token', data.token);
+            sessionStorage.setItem('orbita_admin_role', data.role);
+            sessionStorage.setItem('orbita_admin_username', data.username);
+            document.getElementById('login-screen').style.display = 'none';
+            showAdmin();
+            return;
+        }
+    } catch (e) {
+        console.error('Login error:', e);
     }
+    err.style.display = 'block';
+    document.getElementById('admin-pass').value = '';
+    setTimeout(() => err.style.display = 'none', 3000);
 }
 
 function showAdmin() {
