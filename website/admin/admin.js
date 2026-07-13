@@ -71,11 +71,6 @@ document.addEventListener('DOMContentLoaded', () => {
         btnSave.addEventListener('click', saveSettings);
     }
 
-    const btnSaveEnv = document.getElementById('btn-save-env');
-    if (btnSaveEnv) {
-        btnSaveEnv.addEventListener('click', saveEnvSettings);
-    }
-
     // Live search
     setupSearch('orders-search',  'orders-body');
     setupSearch('drivers-search', 'drivers-body');
@@ -161,8 +156,8 @@ function applyRoleVisibility() {
     }
 
     const menus = {
-        SUPERADMIN: ['dashboard', 'orders', 'drivers', 'users', 'leaderboard', 'emails', 'settings', 'broadcast', 'transactions'],
-        OPERATOR: ['dashboard', 'orders', 'drivers', 'emails'],
+        SUPERADMIN: ['dashboard', 'orders', 'drivers', 'users', 'leaderboard', 'news', 'emails', 'settings', 'broadcast', 'transactions'],
+        OPERATOR: ['dashboard', 'orders', 'drivers', 'news', 'emails'],
         BUGALTER: ['dashboard', 'transactions'],
         BOSHQARUVCHI: ['dashboard', 'settings']
     };
@@ -303,7 +298,8 @@ function switchPage(page) {
     if (section) section.classList.add('active');
     if (btn)     btn.classList.add('active');
 
-    const titles = { dashboard:'Dashboard', orders:'Buyurtmalar', drivers:"Haydovchilar", users:"Foydalanuvchilar", leaderboard:"Peshqadamlar", settings:"Tizim Sozlamalari", emails:"Tizim Pochtasi (Inbound Mail)", broadcast: "Bildirishnoma yuborish", transactions: "Tranzaksiyalar" };
+    const titles = { dashboard:'Dashboard', orders:'Buyurtmalar', drivers:"Haydovchilar", users:"Foydalanuvchilar", leaderboard:"Peshqadamlar", news:"Yangiliklar", settings:"Tizim Sozlamalari", emails:"Tizim Pochtasi (Inbound Mail)", broadcast: "Bildirishnoma yuborish", transactions: "Tranzaksiyalar" };
+    if (page === 'news') loadNews();
     document.getElementById('topbar-title').textContent = titles[page] || page;
 }
 
@@ -333,7 +329,7 @@ async function loadAll() {
         calls.push(loadOrders(), loadDrivers());
     }
     if (role === 'SUPERADMIN') {
-        calls.push(loadUsers(), loadLeaderboard(), fetchSettings(), fetchEnvSettings(), loadEmails(), loadTransactions(), loadServerHealth());
+        calls.push(loadUsers(), loadLeaderboard(), fetchSettings(), loadEmails(), loadTransactions(), loadServerHealth());
     } else if (role === 'OPERATOR') {
         calls.push(loadEmails());
     } else if (role === 'BUGALTER') {
@@ -543,71 +539,6 @@ async function saveSettings() {
         }
     } catch (err) {
         showToast('Xato', 'Server bilan aloqa uzildi. (Offline)', 'alert-circle', '#f87171');
-    }
-}
-
-/* ---- Server Environment Settings ---- */
-async function fetchEnvSettings() {
-    try {
-        const res = await adminFetch(API + '/api/admin/env');
-        const d = await res.json();
-        if (d.success && d.env) {
-            setValue('set-env-db-url', d.env.DATABASE_URL || '');
-            setValue('set-env-port', d.env.PORT || '3000');
-            setValue('set-env-jwt', d.env.JWT_SECRET || '');
-            setValue('set-env-tg-token', d.env.TELEGRAM_BOT_TOKEN || '');
-            setValue('set-env-tg-chat', d.env.TELEGRAM_CHAT_ID || '');
-            setValue('set-env-sms-email', d.env.SMS_EMAIL || '');
-            setValue('set-env-sms-pass', d.env.SMS_PASSWORD || '');
-        }
-    } catch (err) {
-        console.warn('Failed to load server environment variables.');
-    }
-}
-
-async function saveEnvSettings() {
-    const envObj = {
-        DATABASE_URL: getValue('set-env-db-url'),
-        PORT: getValue('set-env-port'),
-        JWT_SECRET: getValue('set-env-jwt'),
-        TELEGRAM_BOT_TOKEN: getValue('set-env-tg-token'),
-        TELEGRAM_CHAT_ID: getValue('set-env-tg-chat'),
-        SMS_EMAIL: getValue('set-env-sms-email'),
-        SMS_PASSWORD: getValue('set-env-sms-pass')
-    };
-
-    if (!confirm("Diqqat! Server sozlamalarini saqlash backendning qayta ishga tushishiga olib keladi. Davom etishni xohlaysizmi?")) {
-        return;
-    }
-
-    try {
-        showToast('Saqlanmoqda...', 'Server sozlamalari yozilmoqda. Iltimos kuting.', 'hourglass-outline', '#fbbf24');
-        const res = await adminFetch(API + '/api/admin/env', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(envObj)
-        });
-        const d = await res.json();
-        if (d.success) {
-            showToast('Saqlandi!', 'Server qayta yuklanmoqda (taxminan 5 soniya)...', 'power-outline', '#10b981');
-            addSystemLog('POST', '/api/admin/env - ENVIRONMENT WRITTEN', 200);
-            
-            // Temporary disable UI during reload
-            document.body.style.opacity = '0.5';
-            document.body.style.pointerEvents = 'none';
-            setTimeout(() => {
-                location.reload();
-            }, 5500);
-        } else {
-            showToast('Xato', d.message || 'Saqlash bajarilmadi', 'alert-circle', '#f87171');
-        }
-    } catch (err) {
-        showToast('Saqlash muvaffaqiyatli', 'Server qayta yuklanmoqda (5 soniyadan so\'ng reload)...', 'power-outline', '#10b981');
-        document.body.style.opacity = '0.5';
-        document.body.style.pointerEvents = 'none';
-        setTimeout(() => {
-            location.reload();
-        }, 5500);
     }
 }
 
@@ -1650,6 +1581,163 @@ async function submitAddDriver() {
             loadDrivers();
         } else {
             showToast('Xato', d.message || 'Ro\'yxatga olishda xatolik', 'alert-circle', '#f87171');
+        }
+    } catch (err) {
+        showToast('Xato', 'Server bilan aloqa uzildi', 'alert-circle', '#f87171');
+    }
+}
+
+/* ============================================================
+   NEWS MANAGEMENT
+   ============================================================ */
+let allNews = [];
+const NEWS_TAG_LABELS = { feature: 'Yangi Xususiyat', update: 'Yangilanish', promo: 'Aksiya', event: 'Tadbir' };
+
+async function loadNews() {
+    try {
+        const res = await adminFetch(API + '/api/admin/news');
+        const d = await res.json();
+        if (d.success) {
+            allNews = d.news;
+            renderNewsTable();
+        }
+    } catch (err) {
+        console.warn('Yangiliklarni yuklab bo\'lmadi', err);
+    }
+}
+
+function renderNewsTable() {
+    const body = document.getElementById('news-body');
+    if (!body) return;
+    if (!allNews.length) {
+        body.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);">Hali yangiliklar yo\'q</td></tr>';
+        return;
+    }
+    body.innerHTML = allNews.map(n => `
+        <tr>
+            <td>${new Date(n.publishedAt).toLocaleDateString('uz-UZ')}</td>
+            <td>${NEWS_TAG_LABELS[n.tag] || n.tag}</td>
+            <td>${n.title}${n.isFeatured ? ' <span class="soon-chip" style="background:rgba(99,102,241,0.15);color:var(--primary-light);">Asosiy</span>' : ''}</td>
+            <td>${n.isPublished ? '<span style="color:#34d399;">● Faol</span>' : '<span style="color:var(--text-muted);">○ Qoralama</span>'}</td>
+            <td>
+                <button class="filter-btn" style="padding:4px 10px;font-size:11px;" onclick="openEditNewsModal('${n.id}')">Tahrirlash</button>
+                <button class="filter-btn" style="padding:4px 10px;font-size:11px;color:#f87171;" onclick="deleteNews('${n.id}')">O'chirish</button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function newsFormHtml(n) {
+    n = n || { tag: 'update', tagLabel: '', icon: 'megaphone-outline', iconColor: 'default', title: '', description: '', isFeatured: false, isPublished: true };
+    return `
+        <div style="display:flex; flex-direction:column; gap:12px;">
+            <div class="settings-grid-2">
+                <div class="form-group" style="margin-bottom:0;">
+                    <label style="font-size:11px;">Turi</label>
+                    <select id="news-tag" class="login-input" style="width:100%; border-radius:16px; padding:8px 12px; margin:0;">
+                        <option value="feature" ${n.tag === 'feature' ? 'selected' : ''}>Yangi Xususiyat</option>
+                        <option value="update" ${n.tag === 'update' ? 'selected' : ''}>Yangilanish</option>
+                        <option value="promo" ${n.tag === 'promo' ? 'selected' : ''}>Aksiya</option>
+                        <option value="event" ${n.tag === 'event' ? 'selected' : ''}>Tadbir</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label style="font-size:11px;">Rang</label>
+                    <select id="news-color" class="login-input" style="width:100%; border-radius:16px; padding:8px 12px; margin:0;">
+                        <option value="default" ${n.iconColor === 'default' ? 'selected' : ''}>Indigo (standart)</option>
+                        <option value="yellow" ${n.iconColor === 'yellow' ? 'selected' : ''}>Sariq</option>
+                        <option value="green" ${n.iconColor === 'green' ? 'selected' : ''}>Yashil</option>
+                        <option value="red" ${n.iconColor === 'red' ? 'selected' : ''}>Qizil</option>
+                        <option value="cyan" ${n.iconColor === 'cyan' ? 'selected' : ''}>Ko'k (cyan)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label style="font-size:11px;">Ion-icon nomi</label>
+                <input type="text" id="news-icon" class="form-control" value="${n.icon}" placeholder="megaphone-outline">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label style="font-size:11px;">Sarlavha</label>
+                <input type="text" id="news-title" class="form-control" value="${(n.title || '').replace(/"/g, '&quot;')}" placeholder="Yangilik sarlavhasi">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label style="font-size:11px;">Tavsif</label>
+                <textarea id="news-desc" class="form-control" style="height:90px; resize:vertical;" placeholder="Yangilik matni...">${n.description || ''}</textarea>
+            </div>
+            <div style="display:flex; gap:20px; align-items:center;">
+                <label style="display:flex; align-items:center; gap:6px; font-size:12px; cursor:pointer;">
+                    <input type="checkbox" id="news-featured" ${n.isFeatured ? 'checked' : ''}> Asosiy (katta) karta
+                </label>
+                <label style="display:flex; align-items:center; gap:6px; font-size:12px; cursor:pointer;">
+                    <input type="checkbox" id="news-published" ${n.isPublished !== false ? 'checked' : ''}> Saytda ko'rinsin
+                </label>
+            </div>
+            <button class="login-btn" style="margin-top:6px; width:100%;" onclick="submitNewsForm(${n.id ? `'${n.id}'` : 'null'})">
+                <ion-icon name="save-outline"></ion-icon> Saqlash
+            </button>
+        </div>
+    `;
+}
+
+function openAddNewsModal() {
+    document.getElementById('modal-title').textContent = "Yangi e'lon qo'shish";
+    document.getElementById('modal-details-body').innerHTML = newsFormHtml(null);
+    document.getElementById('inspector-modal').classList.add('show');
+}
+
+function openEditNewsModal(id) {
+    const n = allNews.find(x => x.id === id);
+    if (!n) return;
+    document.getElementById('modal-title').textContent = "Yangilikni tahrirlash";
+    document.getElementById('modal-details-body').innerHTML = newsFormHtml(n);
+    document.getElementById('inspector-modal').classList.add('show');
+}
+
+async function submitNewsForm(id) {
+    const tag = getValue('news-tag');
+    const payload = {
+        tag,
+        tagLabel: NEWS_TAG_LABELS[tag],
+        icon: getValue('news-icon') || 'megaphone-outline',
+        iconColor: getValue('news-color') || 'default',
+        title: getValue('news-title'),
+        description: getValue('news-desc'),
+        isFeatured: document.getElementById('news-featured').checked,
+        isPublished: document.getElementById('news-published').checked,
+    };
+    if (!payload.title || !payload.description) {
+        alert("Sarlavha va tavsifni to'ldiring!");
+        return;
+    }
+    try {
+        const res = await adminFetch(API + '/api/admin/news' + (id ? '/' + id : ''), {
+            method: id ? 'PATCH' : 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const d = await res.json();
+        if (d.success) {
+            showToast('Saqlandi', "Yangilik muvaffaqiyatli saqlandi", 'checkmark-circle', '#34d399');
+            closeInspector();
+            loadNews();
+        } else {
+            showToast('Xato', d.message || 'Saqlashda xatolik', 'alert-circle', '#f87171');
+        }
+    } catch (err) {
+        showToast('Xato', 'Server bilan aloqa uzildi', 'alert-circle', '#f87171');
+    }
+}
+
+async function deleteNews(id) {
+    if (!confirm("Ushbu yangilikni o'chirmoqchimisiz?")) return;
+    try {
+        const res = await adminFetch(API + '/api/admin/news/' + id, { method: 'DELETE' });
+        const d = await res.json();
+        if (d.success) {
+            showToast('O\'chirildi', 'Yangilik o\'chirildi', 'trash-outline', '#f87171');
+            loadNews();
+        } else {
+            showToast('Xato', d.message || "O'chirishda xatolik", 'alert-circle', '#f87171');
         }
     } catch (err) {
         showToast('Xato', 'Server bilan aloqa uzildi', 'alert-circle', '#f87171');

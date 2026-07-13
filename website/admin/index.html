@@ -497,6 +497,10 @@
     </button>
 
     <span class="nav-section-label">Tizim</span>
+    <button class="nav-item" data-page="news" id="nav-news">
+        <ion-icon name="megaphone-outline"></ion-icon>
+        <span>Yangiliklar</span>
+    </button>
     <button class="nav-item" data-page="emails" id="nav-emails">
         <ion-icon name="mail-outline"></ion-icon>
         <span>Xabarlar (Email)</span>
@@ -760,7 +764,6 @@
             <button class="filter-btn active" data-set-tab="company" onclick="switchSettingsTab(this, 'company')">🏢 Tashkilot Aloqa</button>
             <button class="filter-btn" data-set-tab="developer" onclick="switchSettingsTab(this, 'developer')">💻 Dasturchi Portfoliosi</button>
             <button class="filter-btn" data-set-tab="system" onclick="switchSettingsTab(this, 'system')">⚙️ Tizim & Tariflar</button>
-            <button class="filter-btn" data-set-tab="server" onclick="switchSettingsTab(this, 'server')">🖥 Server & DB (.env)</button>
         </div>
 
         <!-- 1. Company Tab Settings -->
@@ -956,61 +959,6 @@
             </div>
         </div>
 
-        <!-- 4. Server & Database Tab Settings -->
-        <div class="settings-tab-content" id="set-section-server" style="display:none;">
-            <div class="settings-card">
-                <h3>🖥 Server va Ma'lumotlar Bazasi Sozlamalari (.env)</h3>
-                <p style="font-size:12.5px;color:var(--text-muted);margin-bottom:20px;">
-                    <strong>DIQQAT:</strong> Ushbu bo'limdagi sozlamalar bevosita backendning muhit o'zgaruvchilari (<code>.env</code>) fayliga yoziladi.
-                    Tugatgandan so'ng backend server avtomatik ravishda qayta ishga tushadi.
-                </p>
-                
-                <div class="form-group">
-                    <label for="set-env-db-url">DATABASE_URL (PostgreSQL ulanish havolasi)</label>
-                    <input type="text" id="set-env-db-url" class="form-control" placeholder="postgresql://user:pass@host:port/dbname">
-                </div>
-                
-                <div class="settings-grid-2">
-                    <div class="form-group">
-                        <label for="set-env-port">PORT (Server eshitish porti)</label>
-                        <input type="number" id="set-env-port" class="form-control" placeholder="3000">
-                    </div>
-                    <div class="form-group">
-                        <label for="set-env-jwt">JWT_SECRET (Token kaliti)</label>
-                        <input type="text" id="set-env-jwt" class="form-control" placeholder="Maxfiy kalit...">
-                    </div>
-                </div>
-                
-                <div class="settings-grid-2">
-                    <div class="form-group">
-                        <label for="set-env-tg-token">TELEGRAM_BOT_TOKEN</label>
-                        <input type="text" id="set-env-tg-token" class="form-control" placeholder="Telegram bot token...">
-                    </div>
-                    <div class="form-group">
-                        <label for="set-env-tg-chat">TELEGRAM_CHAT_ID</label>
-                        <input type="text" id="set-env-tg-chat" class="form-control" placeholder="Chat ID (masalan, -100...)">
-                    </div>
-                </div>
-                
-                <div class="settings-grid-2">
-                    <div class="form-group">
-                        <label for="set-env-sms-email">SMS_EMAIL (Eskiz.uz)</label>
-                        <input type="text" id="set-env-sms-email" class="form-control" placeholder="Eskiz email...">
-                    </div>
-                    <div class="form-group">
-                        <label for="set-env-sms-pass">SMS_PASSWORD</label>
-                        <input type="password" id="set-env-sms-pass" class="form-control" placeholder="Eskiz parol...">
-                    </div>
-                </div>
-                
-                <div style="text-align: right; margin-top: 20px;">
-                    <button class="login-btn danger" id="btn-save-env" style="display: inline-flex; width: auto; padding: 14px 40px; background: linear-gradient(135deg, var(--red), #b91c1c);">
-                        <ion-icon name="power-outline"></ion-icon> 💾 Serverni Qayta Sozlash & Saqlash
-                    </button>
-                </div>
-            </div>
-        </div>
-
         <!-- Save button -->
         <div style="text-align: right; margin-top: 10px;" id="global-save-container">
             <button class="login-btn" id="btn-save-settings" style="display: inline-flex; width: auto; padding: 14px 40px;">
@@ -1089,6 +1037,32 @@
                     <ion-icon name="paper-plane-outline"></ion-icon> &nbsp; 🚀 Bildirishnomani Yuborish
                 </button>
             </div>
+        </div>
+    </section>
+
+    <!-- ========== NEWS SECTION ========== -->
+    <section class="page-section" id="page-news">
+        <div class="table-card">
+            <div class="table-header">
+                <h3>📰 Sayt Yangiliklari</h3>
+                <button class="login-btn" style="padding: 8px 16px; border-radius: 12px; font-size: 12px; font-weight: 700; width: auto; display: inline-flex; align-items: center; gap: 6px;" onclick="openAddNewsModal()">
+                    <ion-icon name="add-circle-outline"></ion-icon> Yangi e'lon
+                </button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:110px;">Sana</th>
+                        <th style="width:120px;">Turi</th>
+                        <th>Sarlavha</th>
+                        <th style="width:90px;">Holati</th>
+                        <th style="width:140px;">Amallar</th>
+                    </tr>
+                </thead>
+                <tbody id="news-body">
+                    <tr class="loading-row"><td colspan="5"><span class="spinner"></span>Yuklanmoqda...</td></tr>
+                </tbody>
+            </table>
         </div>
     </section>
 
