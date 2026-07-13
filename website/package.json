@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "build": "npm run build:js && npm run build:css",
-    "build:js": "esbuild app.js --minify --charset=utf8 --outfile=app.min.js && esbuild admin/admin.js --minify --charset=utf8 --outfile=admin/admin.min.js && esbuild translations.js --minify --charset=utf8 --outfile=translations.min.js && esbuild game-demos.js --minify --charset=utf8 --outfile=game-demos.min.js && esbuild telegram-gateway.js --minify --charset=utf8 --outfile=telegram-gateway.min.js",
+    "build:js": "esbuild app.js --minify --charset=utf8 --outfile=app.min.js && esbuild admin/admin.js --minify --charset=utf8 --outfile=admin/admin.min.js && esbuild translations.js --minify --charset=utf8 --outfile=translations.min.js && esbuild telegram-gateway.js --minify --charset=utf8 --outfile=telegram-gateway.min.js",
     "build:css": "esbuild style.css --minify --charset=utf8 --outfile=style.min.css && esbuild pages/page.css --minify --charset=utf8 --outfile=pages/page.min.css"
   },
   "devDependencies": {

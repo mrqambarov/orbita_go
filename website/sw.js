@@ -3,14 +3,13 @@
    Offline caching strategy: Cache-first for assets, Network-first for API
    ========================================================================== */
 
-const CACHE_NAME = 'orbita-go-v3';
+const CACHE_NAME = 'orbita-go-v4';
 const STATIC_ASSETS = [
     '/',
     '/index.html',
     '/style.min.css',
     '/app.min.js',
     '/translations.min.js',
-    '/game-demos.min.js',
     '/telegram-gateway.min.js',
     '/manifest.json',
     '/pages/page.min.css',
