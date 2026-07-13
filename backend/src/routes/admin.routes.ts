@@ -867,6 +867,85 @@ router.post('/leaderboard/reset', async (req: Request, res: Response) => {
     }
 });
 
+/* ============================================================
+   GET /api/admin/news — Barcha yangiliklar (chop etilmagan ham)
+   ============================================================ */
+router.get('/news', async (_req: Request, res: Response) => {
+    try {
+        const news = await prisma.newsPost.findMany({ orderBy: { publishedAt: 'desc' } });
+        res.json({ success: true, news });
+    } catch (err: any) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+/* ============================================================
+   POST /api/admin/news — Yangilik yaratish
+   ============================================================ */
+router.post('/news', async (req: Request, res: Response) => {
+    try {
+        const { tag, tagLabel, icon, iconColor, title, description, ctaLink, isFeatured, isPublished, publishedAt } = req.body;
+        if (!tagLabel || !title || !description) {
+            res.status(400).json({ success: false, message: "tagLabel, title va description shart" });
+            return;
+        }
+        const post = await prisma.newsPost.create({
+            data: {
+                tag: tag || 'update',
+                tagLabel,
+                icon: icon || 'megaphone-outline',
+                iconColor: iconColor || 'default',
+                title,
+                description,
+                ctaLink: ctaLink || '#download',
+                isFeatured: !!isFeatured,
+                isPublished: isPublished !== false,
+                publishedAt: publishedAt ? new Date(publishedAt) : new Date(),
+            }
+        });
+        res.json({ success: true, news: post });
+    } catch (err: any) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+/* ============================================================
+   PATCH /api/admin/news/:id — Yangilikni tahrirlash
+   ============================================================ */
+router.patch('/news/:id', async (req: Request, res: Response) => {
+    try {
+        const { tag, tagLabel, icon, iconColor, title, description, ctaLink, isFeatured, isPublished, publishedAt } = req.body;
+        const data: any = {};
+        if (tag !== undefined) data.tag = tag;
+        if (tagLabel !== undefined) data.tagLabel = tagLabel;
+        if (icon !== undefined) data.icon = icon;
+        if (iconColor !== undefined) data.iconColor = iconColor;
+        if (title !== undefined) data.title = title;
+        if (description !== undefined) data.description = description;
+        if (ctaLink !== undefined) data.ctaLink = ctaLink;
+        if (isFeatured !== undefined) data.isFeatured = !!isFeatured;
+        if (isPublished !== undefined) data.isPublished = !!isPublished;
+        if (publishedAt !== undefined) data.publishedAt = new Date(publishedAt);
+
+        const post = await prisma.newsPost.update({ where: { id: req.params.id }, data });
+        res.json({ success: true, news: post });
+    } catch (err: any) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+/* ============================================================
+   DELETE /api/admin/news/:id — Yangilikni o'chirish
+   ============================================================ */
+router.delete('/news/:id', async (req: Request, res: Response) => {
+    try {
+        await prisma.newsPost.delete({ where: { id: req.params.id } });
+        res.json({ success: true, message: "Yangilik o'chirildi" });
+    } catch (err: any) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
 export default router;
 
 

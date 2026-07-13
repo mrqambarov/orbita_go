@@ -264,6 +264,24 @@ model GeoQuest {
   rewardCouponCode String?
 }
 
+model NewsPost {
+  id          String   @id @default(cuid())
+  tag         String   @default("update") // feature | update | promo | event
+  tagLabel    String
+  icon        String   @default("megaphone-outline")
+  iconColor   String   @default("default") // default | yellow | green | red | cyan
+  title       String
+  description String
+  ctaLink     String   @default("#download")
+  isFeatured  Boolean  @default(false)
+  isPublished Boolean  @default(true)
+  publishedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isPublished, publishedAt])
+}
+
 model EmailMessage {
   id        String   @id @default(cuid())
   account   String

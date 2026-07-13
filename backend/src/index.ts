@@ -14,6 +14,7 @@ import orderRoutes from './routes/order.routes';
 import driverRoutes from './routes/driver.routes';
 import gamesRoutes from './routes/games.routes';
 import adminRoutes from './routes/admin.routes';
+import newsRoutes from './routes/news.routes';
 
 dotenv.config();
 
@@ -171,6 +172,7 @@ app.use('/api/order',  orderRoutes);
 app.use('/api/driver', driverRoutes);
 app.use('/api/games',  gamesRoutes);
 app.use('/api/admin',  adminRoutes);
+app.use('/api/news',   newsRoutes);
 
 // Health Check — DB ping bilan
 app.get('/api/health', async (_req, res) => {
