@@ -41,6 +41,16 @@ window.TRANSLATIONS = {
         'news.3.title':     'Yoz aksiyasi: 30% chegirma taksi tariflariga!',
         'news.3.desc':      'Iyul oyida barcha Start va Komfort tariflarida 30% chegirma. Orbita Go ilovasini hoziroq yuklab oling va chegirmadan foydalaning!',
 
+        'news.4.tag':       'Tadbir',
+        'news.4.date':      '12 Iyul 2026',
+        'news.4.title':     'Orbita Cafe — Qadamlarni qahva va desertlarga almashtiring!',
+        'news.4.desc':      'Yaqinda Kosonsoy va Namangan shaharlarida hamkor kafelarimiz ishga tushadi. Yig\'ilgan ballaringizni tekin taomlarga almashtirishingiz mumkin.',
+
+        'news.5.tag':       'Yangilanish',
+        'news.5.date':      '10 Iyul 2026',
+        'news.5.title':     'Xavfsiz haydash kafolati va haydovchilar reytingi',
+        'news.5.desc':      'Biz mijozlarimiz xavfsizligini 1-o\'ringa qo\'yamiz. Har bir safar GPS orqali nazorat qilinadi va favqulodda vaziyat SOS tugmasi qo\'shildi.',
+
         // HERO
         'hero.badge':       "O'zbekistonning Yangi Avlod Super-App",
         'hero.title':       'Safar qiling,\nQadam bosing,\nG\'olib bo\'ling!',
@@ -185,6 +195,17 @@ window.TRANSLATIONS = {
         'news.3.date':      '1 Июля 2026',
         'news.3.title':     'Летняя акция: скидка 30% на тарифы такси!',
         'news.3.desc':      'В июле скидка 30% на все тарифы Старт и Комфорт. Скачайте Orbita Go прямо сейчас и воспользуйтесь скидкой!',
+
+        'news.4.tag':       'Мероприятие',
+        'news.4.date':      '12 Июля 2026',
+        'news.4.title':     'Orbita Cafe — Обменивайте шаги на кофе и десерты!',
+        'news.4.desc':      'Скоро откроются партнерские кафе в Косонсое и Намангане. Вы сможете бесплатно обменивать свои накопленные баллы на вкусные блюда.',
+
+        'news.5.tag':       'Обновление',
+        'news.5.date':      '10 Июля 2026',
+        'news.5.title':     'Гарантия безопасной езды и рейтинг водителей',
+        'news.5.desc':      'Мы ставим безопасность клиентов на первое место. Каждая поездка контролируется по GPS, также добавлена тревожная SOS-кнопка.',
+
         'hero.badge':       'Супер-Приложение Нового Поколения',
         'hero.title':       'Езди,\nГуляй,\nПобеждай!',
         'hero.desc':        'Orbita Go — не просто такси. Мы платим за каждый шаг, предлагаем мини-игры и еженедельные турниры с реальными призами.',
@@ -310,6 +331,17 @@ window.TRANSLATIONS = {
         'news.3.date':      'July 1, 2026',
         'news.3.title':     'Summer Promo: 30% Off All Taxi Fares!',
         'news.3.desc':      'Enjoy a 30% discount on all Start and Comfort fares throughout July. Download Orbita Go now and save on every ride!',
+
+        'news.4.tag':       'Event',
+        'news.4.date':      'July 12, 2026',
+        'news.4.title':     'Orbita Cafe — Exchange Steps for Coffee & Desserts!',
+        'news.4.desc':      'Partner cafes will open soon in Kosonsoy and Nanangan. You can exchange your gathered steps for free delicious meals and coffee.',
+
+        'news.5.tag':       'Update',
+        'news.5.date':      'July 10, 2026',
+        'news.5.title':     'Safe Ride Guarantees & Driver Rating Updates',
+        'news.5.desc':      'We put customer safety first. Every ride is tracked in real-time via GPS, and a new emergency SOS button has been added.',
+
         'hero.badge':       "Uzbekistan's Next-Gen Super App",
         'hero.title':       'Ride,\nWalk,\nWin!',
         'hero.desc':        "Orbita Go is more than a taxi app. We reward every step you take, offer exciting mini-games and weekly tournaments with real cash prizes.",

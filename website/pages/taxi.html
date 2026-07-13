@@ -9,11 +9,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
-    <link rel="stylesheet" href="page.css?v=1.0.2">
+    <link rel="stylesheet" href="page.min.css?v=1.3.0">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="../translations.js?v=1.0.2"></script>
-    <script src="../telegram-gateway.js?v=1.0.2"></script>
+    <script src="../translations.min.js?v=1.3.0" defer></script>
+    <script src="../telegram-gateway.min.js?v=1.3.0" defer></script>
     <style>
         .page-hero { background: radial-gradient(ellipse at top center, rgba(251,191,36,0.1) 0%, transparent 60%); }
         .page-hero-glow { background: radial-gradient(circle, rgba(251,191,36,0.15), transparent 70%); }
@@ -47,11 +47,10 @@
                 <ion-icon name="arrow-back-outline"></ion-icon>
                 <span data-i18n="sub.back">Orqaga</span>
             </a>
-            <!-- Language switcher for subpages -->
             <div class="lang-switcher">
-                <button class="lang-btn" data-lang="uz">UZ</button>
-                <button class="lang-btn" data-lang="ru">RU</button>
-                <button class="lang-btn" data-lang="en">EN</button>
+                <button class="lang-btn" data-lang="uz">🇺🇿</button>
+                <button class="lang-btn" data-lang="ru">🇷🇺</button>
+                <button class="lang-btn" data-lang="en">🇬🇧</button>
             </div>
             <div class="page-logo">
                 <div class="page-logo-icon"><ion-icon name="rocket-outline"></ion-icon></div>
@@ -456,9 +455,7 @@
         // Load dynamic taxi pricing settings
         async function loadTaxiPricingSettings() {
             try {
-                const apiBase = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
-                    ? 'http://localhost:3000'
-                    : '';
+                const apiBase = 'https://api.orbitago.uz';
                 const res = await fetch(`${apiBase}/api/settings`);
                 const data = await res.json();
                 if (data.success && data.settings && data.settings.taxiPricing) {
@@ -771,9 +768,7 @@
             const statusText = document.getElementById('system-status-text');
             if (!statusDot || !statusText) return;
 
-            const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-                ? 'http://localhost:3000'
-                : '';
+            const API_BASE = 'https://api.orbitago.uz';
 
             async function checkHealth() {
                 try {

@@ -5,10 +5,8 @@
    Leaflet.js Interactive Map · Multi-language · PWA Install
    ========================================================================== */
 
-// Auto-detect API base: use localhost only in dev environment
-const API_BASE = (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:')
-    ? 'http://localhost:3000'
-    : 'https://api.orbitago.uz';
+// Auto-detect API base: point directly to the live online server
+const API_BASE = 'https://api.orbitago.uz';
 const KOSONSOY = [40.9983, 71.1522]; // Default center: Kosonsoy
 
 let GLOBAL_TAXI_PRICES = {
@@ -39,6 +37,14 @@ document.addEventListener('DOMContentLoaded', () => {
     loadLeaderboard();
     setupBookingSimulator();
     initPWAInstall();
+    initCustomCursor();
+    init3DTilt();
+    initSpotlightCards();
+    initTextRevealAnimations();
+    initMagneticButtons();
+    initClickRipple();
+    initParallaxBlobs();
+    initTaxiCanvasAnimation();
 });
 
 /* ============================================================
@@ -87,28 +93,54 @@ function initParticleCanvas() {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     let W, H, particles = [];
-    const COUNT = 80;
-    const COLORS = ['rgba(99,102,241,', 'rgba(217,70,239,', 'rgba(16,185,129,', 'rgba(251,191,36,'];
+    const COUNT = 85;
+    const COLORS = ['rgba(99,102,241,', 'rgba(217,70,239,', 'rgba(6,182,212,', 'rgba(168,85,247,'];
+    
+    // Warp speed factor for page load explosion
+    let warpSpeed = 1;
+
+    // Mouse coordinates tracker
+    let mouse = { x: null, y: null, radius: 160 };
+    window.addEventListener('mousemove', e => {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+    }, { passive: true });
+    window.addEventListener('mouseleave', () => {
+        mouse.x = null;
+        mouse.y = null;
+    }, { passive: true });
 
     const resize = () => { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; };
     const mkP = () => ({
         x: Math.random() * W, y: Math.random() * H,
-        size: Math.random() * 2 + 0.5,
+        size: Math.random() * 2 + 0.6,
         color: COLORS[Math.floor(Math.random() * COLORS.length)],
-        alpha: Math.random() * 0.5 + 0.1,
-        vx: (Math.random() - 0.5) * 0.4, vy: (Math.random() - 0.5) * 0.4,
+        alpha: Math.random() * 0.45 + 0.15,
+        vx: (Math.random() - 0.5) * 0.5, vy: (Math.random() - 0.5) * 0.5,
         pulse: Math.random() * Math.PI * 2,
     });
 
     const draw = () => {
         ctx.clearRect(0, 0, W, H);
+        
+        // Handle trigger warp speed from preloader load event
+        if (window.triggerWarp) {
+            warpSpeed = 16;
+            window.triggerWarp = false;
+        }
+        if (warpSpeed > 1) {
+            warpSpeed *= 0.94; // Decelerate exponentially
+            if (warpSpeed < 1.01) warpSpeed = 1;
+        }
+
+        // Draw standard connection lines between particles
         for (let i = 0; i < particles.length; i++) {
             for (let j = i + 1; j < particles.length; j++) {
                 const dx = particles[i].x - particles[j].x, dy = particles[i].y - particles[j].y;
                 const d = Math.sqrt(dx * dx + dy * dy);
-                if (d < 120) {
+                if (d < 125) {
                     ctx.beginPath();
-                    ctx.strokeStyle = `rgba(99,102,241,${0.06 * (1 - d / 120)})`;
+                    ctx.strokeStyle = `rgba(99,102,241,${0.065 * (1 - d / 125)})`;
                     ctx.lineWidth = 0.5;
                     ctx.moveTo(particles[i].x, particles[i].y);
                     ctx.lineTo(particles[j].x, particles[j].y);
@@ -116,15 +148,47 @@ function initParticleCanvas() {
                 }
             }
         }
+        
+        // Update particles and connect to mouse
         particles.forEach(p => {
             p.pulse += 0.02;
             const a = p.alpha * (0.7 + 0.3 * Math.sin(p.pulse));
-            ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-            ctx.fillStyle = `${p.color}${a})`; ctx.fill();
-            p.x += p.vx; p.y += p.vy;
+            
+            // Connect to mouse and pull slightly
+            if (mouse.x !== null && mouse.y !== null) {
+                const dx = p.x - mouse.x;
+                const dy = p.y - mouse.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < mouse.radius) {
+                    ctx.beginPath();
+                    // Multi-colored mouse trail link
+                    ctx.strokeStyle = `rgba(217,70,239,${0.18 * (1 - dist / mouse.radius)})`;
+                    ctx.lineWidth = 0.8;
+                    ctx.moveTo(p.x, p.y);
+                    ctx.lineTo(mouse.x, mouse.y);
+                    ctx.stroke();
+                    
+                    // Pull particles towards the cursor dynamically (reduced pull during warp speed)
+                    if (warpSpeed === 1) {
+                        p.x -= dx * 0.015;
+                        p.y -= dy * 0.015;
+                    }
+                }
+            }
+            
+            ctx.beginPath(); 
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fillStyle = `${p.color}${a})`; 
+            ctx.fill();
+            
+            // Apply velocities scaled by the warpSpeed multiplier
+            p.x += p.vx * warpSpeed; 
+            p.y += p.vy * warpSpeed;
+            
             if (p.x < 0 || p.x > W) p.vx *= -1;
             if (p.y < 0 || p.y > H) p.vy *= -1;
         });
+        
         requestAnimationFrame(draw);
     };
     resize(); particles = Array.from({ length: COUNT }, mkP); draw();
@@ -748,6 +812,72 @@ document.addEventListener('DOMContentLoaded', init3DMockup);
 // ============================================================
 // MOCKUP SCREEN TAB SWITCHER & WATERING SIMULATOR
 // ============================================================
+/* ============================================================
+   MOCKUP APP PROTOTYPE STATE MACHINE & DYNAMIC INTERACTION
+   ============================================================ */
+const MOCKUP_STATE = {
+    balance: 42500,
+    steps: 14832,
+    treeLevel: 7,
+    treeProgress: 72,
+    waterDroplets: 3,
+    transactions: [
+        { label: '🚶 Qadam bonus', amount: '2,450', isPlus: true, color: 'var(--success-light)' },
+        { label: '🚖 Taksi safar', amount: '15,000', isPlus: true, color: 'var(--success-light)' },
+        { label: '🏆 Musobaqa yutug\'i', amount: '25,000', isPlus: true, color: 'var(--success-light)' }
+    ]
+};
+
+let stepClicksCount = 0;
+let isTaxiTripRunning = false;
+
+window.mockupTaxiProgress = 0;
+window.mockupTaxiSpeed = 0;
+
+function updateMockupAppUI() {
+    // 1. Update Steps
+    const stepsCountEl = document.getElementById('mockup-steps-count');
+    const stepsRingEl = document.getElementById('mockup-steps-ring');
+    if (stepsCountEl) stepsCountEl.textContent = MOCKUP_STATE.steps.toLocaleString();
+    if (stepsRingEl) {
+        const circumference = 2 * Math.PI * 44; // ~276.46
+        const progressPct = Math.min(MOCKUP_STATE.steps / 20000, 1);
+        stepsRingEl.style.strokeDashoffset = circumference * (1 - progressPct);
+    }
+
+    // 2. Update Garden
+    const treeLevelEl = document.getElementById('mockup-tree-level');
+    const waterCountEl = document.getElementById('mockup-water-count');
+    const treePercentEl = document.getElementById('sim-tree-percent');
+    const treeProgressEl = document.getElementById('sim-tree-progress');
+    if (treeLevelEl) treeLevelEl.textContent = `Lvl ${MOCKUP_STATE.treeLevel}`;
+    if (waterCountEl) waterCountEl.textContent = MOCKUP_STATE.waterDroplets;
+    if (treePercentEl) treePercentEl.textContent = `${MOCKUP_STATE.treeProgress}%`;
+    if (treeProgressEl) treeProgressEl.style.width = `${MOCKUP_STATE.treeProgress}%`;
+
+    // 3. Update Wallet & Transactions
+    const walletBalanceEl = document.getElementById('mockup-wallet-balance');
+    const txContainerEl = document.getElementById('mockup-tx-container');
+    if (walletBalanceEl) walletBalanceEl.textContent = `${MOCKUP_STATE.balance.toLocaleString()} UZS`;
+    
+    if (txContainerEl) {
+        txContainerEl.innerHTML = MOCKUP_STATE.transactions.map(tx => `
+            <div class="mockup-tx-item">
+                <span style="color: rgba(255,255,255,0.75);">${tx.label}</span>
+                <strong style="color: ${tx.color || 'var(--success-light)'};">${tx.isPlus ? '+' : ''}${tx.amount} UZS</strong>
+            </div>
+        `).join('');
+    }
+}
+
+function prependTransaction(label, amount, isPlus) {
+    const color = isPlus ? 'var(--success-light)' : 'var(--red-color)';
+    MOCKUP_STATE.transactions.unshift({ label, amount, isPlus, color });
+    if (MOCKUP_STATE.transactions.length > 6) {
+        MOCKUP_STATE.transactions.pop();
+    }
+}
+
 function initMockupTabs() {
     const tabs = document.querySelectorAll('.sim-tab');
     const screens = document.querySelectorAll('.sim-tab-content');
@@ -767,44 +897,335 @@ function initMockupTabs() {
         });
     });
 
-    const waterBtn = document.getElementById('btn-sim-water');
-    const treeProgress = document.getElementById('sim-tree-progress');
-    const treePercent = document.getElementById('sim-tree-percent');
-    const treeIcon = document.getElementById('sim-tree-icon');
-    let percent = 72;
-
-    if (waterBtn && treeProgress && treePercent) {
-        waterBtn.addEventListener('click', () => {
-            percent += 6;
-            if (percent > 100) {
-                percent = 30;
-                treeIcon.textContent = treeIcon.textContent === '🌳' ? '🌲' : '🌳';
+    // 1. Simulate Steps Event
+    const stepBtn = document.getElementById('btn-mockup-step');
+    if (stepBtn) {
+        stepBtn.addEventListener('click', () => {
+            MOCKUP_STATE.steps += 350;
+            MOCKUP_STATE.balance += 250;
+            stepClicksCount++;
+            
+            // Earn water droplets every 3 steps simulated
+            if (stepClicksCount % 3 === 0) {
+                MOCKUP_STATE.waterDroplets++;
             }
-            treePercent.textContent = `${percent}%`;
-            treeProgress.style.width = `${percent}%`;
+            
+            prependTransaction('🚶 Qadam bonus', '250', true);
 
-            const drop = document.createElement('span');
-            drop.textContent = '💧';
-            drop.style.position = 'absolute';
-            drop.style.left = '50%';
-            drop.style.top = '20%';
-            drop.style.transform = 'translateX(-50%)';
-            drop.style.fontSize = '24px';
-            drop.style.transition = 'all 0.6s ease';
-            drop.style.opacity = '1';
-            drop.style.pointerEvents = 'none';
-            waterBtn.closest('.sim-tab-content').appendChild(drop);
-
-            setTimeout(() => {
-                drop.style.top = '40%';
-                drop.style.opacity = '0';
-                drop.style.transform = 'translateX(-50%) scale(1.4)';
-            }, 50);
-
-            setTimeout(() => {
-                drop.remove();
-            }, 600);
+            // Floating text feedback at button
+            const coin = document.createElement('span');
+            coin.className = 'floating-coin-effect';
+            coin.textContent = '+250 UZS';
+            coin.style.left = `${stepBtn.offsetLeft + stepBtn.offsetWidth / 2}px`;
+            coin.style.top = `${stepBtn.offsetTop}px`;
+            stepBtn.parentElement.appendChild(coin);
+            
+            setTimeout(() => coin.remove(), 800);
+            updateMockupAppUI();
         });
+    }
+
+    // 2. Watering Tree Event
+    const waterBtn = document.getElementById('btn-sim-water');
+    if (waterBtn) {
+        waterBtn.addEventListener('click', () => {
+            if (MOCKUP_STATE.waterDroplets <= 0) {
+                alert("Sug'orish uchun suv yetarli emas! Yurish (Walk) bo'limida qadam bosib suv yiging.");
+                return;
+            }
+            MOCKUP_STATE.waterDroplets--;
+            MOCKUP_STATE.treeProgress += 10;
+
+            const container = waterBtn.closest('.sim-tab-content');
+            if (container) {
+                triggerTreeWaterEffect(container);
+            }
+
+            if (MOCKUP_STATE.treeProgress >= 100) {
+                MOCKUP_STATE.treeProgress = 0;
+                MOCKUP_STATE.treeLevel++;
+                MOCKUP_STATE.balance += 5000;
+                prependTransaction('🌳 Daraxt yutug\'i', '5,000', true);
+                launchConfetti();
+            }
+            updateMockupAppUI();
+        });
+    }
+
+    // 3. Redeem Coupon Event
+    const redeemBtn = document.getElementById('btn-mockup-redeem');
+    if (redeemBtn) {
+        redeemBtn.addEventListener('click', () => {
+            if (MOCKUP_STATE.balance < 10000) {
+                alert("Balans yetarli emas! Avval qadam bosib yoki daraxt o'stirib pul yig'ing.");
+                return;
+            }
+            MOCKUP_STATE.balance -= 10000;
+            prependTransaction('🍔 KFC kupon xarid', '10,000', false);
+            launchConfetti();
+            updateMockupAppUI();
+        });
+    }
+
+    // 4. Mockup Taxi Destination Picker
+    const destBtns = document.querySelectorAll('.mockup-dest-btn');
+    const taxiStatusEl = document.getElementById('mockup-taxi-status');
+    destBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (isTaxiTripRunning) return;
+            const dest = btn.dataset.dest;
+            
+            let price = 5000;
+            if (dest === 'markaz') price = 7000;
+            else if (dest === 'namangan') price = 12000;
+
+            if (MOCKUP_STATE.balance < price) {
+                alert("Yo'lkira uchun balans yetarli emas! Qadam bosib pul yig'ing.");
+                return;
+            }
+
+            isTaxiTripRunning = true;
+            destBtns.forEach(b => b.setAttribute('disabled', 'true'));
+            
+            // Set canvas animation active values
+            window.mockupTaxiProgress = 0;
+            window.mockupTaxiSpeed = 0.006;
+
+            if (taxiStatusEl) taxiStatusEl.textContent = '🔍 Haydovchi qidirilmoqda...';
+
+            setTimeout(() => {
+                if (taxiStatusEl) taxiStatusEl.textContent = '🚖 Haydovchi kelmoqda...';
+            }, 1800);
+
+            setTimeout(() => {
+                if (taxiStatusEl) taxiStatusEl.textContent = '🚀 Safar boshlandi...';
+            }, 3600);
+
+            setTimeout(() => {
+                isTaxiTripRunning = false;
+                destBtns.forEach(b => b.removeAttribute('disabled'));
+                if (taxiStatusEl) taxiStatusEl.textContent = '🎉 Safar tugadi! Rahmat!';
+                
+                MOCKUP_STATE.balance -= price;
+                prependTransaction('🚖 Taksi safar', price.toLocaleString(), false);
+                updateMockupAppUI();
+            }, 7200);
+        });
+    });
+
+    // Populate initial values
+    updateMockupAppUI();
+}
+
+/* ============================================================
+   INTERACTIVE PHONE SCREEN ANIMATIONS (Canvas + Physical Particles)
+   ============================================================ */
+function initTaxiCanvasAnimation() {
+    const canvas = document.getElementById('sim-taxi-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let w = canvas.width = canvas.offsetWidth;
+    let h = canvas.height = canvas.offsetHeight;
+
+    window.addEventListener('resize', () => {
+        if (canvas.offsetWidth) {
+            w = canvas.width = canvas.offsetWidth;
+            h = canvas.height = canvas.offsetHeight;
+        }
+    }, { passive: true });
+
+    const points = [
+        { x: 30, y: 75 },
+        { x: 90, y: 25 },
+        { x: 130, y: 80 },
+        { x: 180, y: 30 }
+    ];
+
+    let progress = 0;
+
+    function getBezierPoint(t, p0, p1, p2, p3) {
+        const cx = 3 * (p1.x - p0.x);
+        const bx = 3 * (p2.x - p1.x) - cx;
+        const ax = p3.x - p0.x - cx - bx;
+
+        const cy = 3 * (p1.y - p0.y);
+        const by = 3 * (p2.y - p1.y) - cy;
+        const ay = p3.y - p0.y - cy - by;
+
+        const xt = ((ax * t + bx) * t + cx) * t + p0.x;
+        const yt = ((ay * t + by) * t + cy) * t + p0.y;
+
+        return { x: xt, y: yt };
+    }
+
+    function animate() {
+        const taxiScreen = document.getElementById('sim-screen-taxi');
+        if (taxiScreen && taxiScreen.style.display !== 'none') {
+            ctx.clearRect(0, 0, w, h);
+
+            // Draw route grid lines in background
+            ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+            ctx.lineWidth = 1;
+            for (let i = 10; i < w; i += 20) {
+                ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, h); ctx.stroke();
+            }
+            for (let i = 10; i < h; i += 20) {
+                ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(w, i); ctx.stroke();
+            }
+
+            // Draw full curved route path in neon purple
+            ctx.beginPath();
+            ctx.strokeStyle = 'rgba(217, 70, 239, 0.15)';
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+            ctx.moveTo(points[0].x, points[0].y);
+            for (let t = 0; t <= 1; t += 0.01) {
+                const pt = getBezierPoint(t, points[0], points[1], points[2], points[3]);
+                ctx.lineTo(pt.x, pt.y);
+            }
+            ctx.stroke();
+
+            // Draw animated neon active path (tied to active taxi simulation state)
+            if (isTaxiTripRunning) {
+                progress = window.mockupTaxiProgress;
+                window.mockupTaxiProgress += window.mockupTaxiSpeed;
+                if (window.mockupTaxiProgress > 1) {
+                    window.mockupTaxiProgress = 1;
+                }
+            } else {
+                progress = 0;
+            }
+
+            ctx.beginPath();
+            ctx.strokeStyle = 'var(--primary-light)';
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+            ctx.moveTo(points[0].x, points[0].y);
+            for (let t = 0; t <= progress; t += 0.01) {
+                const pt = getBezierPoint(t, points[0], points[1], points[2], points[3]);
+                ctx.lineTo(pt.x, pt.y);
+            }
+            ctx.stroke();
+
+            // Draw start and end pin pulses
+            const drawPulseNode = (x, y, color) => {
+                ctx.beginPath();
+                ctx.arc(x, y, 4 + Math.sin(Date.now() * 0.015) * 2, 0, Math.PI * 2);
+                ctx.fillStyle = color;
+                ctx.shadowColor = color;
+                ctx.shadowBlur = 8;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            };
+            drawPulseNode(points[0].x, points[0].y, '#6366f1'); // Start Pin
+            drawPulseNode(points[3].x, points[3].y, '#ef4444'); // Dest Pin
+
+            // Draw car on current progress point
+            const carPos = getBezierPoint(progress, points[0], points[1], points[2], points[3]);
+            
+            // Draw glowing halo around car
+            ctx.beginPath();
+            ctx.arc(carPos.x, carPos.y, 11, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(251, 191, 36, 0.25)';
+            ctx.shadowColor = '#fbbf24';
+            ctx.shadowBlur = 10;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Draw yellow car dot
+            ctx.beginPath();
+            ctx.arc(carPos.x, carPos.y, 5, 0, Math.PI * 2);
+            ctx.fillStyle = '#fbbf24';
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 1.5;
+            ctx.fill();
+            ctx.stroke();
+        }
+        requestAnimationFrame(animate);
+    }
+    animate();
+}
+
+function triggerTreeWaterEffect(container) {
+    // Create 8 water droplets falling from top
+    for (let i = 0; i < 8; i++) {
+        const drop = document.createElement('div');
+        drop.className = 'water-particle';
+        drop.style.left = `${45 + Math.random() * 10}%`;
+        drop.style.top = '15%';
+        container.appendChild(drop);
+        
+        const angle = (Math.random() * 30 + 75) * (Math.PI / 180);
+        const speed = Math.random() * 3 + 5;
+        const vx = Math.cos(angle) * speed * (Math.random() > 0.5 ? 1 : -1) * 0.25;
+        let vy = Math.sin(angle) * speed;
+        
+        let posX = 0, posY = 0;
+        let opacity = 1;
+        
+        const flow = () => {
+            posX += vx;
+            posY += vy;
+            vy += 0.3; // gravity
+            opacity -= 0.04;
+            
+            drop.style.transform = `translate3d(${posX}px, ${posY}px, 0)`;
+            drop.style.opacity = opacity;
+            
+            if (opacity > 0) requestAnimationFrame(flow);
+            else drop.remove();
+        };
+        requestAnimationFrame(flow);
+    }
+    
+    // Create 10 floating green leaf particles bursting outwards from center
+    for (let i = 0; i < 10; i++) {
+        const leaf = document.createElement('div');
+        leaf.className = 'leaf-particle';
+        leaf.style.left = '50%';
+        leaf.style.top = '40%';
+        container.appendChild(leaf);
+        
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 4 + 3;
+        const vx = Math.cos(angle) * speed;
+        let vy = Math.sin(angle) * speed - 2; // push up initially
+        let rotation = Math.random() * 360;
+        const spin = (Math.random() - 0.5) * 12;
+        
+        let posX = 0, posY = 0;
+        let opacity = 1;
+        
+        const floatLeaf = () => {
+            posX += vx;
+            posY += vy;
+            vy += 0.08; // subtle leaf weight
+            opacity -= 0.025;
+            rotation += spin;
+            
+            leaf.style.transform = `translate3d(${posX}px, ${posY}px, 0) rotate(${rotation}deg)`;
+            leaf.style.opacity = opacity;
+            
+            if (opacity > 0) requestAnimationFrame(floatLeaf);
+            else leaf.remove();
+        };
+        requestAnimationFrame(floatLeaf);
+    }
+
+    // Shake the tree
+    const treeIcon = document.getElementById('sim-tree-icon');
+    if (treeIcon) {
+        let count = 0;
+        const shake = () => {
+            count++;
+            if (count < 10) {
+                treeIcon.style.transform = `scale(1.1) rotate(${(count % 2 === 0 ? 8 : -8)}deg)`;
+                setTimeout(shake, 45);
+            } else {
+                treeIcon.style.transform = 'scale(1) rotate(0deg)';
+            }
+        };
+        shake();
     }
 }
 document.addEventListener('DOMContentLoaded', initMockupTabs);
@@ -976,233 +1397,74 @@ document.addEventListener('DOMContentLoaded', initAIAssistant);
 })();
 
 /* ============================================================
-   NEWS ARTICLE MODAL
+   NEWS SECTION — backend'dan dinamik yuklanadi (/api/news)
    ============================================================ */
-const NEWS_ARTICLES = {
-    1: {
-        tagClass: 'news-tag--feature',
-        icon: '<ion-icon name="footsteps-outline"></ion-icon>',
-        iconStyle: 'background:rgba(99,102,241,0.12);border-color:rgba(99,102,241,0.2);color:var(--primary-light)',
-        getContent: (lang) => {
-            const c = {
-                uz: {
-                    tag: 'Yangi Xususiyat', date: '8 Iyul 2026',
-                    title: 'Orbita Walk 2.0 — Yangi qadam musobaqa tizimi!',
-                    body: `
-                        <p>Orbita Walk ilovasining 2.0 versiyasi rasman chiqdi! Bu yangilanish foydalanuvchilarimizga do'stlar bilan musobaqa qilish imkoniyatini beradi.</p>
-                        <div class="highlight-box">
-                            🏆 Yangi: Har kuni eng ko'p qadam bosgan <strong>TOP 3 foydalanuvchi</strong> real pul mukofot oladi!
-                        </div>
-                        <p><strong>Nima o'zgardi?</strong></p>
-                        <ul>
-                            <li>Kunlik va haftalik qadam musobaqalari</li>
-                            <li>Do'stlarni taklif qilish va guruh reyting</li>
-                            <li>Yangi qadam animatsiyalari va effektlar</li>
-                            <li>Qadam sog'liq statistikasi (kaloriya, masofa)</li>
-                            <li>KFC va Evos kuponlari to'g'ridan-to'g'ri ilovada</li>
-                        </ul>
-                        <p>Orbita Walk 2.0 ni hoziroq yuklab oling va bugungi musobaqaga qo'shiling!</p>`
-                },
-                ru: {
-                    tag: 'Новая Функция', date: '8 Июля 2026',
-                    title: 'Orbita Walk 2.0 — Новая система соревнований!',
-                    body: `
-                        <p>Официально вышла версия 2.0 приложения Orbita Walk! Это обновление даёт пользователям возможность соревноваться с друзьями.</p>
-                        <div class="highlight-box">
-                            🏆 Новое: Топ-3 пользователя с наибольшим количеством шагов ежедневно получают <strong>реальные денежные призы!</strong>
-                        </div>
-                        <ul>
-                            <li>Ежедневные и еженедельные соревнования по шагам</li>
-                            <li>Приглашение друзей и групповой рейтинг</li>
-                            <li>Новые анимации шагов и эффекты</li>
-                            <li>Статистика здоровья (калории, расстояние)</li>
-                            <li>Купоны KFC и Evos прямо в приложении</li>
-                        </ul>
-                        <p>Скачайте Orbita Walk 2.0 прямо сейчас и присоединяйтесь к соревнованию!</p>`
-                },
-                en: {
-                    tag: 'New Feature', date: 'July 8, 2026',
-                    title: 'Orbita Walk 2.0 — New Step Competition System!',
-                    body: `
-                        <p>Orbita Walk version 2.0 is officially out! This update gives users the ability to compete with friends.</p>
-                        <div class="highlight-box">
-                            🏆 New: The top 3 users with the most daily steps win <strong>real cash prizes every day!</strong>
-                        </div>
-                        <ul>
-                            <li>Daily and weekly step challenges</li>
-                            <li>Invite friends and group leaderboard</li>
-                            <li>New step animations and effects</li>
-                            <li>Health statistics (calories, distance)</li>
-                            <li>KFC and Evos coupons directly in-app</li>
-                        </ul>
-                        <p>Download Orbita Walk 2.0 now and join today's challenge!</p>`
-                }
-            };
-            return c[lang] || c.uz;
-        }
-    },
-    2: {
-        tagClass: 'news-tag--update',
-        icon: '<ion-icon name="car-sport-outline"></ion-icon>',
-        iconStyle: 'background:rgba(251,191,36,0.12);border-color:rgba(251,191,36,0.2);color:var(--yellow)',
-        getContent: (lang) => {
-            const c = {
-                uz: {
-                    tag: 'Yangilanish', date: '5 Iyul 2026',
-                    title: 'Taksi ilovasi yangilandi — v3.2 chiqdi',
-                    body: `
-                        <p>Orbita Go Taksi ilovasining v3.2 versiyasi rasman chiqarildi! Bu versiyada haydovchilar va mijozlar uchun juda ko'p foydali yangiliklar qo'shildi.</p>
-                        <div class="highlight-box">
-                            🚖 Haydovchilar uchun yangi daromad paneli — real vaqtda kunlik, haftalik va oylik daromadingizni kuzating!
-                        </div>
-                        <p><strong>Haydovchilar uchun:</strong></p>
-                        <ul>
-                            <li>Yangi daromad hisoblagichi va statistika paneli</li>
-                            <li>Turnov bonuslari — ko'proq safar = ko'proq bonus</li>
-                            <li>Navigatsiya yaxshilandi (offline xarita)</li>
-                        </ul>
-                        <p><strong>Mijozlar uchun:</strong></p>
-                        <ul>
-                            <li>Buyurtmani 1 ta bosish bilan qayta berish</li>
-                            <li>Sevimli manzillar (uy, ish, universitet)</li>
-                            <li>Haydovchi reyting tizimi yangilandi</li>
-                        </ul>`
-                },
-                ru: {
-                    tag: 'Обновление', date: '5 Июля 2026',
-                    title: 'Приложение такси обновлено — вышла v3.2',
-                    body: `
-                        <p>Официально вышла версия v3.2 приложения Orbita Go Такси! В этой версии добавлено множество полезных новинок для водителей и пассажиров.</p>
-                        <div class="highlight-box">
-                            🚖 Для водителей — новая панель доходов: отслеживайте ежедневный, еженедельный и ежемесячный заработок в реальном времени!
-                        </div>
-                        <p><strong>Для водителей:</strong></p>
-                        <ul>
-                            <li>Новый калькулятор доходов и панель статистики</li>
-                            <li>Бонусы за оборот — больше поездок = больше бонусов</li>
-                            <li>Улучшена навигация (офлайн-карта)</li>
-                        </ul>
-                        <p><strong>Для пассажиров:</strong></p>
-                        <ul>
-                            <li>Повтор заказа одним нажатием</li>
-                            <li>Избранные адреса (дом, работа, университет)</li>
-                            <li>Обновлена система рейтинга водителей</li>
-                        </ul>`
-                },
-                en: {
-                    tag: 'Update', date: 'July 5, 2026',
-                    title: 'Taxi App Updated — v3.2 Released',
-                    body: `
-                        <p>Orbita Go Taxi v3.2 is officially released! This version brings many useful improvements for both drivers and passengers.</p>
-                        <div class="highlight-box">
-                            🚖 For Drivers — New earnings dashboard: track your daily, weekly, and monthly income in real-time!
-                        </div>
-                        <p><strong>For Drivers:</strong></p>
-                        <ul>
-                            <li>New earnings calculator and statistics panel</li>
-                            <li>Turnover bonuses — more rides = more bonuses</li>
-                            <li>Improved navigation (offline maps)</li>
-                        </ul>
-                        <p><strong>For Passengers:</strong></p>
-                        <ul>
-                            <li>One-tap trip re-booking</li>
-                            <li>Saved favorite addresses (home, work, university)</li>
-                            <li>Updated driver rating system</li>
-                        </ul>`
-                }
-            };
-            return c[lang] || c.uz;
-        }
-    },
-    3: {
-        tagClass: 'news-tag--promo',
-        icon: '<ion-icon name="pricetag-outline"></ion-icon>',
-        iconStyle: 'background:rgba(16,185,129,0.12);border-color:rgba(16,185,129,0.2);color:var(--success-light)',
-        getContent: (lang) => {
-            const c = {
-                uz: {
-                    tag: 'Aksiya', date: '1 Iyul 2026',
-                    title: 'Yoz aksiyasi: 30% chegirma taksi tariflariga!',
-                    body: `
-                        <p>Iyul oyida Orbita Go Taksi barcha foydalanuvchilarga maxsus yoz aksiyasi e'lon qilmoqda!</p>
-                        <div class="highlight-box">
-                            🎉 <strong>30% chegirma</strong> — barcha Start va Komfort tariflarida, butun iyul oyida!
-                        </div>
-                        <p><strong>Aksiya shartlari:</strong></p>
-                        <ul>
-                            <li>Muddati: 1 Iyul — 31 Iyul 2026</li>
-                            <li>Tariflar: Start va Komfort</li>
-                            <li>Chegirma avtomatik qo'llaniladi</li>
-                            <li>Har qanday to'lov usuli uchun amal qiladi</li>
-                            <li>Kunlik safarlar soni cheklanmagan</li>
-                        </ul>
-                        <p>Chegirmadan foydalanish uchun Orbita Go ilovasini hoziroq yuklab oling va safar buyurtma bering!</p>`
-                },
-                ru: {
-                    tag: 'Акция', date: '1 Июля 2026',
-                    title: 'Летняя акция: скидка 30% на тарифы такси!',
-                    body: `
-                        <p>В июле Orbita Go Такси объявляет специальную летнюю акцию для всех пользователей!</p>
-                        <div class="highlight-box">
-                            🎉 <strong>Скидка 30%</strong> — на все тарифы Старт и Комфорт весь июль!
-                        </div>
-                        <p><strong>Условия акции:</strong></p>
-                        <ul>
-                            <li>Срок: 1 Июля — 31 Июля 2026</li>
-                            <li>Тарифы: Старт и Комфорт</li>
-                            <li>Скидка применяется автоматически</li>
-                            <li>Действует для любого способа оплаты</li>
-                            <li>Количество поездок в день не ограничено</li>
-                        </ul>
-                        <p>Скачайте Orbita Go прямо сейчас и пользуйтесь скидкой!</p>`
-                },
-                en: {
-                    tag: 'Promo', date: 'July 1, 2026',
-                    title: 'Summer Promo: 30% Off All Taxi Fares!',
-                    body: `
-                        <p>This July, Orbita Go Taxi is announcing a special summer promotion for all users!</p>
-                        <div class="highlight-box">
-                            🎉 <strong>30% discount</strong> — on all Start and Comfort fares, all through July!
-                        </div>
-                        <p><strong>Promotion terms:</strong></p>
-                        <ul>
-                            <li>Period: July 1 — July 31, 2026</li>
-                            <li>Fares: Start and Comfort</li>
-                            <li>Discount is applied automatically</li>
-                            <li>Valid for any payment method</li>
-                            <li>No daily ride limit</li>
-                        </ul>
-                        <p>Download Orbita Go now and enjoy the discount on every ride!</p>`
-                }
-            };
-            return c[lang] || c.uz;
-        }
-    }
-};
+let NEWS_POSTS = [];
 
-function openNewsModal(articleId) {
-    const article = NEWS_ARTICLES[articleId];
-    if (!article) return;
-    const lang = localStorage.getItem('orbita_lang') || 'uz';
-    const content = article.getContent(lang);
+const NEWS_TAG_CLASS = { feature: 'news-tag--feature', update: 'news-tag--update', promo: 'news-tag--promo', event: 'news-tag--event' };
+
+function formatNewsDate(iso) {
+    const d = new Date(iso);
+    const months = ['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentyabr','Oktyabr','Noyabr','Dekabr'];
+    return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function newsCardHtml(post, i) {
+    const iconColorClass = post.iconColor && post.iconColor !== 'default' ? ` news-card__icon--${post.iconColor}` : '';
+    return `
+        <article class="news-card${post.isFeatured ? ' news-card--featured' : ''} reveal-up" style="--delay: ${i * 0.1}s">
+            <div class="news-card__glow"></div>
+            <div class="news-card__top">
+                <span class="news-tag ${NEWS_TAG_CLASS[post.tag] || 'news-tag--update'}">${post.tagLabel}</span>
+                <span class="news-date"><ion-icon name="calendar-outline"></ion-icon> <span>${formatNewsDate(post.publishedAt)}</span></span>
+            </div>
+            <div class="news-card__icon${iconColorClass}">
+                <ion-icon name="${post.icon}"></ion-icon>
+            </div>
+            <h3 class="news-card__title">${post.title}</h3>
+            <p class="news-card__desc">${post.description}</p>
+            <a href="#" class="news-card__btn" data-news-id="${post.id}">
+                <span data-i18n="news.readmore">Batafsil o'qish</span>
+                <ion-icon name="arrow-forward-outline"></ion-icon>
+            </a>
+        </article>`;
+}
+
+async function loadNews() {
+    const grid = document.getElementById('news-grid');
+    if (!grid) return;
+    try {
+        const res = await fetch(`${API_BASE}/api/news`);
+        const data = await res.json();
+        NEWS_POSTS = (data && data.news) || [];
+        if (!NEWS_POSTS.length) { grid.innerHTML = ''; return; }
+        grid.innerHTML = NEWS_POSTS.map(newsCardHtml).join('');
+        grid.querySelectorAll('.news-card__btn').forEach(btn => {
+            btn.addEventListener('click', e => { e.preventDefault(); openNewsModal(btn.dataset.newsId); });
+        });
+    } catch (e) {
+        grid.innerHTML = '';
+        console.warn('Yangiliklarni yuklab bo\'lmadi:', e);
+    }
+}
+
+function openNewsModal(postId) {
+    const post = NEWS_POSTS.find(p => p.id === postId);
+    if (!post) return;
     const overlay = document.getElementById('news-modal');
 
-    // Fill tag
     const tagEl = document.getElementById('nm-tag');
-    tagEl.className = 'news-tag ' + article.tagClass;
-    tagEl.textContent = content.tag;
+    tagEl.className = 'news-tag ' + (NEWS_TAG_CLASS[post.tag] || 'news-tag--update');
+    tagEl.textContent = post.tagLabel;
 
-    // Fill date
-    document.querySelector('#nm-date span').textContent = content.date;
+    document.querySelector('#nm-date span').textContent = formatNewsDate(post.publishedAt);
 
-    // Fill icon
     const iconEl = document.getElementById('nm-icon');
-    iconEl.innerHTML = article.icon;
-    iconEl.style.cssText = article.iconStyle;
+    iconEl.innerHTML = `<ion-icon name="${post.icon}"></ion-icon>`;
+    iconEl.className = 'news-modal-icon' + (post.iconColor && post.iconColor !== 'default' ? ` news-card__icon--${post.iconColor}` : '');
 
-    // Fill title & body
-    document.getElementById('nm-title').textContent = content.title;
-    document.getElementById('nm-body').innerHTML = content.body;
+    document.getElementById('nm-title').textContent = post.title;
+    document.getElementById('nm-body').innerHTML = `<p>${post.description}</p>`;
 
     overlay.classList.add('open');
     document.body.style.overflow = 'hidden';
@@ -1214,10 +1476,7 @@ function closeNewsModal() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // News card buttons → open article modal
-    document.querySelectorAll('.news-card__btn').forEach((btn, i) => {
-        btn.addEventListener('click', e => { e.preventDefault(); openNewsModal(i + 1); });
-    });
+    loadNews();
 
     // News modal close
     const nmClose = document.getElementById('news-modal-close');
@@ -1323,3 +1582,470 @@ function applyEcosystemSettings(s) {
         if (pBiznes) pBiznes.textContent = `${GLOBAL_TAXI_PRICES.BIZNES.toLocaleString()} UZS`;
     }
 }
+
+/* ============================================================
+   PREMIUM INTERACTIONS & ANIMATIONS
+   ============================================================ */
+function initCustomCursor() {
+    if (window.matchMedia('(pointer: coarse)').matches) return;
+
+    const ring = document.createElement('div');
+    ring.className = 'custom-cursor-ring';
+    const dot = document.createElement('div');
+    dot.className = 'custom-cursor-dot';
+
+    document.body.appendChild(ring);
+    document.body.appendChild(dot);
+
+    let ringX = 0, ringY = 0;
+    let dotX = 0, dotY = 0;
+    let mouseX = 0, mouseY = 0;
+
+    document.addEventListener('mousemove', e => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+    }, { passive: true });
+
+    const tick = () => {
+        // Easing for lagging ring
+        ringX += (mouseX - ringX) * 0.12;
+        ringY += (mouseY - ringY) * 0.12;
+        
+        // Easing for dot (follows slightly faster)
+        dotX += (mouseX - dotX) * 0.32;
+        dotY += (mouseY - dotY) * 0.32;
+
+        ring.style.transform = `translate3d(${ringX}px, ${ringY}px, 0)`;
+        dot.style.transform = `translate3d(${dotX}px, ${dotY}px, 0)`;
+
+        requestAnimationFrame(tick);
+    };
+    tick();
+
+    // Re-check target elements dynamically
+    const updateCursorHovers = () => {
+        const hoverTargets = document.querySelectorAll('a, button, .feature-card, .tariff-card, .lang-btn, .faq-question, .news-card, .testimonial-card, .how-card, .partner-logo, .logo');
+        hoverTargets.forEach(target => {
+            if (target.dataset.hasCursorListener) return;
+            target.dataset.hasCursorListener = 'true';
+            target.addEventListener('mouseenter', () => {
+                ring.classList.add('hover');
+                dot.classList.add('hover');
+            });
+            target.addEventListener('mouseleave', () => {
+                ring.classList.remove('hover');
+                dot.classList.remove('hover');
+            });
+        });
+    };
+
+    updateCursorHovers();
+    setInterval(updateCursorHovers, 2000);
+}
+
+function init3DTilt() {
+    if (window.matchMedia('(pointer: coarse)').matches) return;
+    
+    const targets = document.querySelectorAll('.phone-mockup, .feature-card, .news-card, #booking-form');
+    targets.forEach(target => {
+        target.addEventListener('mousemove', e => {
+            const rect = target.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            
+            const rotateX = ((centerY - y) / centerY) * 9; // Max 9 degrees rotation for premium feel
+            const rotateY = ((x - centerX) / centerX) * 9;
+            
+            const shadowX = -rotateY * 1.5;
+            const shadowY = rotateX * 1.5;
+            
+            target.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+            target.style.boxShadow = `${shadowX}px ${shadowY}px 35px rgba(99, 102, 241, 0.16), 0 20px 40px rgba(0, 0, 0, 0.65)`;
+        }, { passive: true });
+        
+        target.addEventListener('mouseleave', () => {
+            target.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0)';
+            target.style.boxShadow = '';
+        });
+    });
+}
+
+function initSpotlightCards() {
+    const cards = document.querySelectorAll('.feature-card, .news-card, .testimonial-card, .how-card, .tariff-card, #booking-form');
+    cards.forEach(card => {
+        card.addEventListener('mousemove', e => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            card.style.setProperty('--mouse-x', `${x}px`);
+            card.style.setProperty('--mouse-y', `${y}px`);
+        }, { passive: true });
+    });
+}
+
+function initTextRevealAnimations() {
+    const titles = document.querySelectorAll('.hero-content h1, .section-header h2, .simulator-form-container h2, .leaderboard-info h2');
+    titles.forEach(title => {
+        title.classList.add('reveal-text');
+    });
+
+    // Reveal hero title immediately
+    const heroTitle = document.querySelector('.hero-content h1');
+    if (heroTitle) {
+        setTimeout(() => {
+            heroTitle.classList.add('revealed');
+        }, 150);
+    }
+
+    // Fail-safe fallback to ensure headers are never left invisible
+    setTimeout(() => {
+        titles.forEach(title => {
+            if (!title.classList.contains('revealed')) {
+                title.classList.add('revealed');
+            }
+        });
+    }, 1500);
+    
+    const obs = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+            if (e.isIntersecting) {
+                e.target.classList.add('revealed');
+                obs.unobserve(e.target);
+            }
+        });
+    }, { threshold: 0.02 }); // Ultra-responsive intersection threshold
+    
+    titles.forEach(el => {
+        if (!el.classList.contains('revealed')) {
+            obs.observe(el);
+        }
+    });
+}
+
+function initMagneticButtons() {
+    // Coarse pointer means touch screen (mobile), disable magnetic pull there
+    if (window.matchMedia('(pointer: coarse)').matches) return;
+
+    const magneticElems = document.querySelectorAll('.btn, .social-btn, .lang-btn, .logo, .sim-tab');
+    magneticElems.forEach(el => {
+        el.addEventListener('mousemove', e => {
+            const rect = el.getBoundingClientRect();
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+            
+            // Translate the button slightly towards the cursor (magnetic pull)
+            el.style.transform = `translate3d(${x * 0.35}px, ${y * 0.35}px, 0) scale(1.03)`;
+            el.style.boxShadow = '0 12px 28px rgba(99, 102, 241, 0.28)';
+            el.style.transition = 'transform 0.08s linear, box-shadow 0.2s ease';
+            
+            // Subtly shift icon/text inside for 3D parallax depth
+            const inner = el.querySelector('span, ion-icon');
+            if (inner) {
+                inner.style.transform = `translate3d(${x * 0.15}px, ${y * 0.15}px, 0)`;
+                inner.style.transition = 'none';
+            }
+        });
+        
+        el.addEventListener('mouseleave', () => {
+            el.style.transform = 'translate3d(0, 0, 0) scale(1)';
+            el.style.boxShadow = '';
+            el.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.4s ease';
+            
+            const inner = el.querySelector('span, ion-icon');
+            if (inner) {
+                inner.style.transform = 'translate3d(0, 0, 0)';
+                inner.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+            }
+        });
+    });
+}
+
+/* ============================================================
+   MODALS AND DONATION FLOW HELPERS (Extracted from index.html)
+   ============================================================ */
+let selectedDonateMethod = '';
+let activeCardType = 'humo';
+let activeCardNumber = '9860160430034589';
+
+function showDonateModal(method) {
+    selectedDonateMethod = method;
+    document.getElementById('donate-modal-title').textContent = method + ' orqali donat';
+    document.getElementById('donate-comment-input').value = ''; 
+    document.getElementById('donate-amount-input').value = '20000'; 
+    
+    document.getElementById('donate-step-amount').style.display = 'block';
+    document.getElementById('donate-step-card').style.display = 'none';
+    document.getElementById('donate-modal').style.display = 'flex';
+}
+
+function closeDonateModal() {
+    document.getElementById('donate-modal').style.display = 'none';
+}
+
+function setDonateAmount(val) {
+    document.getElementById('donate-amount-input').value = val;
+}
+
+function goToDonateStep2() {
+    const amountInput = document.getElementById('donate-amount-input').value;
+    if (!amountInput || amountInput <= 0) {
+        alert("Iltimos, xayriya miqdorini kiriting.");
+        return;
+    }
+
+    document.getElementById('btn-pay-app-text').textContent = selectedDonateMethod + " ilovasida to'lash";
+    selectDonationCard('humo', '9860160430034589');
+
+    document.getElementById('donate-step-amount').style.display = 'none';
+    document.getElementById('donate-step-card').style.display = 'block';
+}
+
+function goBackToDonateStep1() {
+    document.getElementById('donate-step-amount').style.display = 'block';
+    document.getElementById('donate-step-card').style.display = 'none';
+}
+
+function selectDonationCard(type, number) {
+    activeCardType = type;
+    activeCardNumber = number;
+
+    const humoOpt = document.getElementById('card-option-humo');
+    const visaOpt = document.getElementById('card-option-visa');
+    const humoCheck = document.getElementById('card-check-humo');
+    const visaCheck = document.getElementById('card-check-visa');
+
+    if (!humoOpt || !visaOpt) return;
+
+    if (type === 'humo') {
+        humoOpt.style.borderColor = 'var(--primary-light)';
+        humoOpt.style.opacity = '1';
+        humoOpt.style.boxShadow = '0 10px 20px rgba(0,0,0,0.4)';
+        humoCheck.setAttribute('name', 'checkbox');
+        humoCheck.style.color = '#4ade80';
+
+        visaOpt.style.borderColor = 'transparent';
+        visaOpt.style.opacity = '0.7';
+        visaOpt.style.boxShadow = '0 5px 10px rgba(0,0,0,0.3)';
+        visaCheck.setAttribute('name', 'square-outline');
+        visaCheck.style.color = 'rgba(255,255,255,0.4)';
+    } else {
+        visaOpt.style.borderColor = 'var(--primary-light)';
+        visaOpt.style.opacity = '1';
+        visaOpt.style.boxShadow = '0 10px 20px rgba(0,0,0,0.4)';
+        visaCheck.setAttribute('name', 'checkbox');
+        visaCheck.style.color = '#4ade80';
+
+        humoOpt.style.borderColor = 'transparent';
+        humoOpt.style.opacity = '0.7';
+        humoOpt.style.boxShadow = '0 5px 10px rgba(0,0,0,0.3)';
+        humoCheck.setAttribute('name', 'square-outline');
+        humoCheck.style.color = 'rgba(255,255,255,0.4)';
+    }
+}
+
+async function payViaApp() {
+    const amount = document.getElementById('donate-amount-input').value;
+    const comment = document.getElementById('donate-comment-input').value.trim() || 'Izohsiz';
+    const payBtn = document.getElementById('btn-pay-app');
+
+    payBtn.setAttribute('disabled', 'true');
+    payBtn.style.opacity = '0.7';
+    payBtn.textContent = 'Yuborilmoqda...';
+
+    try {
+        await window.sendTelegramNotification('donate', { 
+            method: selectedDonateMethod + ` (${activeCardType.toUpperCase()})`,
+            amount: `${Number(amount).toLocaleString()} UZS`,
+            comment: comment
+        });
+    } catch (err) {
+        console.error("Alert notify failed:", err);
+    }
+
+    let link = '';
+    if (selectedDonateMethod.toLowerCase() === 'click') {
+        link = `https://my.click.uz/services/p2p?card_number=${activeCardNumber}&amount=${amount}`;
+        window.open(link, '_blank');
+    } else {
+        navigator.clipboard.writeText(activeCardNumber);
+        alert("Payme uchun karta raqami nusxalandi! \nPayme ilovasiga o'tib, 'O'tkazmalar' bo'limida ushbu karta raqamini 'Joylashtirish' (Paste) qiling.");
+        link = `https://payme.uz`;
+        window.open(link, '_blank');
+    }
+
+    payBtn.textContent = 'Rahmat! ❤️';
+    setTimeout(() => {
+        closeDonateModal();
+        payBtn.removeAttribute('disabled');
+        payBtn.style.opacity = '1';
+    }, 1000);
+}
+
+async function loadOperators() {
+    const API_BASE = 'https://api.orbitago.uz';
+    const container = document.getElementById('partner-operators-list');
+    if (!container) return;
+
+    try {
+        const res = await fetch(API_BASE + '/api/telegram/operators');
+        const operators = await res.json();
+        
+        if (operators.length === 0) {
+            throw new Error("No active operators in backend");
+        }
+
+        container.innerHTML = operators.map(op => {
+            const initials = op.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'OP';
+            const isOnline = op.status === 'online';
+            const color = isOnline ? '#4ade80' : 'var(--text-hint)';
+            const bg = isOnline ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.05)';
+            const statusText = isOnline ? 'Faol' : 'Oflayn';
+            const glow = isOnline ? 'box-shadow: 0 0 8px #4ade80;' : '';
+
+            return `
+                <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 28px; height: 28px; border-radius: 50%; background: ${bg}; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: #fff; font-family: sans-serif;">${initials}</div>
+                        <span style="color: ${isOnline ? '#fff' : 'rgba(255,255,255,0.6)'}; font-weight: 600;">${op.name}</span>
+                    </div>
+                    <span style="color: ${color}; font-size: 12px; display: flex; align-items: center; gap: 4px; font-weight: 600;">
+                        <span style="width: 6px; height: 6px; border-radius: 50%; background: ${color}; display: inline-block; ${glow}"></span>
+                        ${statusText}
+                    </span>
+                </div>
+            `;
+        }).join('');
+    } catch (e) {
+        container.innerHTML = `
+            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(99,102,241,0.15); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: #fff; font-family: sans-serif;">SM</div>
+                    <span style="color: #fff; font-weight: 600;">Sardor M.</span>
+                </div>
+                <span style="color: #4ade80; font-size: 12px; display: flex; align-items: center; gap: 4px; font-weight: 600;">
+                    <span style="width: 6px; height: 6px; border-radius: 50%; background: #4ade80; display: inline-block; box-shadow: 0 0 8px #4ade80;"></span>
+                    Faol
+                </span>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px; margin-top: 10px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(217,70,239,0.15); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: #fff; font-family: sans-serif;">MA</div>
+                    <span style="color: #fff; font-weight: 600;">Madina A.</span>
+                </div>
+                <span style="color: #4ade80; font-size: 12px; display: flex; align-items: center; gap: 4px; font-weight: 600;">
+                    <span style="width: 6px; height: 6px; border-radius: 50%; background: #4ade80; display: inline-block; box-shadow: 0 0 8px #4ade80;"></span>
+                    Faol
+                </span>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px; margin-top: 10px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: #aaa; font-family: sans-serif;">AK</div>
+                    <span style="color: rgba(255,255,255,0.6); font-weight: 600;">Akmal K.</span>
+                </div>
+                <span style="color: var(--text-hint); font-size: 12px; display: flex; align-items: center; gap: 4px; font-weight: 600;">
+                    <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--text-hint); display: inline-block;"></span>
+                    Oflayn
+                </span>
+            </div>
+        `;
+    }
+}
+
+function showPartnerModal() {
+    document.getElementById('partner-modal').classList.add('open');
+    loadOperators();
+}
+function closePartnerModal() {
+    document.getElementById('partner-modal').classList.remove('open');
+}
+
+// Bind modal triggers globally
+window.showDonateModal = showDonateModal;
+window.closeDonateModal = closeDonateModal;
+window.setDonateAmount = setDonateAmount;
+window.goToDonateStep2 = goToDonateStep2;
+window.goBackToDonateStep1 = goBackToDonateStep1;
+window.selectDonationCard = selectDonationCard;
+window.payViaApp = payViaApp;
+window.showPartnerModal = showPartnerModal;
+window.closePartnerModal = closePartnerModal;
+
+document.addEventListener('DOMContentLoaded', () => {
+    const partnerForm = document.getElementById('partner-form');
+    if (partnerForm) {
+        partnerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit-partner');
+            const name = document.getElementById('partner-name').value;
+            const phone = document.getElementById('partner-phone').value;
+            const business = document.getElementById('partner-business').value;
+
+            btn.setAttribute('disabled', 'true');
+            btn.textContent = 'Yuborilmoqda...';
+
+            try {
+                await window.sendTelegramNotification('partner', { name, phone, business });
+                btn.textContent = 'Muvaffaqiyatli yuborildi! ✅';
+                setTimeout(() => {
+                    closePartnerModal();
+                    partnerForm.reset();
+                    btn.removeAttribute('disabled');
+                    btn.textContent = 'Yuborish';
+                }, 1500);
+            } catch {
+                btn.textContent = 'Xatolik yuz berdi ❌';
+                btn.removeAttribute('disabled');
+            }
+        });
+    }
+});
+
+function initClickRipple() {
+    document.addEventListener('click', e => {
+        // Create shockwave ring at coordinate click point
+        const ripple = document.createElement('div');
+        ripple.className = 'click-ripple';
+        ripple.style.left = `${e.clientX}px`;
+        ripple.style.top = `${e.clientY}px`;
+        document.body.appendChild(ripple);
+        
+        // Remove after animation completes
+        setTimeout(() => {
+            ripple.remove();
+        }, 600);
+    }, { passive: true });
+}
+
+function initParallaxBlobs() {
+    if (window.matchMedia('(pointer: coarse)').matches) return;
+    
+    // Select glowing blobs and section backdrops
+    const blobs = document.querySelectorAll('.hero-glow-1, .hero-glow-2, .features-section::before, .simulator-section::before');
+    
+    window.addEventListener('mousemove', e => {
+        const x = (e.clientX - window.innerWidth / 2) * 0.025;
+        const y = (e.clientY - window.innerHeight / 2) * 0.025;
+        
+        blobs.forEach(blob => {
+            if (blob) {
+                // translate background blobs opposite to mouse to simulate physical parallax depth
+                blob.style.transform = `translate3d(${-x}px, ${-y}px, 0)`;
+                blob.style.transition = 'transform 0.1s ease-out';
+            }
+        });
+
+        // 3D Phone Mockup Tilt Effect
+        const phone = document.querySelector('.phone-mockup');
+        if (phone && window.innerWidth > 1024) {
+            const rotX = (window.innerHeight / 2 - e.clientY) * 0.015;
+            const rotY = (e.clientX - window.innerWidth / 2) * 0.015;
+            phone.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+        }
+    }, { passive: true });
+}
+
+
+

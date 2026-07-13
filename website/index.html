@@ -23,7 +23,7 @@
     <!-- Ionicons -->
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
-    <link rel="stylesheet" href="style.css?v=1.2.0">
+    <link rel="stylesheet" href="style.min.css?v=1.3.0">
     <!-- Schema.org Structured Data -->
     <script type="application/ld+json">
     {
@@ -47,6 +47,53 @@
     </script>
 </head>
 <body>
+
+    <!-- Premium preloader screen -->
+    <div id="preloader">
+        <div class="preloader-panel preloader-left"></div>
+        <div class="preloader-panel preloader-right"></div>
+        <div class="preloader-content">
+            <div class="preloader-logo">
+                <ion-icon name="rocket-outline"></ion-icon>
+            </div>
+            <div class="preloader-title">Orbita<span>Go</span></div>
+            <div class="preloader-subtitle">Taksi, Fitness va O'yinlar Ekotizimi</div>
+            <div class="preloader-progress-bar">
+                <div class="preloader-progress" id="preloader-progress"></div>
+            </div>
+            <div class="preloader-percentage" id="preloader-percent">0%</div>
+        </div>
+    </div>
+    <script>
+        (function() {
+            let progress = 0;
+            const bar = document.getElementById('preloader-progress');
+            const pct = document.getElementById('preloader-percent');
+            const preloader = document.getElementById('preloader');
+            
+            const timer = setInterval(() => {
+                progress += Math.floor(Math.random() * 8) + 2;
+                if (progress >= 95) {
+                    progress = 95; // Wait for final load event
+                    clearInterval(timer);
+                }
+                if (bar) bar.style.width = progress + '%';
+                if (pct) pct.textContent = progress + '%';
+            }, 60);
+
+            window.addEventListener('load', () => {
+                clearInterval(timer);
+                progress = 100;
+                if (bar) bar.style.width = '100%';
+                if (pct) pct.textContent = '100%';
+                setTimeout(() => {
+                    if (preloader) preloader.classList.add('fade-out');
+                    document.body.classList.add('preloader-done');
+                    window.triggerWarp = true; // Trigger particle warp speed!
+                }, 300);
+            });
+        })();
+    </script>
 
     <!-- Particle Canvas Background -->
     <canvas id="particle-canvas"></canvas>
@@ -166,87 +213,107 @@
                                     <ion-icon name="battery-full-sharp" style="transform: rotate(90deg);"></ion-icon>
                                 </div>
                             </div>
-                            <div class="sim-body" style="display: flex; flex-direction: column; height: calc(100% - 30px);">
+                            <div class="sim-body" style="display: flex; flex-direction: column; height: calc(100% - 30px); justify-content: space-between;">
                                 <!-- Taxi Screen -->
-                                <div id="sim-screen-taxi" class="sim-tab-content" style="display: flex; flex-direction: column; gap: 12px; height: 100%;">
-                                    <div class="sim-map-preview">
-                                        <div class="sim-route-line"></div>
-                                        <div class="sim-car-icon"><ion-icon name="car-sport"></ion-icon></div>
+                                <div id="sim-screen-taxi" class="sim-tab-content" style="display: flex; flex-direction: column; gap: 6px; height: 100%;">
+                                    <div class="sim-map-preview" style="position: relative; overflow: hidden; height: 95px; border-radius: 12px; background: rgba(3,0,20,0.85); border: 1px solid rgba(99,102,241,0.15);">
+                                        <canvas id="sim-taxi-canvas" style="width: 100%; height: 100%; display: block;"></canvas>
                                     </div>
-                                    <div class="sim-stats-container">
-                                        <div class="sim-stat-box">
-                                            <span>Qadamlar</span>
-                                            <h3>14,832</h3>
+                                    <div class="mockup-destination-picker" style="display: flex; flex-direction: column; gap: 4px;">
+                                        <span style="font-size: 7px; text-transform: uppercase; color: var(--text-hint); font-weight: 800; letter-spacing: 0.5px;">Qayerga borasiz?</span>
+                                        <div style="display: flex; gap: 4px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none;">
+                                            <button class="mockup-dest-btn" data-dest="park" style="padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06); background: rgba(99,102,241,0.1); color: #fff; font-size: 8px; font-weight: bold; cursor: pointer; flex-shrink: 0; transition: all 0.2s;">🌳 Park (5K)</button>
+                                            <button class="mockup-dest-btn" data-dest="markaz" style="padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06); background: rgba(99,102,241,0.1); color: #fff; font-size: 8px; font-weight: bold; cursor: pointer; flex-shrink: 0; transition: all 0.2s;">🏢 Markaz (7K)</button>
+                                            <button class="mockup-dest-btn" data-dest="namangan" style="padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06); background: rgba(99,102,241,0.1); color: #fff; font-size: 8px; font-weight: bold; cursor: pointer; flex-shrink: 0; transition: all 0.2s;">🚘 Namangan (12K)</button>
                                         </div>
-                                        <div class="sim-stat-box">
-                                            <span>Balans</span>
-                                            <h3>42,500 UZS</h3>
-                                        </div>
-                                        <div class="sim-stat-box">
-                                            <span>Turnir</span>
-                                            <h3>#3 Joy</h3>
-                                        </div>
-                                        <div class="sim-stat-box">
-                                            <span>Daraxt</span>
-                                            <h3>🌳 Lvl 7</h3>
-                                        </div>
+                                    </div>
+                                    <div id="mockup-taxi-status" style="background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.15); border-radius: 8px; padding: 4px 8px; text-align: center; font-size: 8px; font-weight: bold; color: var(--primary-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                        Manzil tanlang!
                                     </div>
                                 </div>
 
-                                <!-- Games (Garden) Screen -->
-                                <div id="sim-screen-games" class="sim-tab-content" style="display: none; flex-direction: column; gap: 10px; height: 100%; text-align: center; justify-content: center; padding: 10px;">
-                                    <div style="font-size: 54px; animation: float 3s ease-in-out infinite; margin-top: 12px;" id="sim-tree-icon">🌳</div>
-                                    <h4 style="font-size: 13px; color: #fff; margin-bottom: 2px;">Katta Eman</h4>
-                                    <span style="font-size: 10px; color: var(--purple-light); font-weight: 700; background: rgba(217,70,239,0.1); padding: 4px 10px; border-radius: 12px; align-self: center;">Daraja 7</span>
-                                    <div style="margin-top: 10px;">
-                                        <div style="display: flex; justify-content: space-between; font-size: 9px; color: var(--text-hint); margin-bottom: 4px;">
-                                            <span>Sug'orilgan: <strong id="sim-tree-percent">72%</strong></span>
-                                        </div>
-                                        <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden;">
-                                            <div id="sim-tree-progress" style="width: 72%; height: 100%; background: linear-gradient(90deg, var(--purple), var(--primary-light)); border-radius: 10px; transition: width 0.5s ease;"></div>
+                                <!-- Walk Screen -->
+                                <div id="sim-screen-walk" class="sim-tab-content" style="display: none; flex-direction: column; align-items: center; justify-content: center; gap: 6px; height: 100%;">
+                                    <div style="position: relative; width: 85px; height: 85px; display: flex; align-items: center; justify-content: center;">
+                                        <svg class="walk-circle-svg" width="85" height="85" viewBox="0 0 100 100" style="position: absolute;">
+                                            <defs>
+                                                <linearGradient id="walk-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                    <stop offset="0%" stop-color="var(--primary-light)" />
+                                                    <stop offset="100%" stop-color="var(--purple)" />
+                                                </linearGradient>
+                                            </defs>
+                                            <circle class="walk-circle-bg" cx="50" cy="50" r="44" />
+                                            <circle class="walk-circle-progress" id="mockup-steps-ring" cx="50" cy="50" r="44" />
+                                        </svg>
+                                        <div style="text-align: center; z-index: 2;">
+                                            <span style="font-size: 6px; text-transform: uppercase; color: var(--text-hint); display: block; font-weight: 800; letter-spacing: 0.5px;">Qadamlar</span>
+                                            <strong id="mockup-steps-count" style="font-size: 11px; color: #fff; font-family: 'Outfit', sans-serif; display: block; margin-top: 1px;">14,832</strong>
                                         </div>
                                     </div>
-                                    <button id="btn-sim-water" style="margin-top: 14px; background: linear-gradient(135deg, var(--purple), var(--primary)); border: none; padding: 8px 16px; border-radius: 10px; color: #fff; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: var(--transition-fast);">
+                                    <button id="btn-mockup-step" style="background: linear-gradient(135deg, var(--primary), var(--purple)); border: none; padding: 5px 12px; border-radius: 8px; color: #fff; font-size: 9px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.25); transition: transform 0.2s;">
+                                        <ion-icon name="footsteps-outline"></ion-icon> Qadam bosish (+350)
+                                    </button>
+                                </div>
+
+                                <!-- Games (Garden) Screen -->
+                                <div id="sim-screen-games" class="sim-tab-content" style="display: none; flex-direction: column; gap: 6px; height: 100%; text-align: center; justify-content: center; padding: 0 4px;">
+                                    <div style="font-size: 42px; animation: float 3s ease-in-out infinite;" id="sim-tree-icon">🌳</div>
+                                    <div style="display: flex; justify-content: center; gap: 8px; align-items: center;">
+                                        <h4 style="font-size: 11px; color: #fff;">Katta Eman</h4>
+                                        <span id="mockup-tree-level" style="font-size: 8px; color: var(--purple-light); font-weight: 800; background: rgba(217,70,239,0.12); padding: 2px 6px; border-radius: 8px;">Lvl 7</span>
+                                    </div>
+                                    <div style="font-size: 8px; color: var(--primary-light); font-weight: bold; background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.15); padding: 3px 8px; border-radius: 8px; align-self: center; display: flex; align-items: center; gap: 4px;">
+                                        <ion-icon name="water-outline"></ion-icon> Suv: <span id="mockup-water-count">3</span> tomchi
+                                    </div>
+                                    <div>
+                                        <div style="display: flex; justify-content: space-between; font-size: 8px; color: var(--text-hint); margin-bottom: 2px;">
+                                            <span>Sug'orilgan: <strong id="sim-tree-percent">72%</strong></span>
+                                        </div>
+                                        <div style="width: 100%; height: 5px; background: rgba(255,255,255,0.04); border-radius: 10px; overflow: hidden;">
+                                            <div id="sim-tree-progress" style="width: 72%; height: 100%; background: linear-gradient(90deg, var(--purple), var(--primary-light)); border-radius: 10px; transition: width 0.4s ease;"></div>
+                                        </div>
+                                    </div>
+                                    <button id="btn-sim-water" style="background: linear-gradient(135deg, var(--purple), var(--primary)); border: none; padding: 6px 12px; border-radius: 8px; color: #fff; font-size: 9px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; transition: var(--transition-fast);">
                                         <ion-icon name="water-outline"></ion-icon> Sug'orish
                                     </button>
                                 </div>
 
                                 <!-- Wallet Screen -->
-                                <div id="sim-screen-wallet" class="sim-tab-content" style="display: none; flex-direction: column; gap: 10px; height: 100%;">
-                                    <div style="background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01)); border: 1px solid rgba(255,255,255,0.06); padding: 14px; border-radius: 16px; text-align: center; margin-top: 12px;">
-                                        <span style="font-size: 9px; color: var(--text-hint); text-transform: uppercase;">Mening Hisobim</span>
-                                        <h3 style="font-size: 18px; color: var(--yellow); margin-top: 4px;">42,500 UZS</h3>
+                                <div id="sim-screen-wallet" class="sim-tab-content" style="display: none; flex-direction: column; gap: 6px; height: 100%;">
+                                    <div style="background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)); border: 1px solid rgba(255,255,255,0.05); padding: 8px; border-radius: 10px; text-align: center; display: flex; justify-content: space-between; align-items: center;">
+                                        <div style="text-align: left;">
+                                            <span style="font-size: 7px; color: var(--text-hint); text-transform: uppercase; font-weight: 800;">Balans</span>
+                                            <h3 id="mockup-wallet-balance" style="font-size: 13px; color: var(--yellow); margin-top: 1px; font-family: 'Outfit';">42,500 UZS</h3>
+                                        </div>
+                                        <button id="btn-mockup-redeem" style="background: linear-gradient(135deg, #10b981, #059669); border: none; padding: 4px 8px; border-radius: 6px; color: #fff; font-size: 7.5px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 2px;">
+                                            🍔 KFC (10K UZS)
+                                        </button>
                                     </div>
-                                    <div style="display: flex; flex-direction: column; gap: 6px;">
-                                        <span style="font-size: 9px; color: var(--text-hint); text-transform: uppercase; font-weight: bold; margin-bottom: 2px;">Tranzaksiyalar</span>
-                                        <div style="display: flex; justify-content: space-between; font-size: 11px; padding: 4px 0; border-bottom: 1px dashed rgba(255,255,255,0.04);">
-                                            <span style="color: rgba(255,255,255,0.8);">🚶 Qadam bonus</span>
-                                            <strong style="color: var(--success-light);">+2,450</strong>
-                                        </div>
-                                        <div style="display: flex; justify-content: space-between; font-size: 11px; padding: 4px 0; border-bottom: 1px dashed rgba(255,255,255,0.04);">
-                                            <span style="color: rgba(255,255,255,0.8);">🚖 Taksi safar</span>
-                                            <strong style="color: var(--success-light);">+15,000</strong>
-                                        </div>
-                                        <div style="display: flex; justify-content: space-between; font-size: 11px; padding: 4px 0;">
-                                            <span style="color: rgba(255,255,255,0.8);">🏆 Musobaqa yutug'i</span>
-                                            <strong style="color: var(--success-light);">+25,000</strong>
+                                    <div style="display: flex; flex-direction: column; gap: 2px; flex: 1; overflow: hidden;">
+                                        <span style="font-size: 7px; color: var(--text-hint); text-transform: uppercase; font-weight: bold; margin-bottom: 2px;">Tranzaksiyalar</span>
+                                        <div id="mockup-tx-container" style="display: flex; flex-direction: column; gap: 4px; overflow-y: auto; max-height: 85px; scrollbar-width: none; padding-right: 2px;">
+                                            <!-- Dynamic items loaded by state -->
                                         </div>
                                     </div>
                                 </div>
 
                                 <!-- Tabs navigation -->
-                                <div class="sim-nav-tabs">
-                                    <div class="sim-tab active" data-sim-tab="taxi">
-                                        <ion-icon name="car-sport-outline"></ion-icon>
-                                        <span>Taksi</span>
+                                <div class="sim-nav-tabs" style="display: flex; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 6px; margin-top: 2px; justify-content: space-between;">
+                                    <div class="sim-tab active" data-sim-tab="taxi" style="flex: 1; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer;">
+                                        <ion-icon name="car-sport-outline" style="font-size: 13px;"></ion-icon>
+                                        <span style="font-size: 7px; font-weight: bold;">Taksi</span>
                                     </div>
-                                    <div class="sim-tab" data-sim-tab="games">
-                                        <ion-icon name="leaf-outline"></ion-icon>
-                                        <span>Daraxt</span>
+                                    <div class="sim-tab" data-sim-tab="walk" style="flex: 1; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer;">
+                                        <ion-icon name="footsteps-outline" style="font-size: 13px;"></ion-icon>
+                                        <span style="font-size: 7px; font-weight: bold;">Yurish</span>
                                     </div>
-                                    <div class="sim-tab" data-sim-tab="wallet">
-                                        <ion-icon name="wallet-outline"></ion-icon>
-                                        <span>Hamyon</span>
+                                    <div class="sim-tab" data-sim-tab="games" style="flex: 1; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer;">
+                                        <ion-icon name="leaf-outline" style="font-size: 13px;"></ion-icon>
+                                        <span style="font-size: 7px; font-weight: bold;">Daraxt</span>
+                                    </div>
+                                    <div class="sim-tab" data-sim-tab="wallet" style="flex: 1; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer;">
+                                        <ion-icon name="wallet-outline" style="font-size: 13px;"></ion-icon>
+                                        <span style="font-size: 7px; font-weight: bold;">Hamyon</span>
                                     </div>
                                 </div>
                             </div>
@@ -308,6 +375,18 @@
 
     <!-- Core Features Section -->
     <section class="features-section" id="features">
+        <!-- Play on Web Banner -->
+        <div class="container" style="margin-bottom: 60px;">
+            <div class="web-play-banner reveal-up">
+                <div class="web-play-content">
+                    <h3>O'yinlarni saytda o'ynab ko'ring! 🎮</h3>
+                    <p>Ilovani yuklab olishdan oldin, mini-o'yinlarimizning demo versiyasini hoziroq sinab ko'ring.</p>
+                </div>
+                <div class="web-play-actions">
+                    <button class="btn btn-primary" onclick="openGameDemo('math')">Math Dash Demo</button>
+                </div>
+            </div>
+        </div>
         <div class="container">
             <div class="section-header reveal-up">
                 <div class="badge" data-i18n="nav.features">Ekotizim</div>
@@ -545,62 +624,8 @@
                 <h2 data-i18n="news.title">Ilovadagi <span>yangilanishlar</span></h2>
                 <p data-i18n="news.desc">Orbita Go ekotizimidagi eng so'nggi yangiliklar, yangilanishlar va e'lonlar.</p>
             </div>
-            <div class="news-grid">
-
-                <!-- News Card 1 -->
-                <article class="news-card news-card--featured reveal-up" id="news-card-1" style="--delay: 0s">
-                    <div class="news-card__glow"></div>
-                    <div class="news-card__top">
-                        <span class="news-tag news-tag--feature" data-i18n="news.1.tag">Yangi Xususiyat</span>
-                        <span class="news-date"><ion-icon name="calendar-outline"></ion-icon> <span data-i18n="news.1.date">8 Iyul 2026</span></span>
-                    </div>
-                    <div class="news-card__icon">
-                        <ion-icon name="footsteps-outline"></ion-icon>
-                    </div>
-                    <h3 class="news-card__title" data-i18n="news.1.title">Orbita Walk 2.0 — Yangi qadam musobaqa tizimi!</h3>
-                    <p class="news-card__desc" data-i18n="news.1.desc">Endi kunlik va haftalik qadam musobaqalarida do'stlaringiz bilan bellashing. Eng ko'p qadam bosgan 3 nafar foydalanuvchi har kuni real pul mukofot oladi.</p>
-                    <a href="#download" class="news-card__btn">
-                        <span data-i18n="news.readmore">Batafsil o'qish</span>
-                        <ion-icon name="arrow-forward-outline"></ion-icon>
-                    </a>
-                </article>
-
-                <!-- News Card 2 -->
-                <article class="news-card reveal-up" id="news-card-2" style="--delay: 0.1s">
-                    <div class="news-card__glow"></div>
-                    <div class="news-card__top">
-                        <span class="news-tag news-tag--update" data-i18n="news.2.tag">Yangilanish</span>
-                        <span class="news-date"><ion-icon name="calendar-outline"></ion-icon> <span data-i18n="news.2.date">5 Iyul 2026</span></span>
-                    </div>
-                    <div class="news-card__icon news-card__icon--yellow">
-                        <ion-icon name="car-sport-outline"></ion-icon>
-                    </div>
-                    <h3 class="news-card__title" data-i18n="news.2.title">Taksi ilovasi yangilandi — v3.2 chiqdi</h3>
-                    <p class="news-card__desc" data-i18n="news.2.desc">Haydovchilar uchun yangi daromad hisoblagichi, mijozlar uchun esa tezkor buyurtma qayta berish va turnov bonuslari qo'shildi.</p>
-                    <a href="#download" class="news-card__btn">
-                        <span data-i18n="news.readmore">Batafsil o'qish</span>
-                        <ion-icon name="arrow-forward-outline"></ion-icon>
-                    </a>
-                </article>
-
-                <!-- News Card 3 -->
-                <article class="news-card reveal-up" id="news-card-3" style="--delay: 0.2s">
-                    <div class="news-card__glow"></div>
-                    <div class="news-card__top">
-                        <span class="news-tag news-tag--promo" data-i18n="news.3.tag">Aksiya</span>
-                        <span class="news-date"><ion-icon name="calendar-outline"></ion-icon> <span data-i18n="news.3.date">1 Iyul 2026</span></span>
-                    </div>
-                    <div class="news-card__icon news-card__icon--green">
-                        <ion-icon name="pricetag-outline"></ion-icon>
-                    </div>
-                    <h3 class="news-card__title" data-i18n="news.3.title">Yoz aksiyasi: 30% chegirma taksi tariflariga!</h3>
-                    <p class="news-card__desc" data-i18n="news.3.desc">Iyul oyida barcha Start va Komfort tariflarida 30% chegirma. Orbita Go ilovasini hoziroq yuklab oling va chegirmadan foydalaning!</p>
-                    <a href="#download" class="news-card__btn">
-                        <span data-i18n="news.readmore">Batafsil o'qish</span>
-                        <ion-icon name="arrow-forward-outline"></ion-icon>
-                    </a>
-                </article>
-
+            <div class="news-grid" id="news-grid">
+                <p class="news-loading" id="news-loading" style="color:var(--text-hint); text-align:center; grid-column:1/-1;">Yuklanmoqda...</p>
             </div>
         </div>
     </section>
@@ -976,241 +1001,6 @@
         </div>
     </div>
 
-    <!-- Modal helper scripts -->
-    <script>
-        let selectedDonateMethod = '';
-        let activeCardType = 'humo';
-        let activeCardNumber = '9860160430034589';
-
-        function showDonateModal(method) {
-            selectedDonateMethod = method;
-            document.getElementById('donate-modal-title').textContent = method + ' orqali donat';
-            document.getElementById('donate-comment-input').value = ''; // reset comment
-            document.getElementById('donate-amount-input').value = '20000'; // reset amount
-            
-            // Show Step 1, hide Step 2
-            document.getElementById('donate-step-amount').style.display = 'block';
-            document.getElementById('donate-step-card').style.display = 'none';
-
-            document.getElementById('donate-modal').style.display = 'flex';
-        }
-
-        function closeDonateModal() {
-            document.getElementById('donate-modal').style.display = 'none';
-        }
-
-        function setDonateAmount(val) {
-            document.getElementById('donate-amount-input').value = val;
-        }
-
-        function goToDonateStep2() {
-            const amountInput = document.getElementById('donate-amount-input').value;
-            if (!amountInput || amountInput <= 0) {
-                alert("Iltimos, xayriya miqdorini kiriting.");
-                return;
-            }
-
-            // Setup Step 2 UI based on chosen payment method
-            document.getElementById('btn-pay-app-text').textContent = selectedDonateMethod + " ilovasida to'lash";
-            
-            // Highlight default card (Humo)
-            selectDonationCard('humo', '9860160430034589');
-
-            document.getElementById('donate-step-amount').style.display = 'none';
-            document.getElementById('donate-step-card').style.display = 'block';
-        }
-
-        function goBackToDonateStep1() {
-            document.getElementById('donate-step-amount').style.display = 'block';
-            document.getElementById('donate-step-card').style.display = 'none';
-        }
-
-        function selectDonationCard(type, number) {
-            activeCardType = type;
-            activeCardNumber = number;
-
-            const humoOpt = document.getElementById('card-option-humo');
-            const visaOpt = document.getElementById('card-option-visa');
-            const humoCheck = document.getElementById('card-check-humo');
-            const visaCheck = document.getElementById('card-check-visa');
-
-            if (type === 'humo') {
-                humoOpt.style.borderColor = 'var(--primary-light)';
-                humoOpt.style.opacity = '1';
-                humoOpt.style.boxShadow = '0 10px 20px rgba(0,0,0,0.4)';
-                humoCheck.setAttribute('name', 'checkbox');
-                humoCheck.style.color = '#4ade80';
-
-                visaOpt.style.borderColor = 'transparent';
-                visaOpt.style.opacity = '0.7';
-                visaOpt.style.boxShadow = '0 5px 10px rgba(0,0,0,0.3)';
-                visaCheck.setAttribute('name', 'square-outline');
-                visaCheck.style.color = 'rgba(255,255,255,0.4)';
-            } else {
-                visaOpt.style.borderColor = 'var(--primary-light)';
-                visaOpt.style.opacity = '1';
-                visaOpt.style.boxShadow = '0 10px 20px rgba(0,0,0,0.4)';
-                visaCheck.setAttribute('name', 'checkbox');
-                visaCheck.style.color = '#4ade80';
-
-                humoOpt.style.borderColor = 'transparent';
-                humoOpt.style.opacity = '0.7';
-                humoOpt.style.boxShadow = '0 5px 10px rgba(0,0,0,0.3)';
-                humoCheck.setAttribute('name', 'square-outline');
-                humoCheck.style.color = 'rgba(255,255,255,0.4)';
-            }
-        }
-
-        async function payViaApp() {
-            const amount = document.getElementById('donate-amount-input').value;
-            const comment = document.getElementById('donate-comment-input').value.trim() || 'Izohsiz';
-            const payBtn = document.getElementById('btn-pay-app');
-
-            payBtn.setAttribute('disabled', 'true');
-            payBtn.style.opacity = '0.7';
-            payBtn.textContent = 'Yuborilmoqda...';
-
-            // 1. Notify telegram of the P2P transfer intent
-            try {
-                await window.sendTelegramNotification('donate', { 
-                    method: selectedDonateMethod + ` (${activeCardType.toUpperCase()})`,
-                    amount: `${Number(amount).toLocaleString()} UZS`,
-                    comment: comment
-                });
-            } catch (err) {
-                console.error("Alert notify failed:", err);
-            }
-
-            // 2. Open link to the payment system safely
-            let link = '';
-            if (selectedDonateMethod.toLowerCase() === 'click') {
-                // Click P2P prefill link: card_number, amount (working)
-                link = `https://my.click.uz/services/p2p?card_number=${activeCardNumber}&amount=${amount}`;
-                window.open(link, '_blank');
-            } else {
-                // Payme: copy card number to clipboard and open payme.uz
-                navigator.clipboard.writeText(activeCardNumber);
-                alert("Payme uchun karta raqami nusxalandi! \nPayme ilovasiga o'tib, 'O'tkazmalar' bo'limida ushbu karta raqamini 'Joylashtirish' (Paste) qiling.");
-                link = `https://payme.uz`;
-                window.open(link, '_blank');
-            }
-
-            // 3. Show success and close modal
-            payBtn.textContent = 'Rahmat! ❤️';
-            setTimeout(() => {
-                closeDonateModal();
-                payBtn.removeAttribute('disabled');
-                payBtn.style.opacity = '1';
-            }, 1000);
-        }
-        
-        async function loadOperators() {
-            const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:3000' : '';
-            const container = document.getElementById('partner-operators-list');
-            try {
-                const res = await fetch(API_BASE + '/api/telegram/operators');
-                const operators = await res.json();
-                
-                if (operators.length === 0) {
-                    throw new Error("No active operators in backend");
-                }
-
-                container.innerHTML = operators.map(op => {
-                    const initials = op.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || 'OP';
-                    const isOnline = op.status === 'online';
-                    const color = isOnline ? '#4ade80' : 'var(--text-hint)';
-                    const bg = isOnline ? 'rgba(99,102,241,0.15)' : 'rgba(255,255,255,0.05)';
-                    const statusText = isOnline ? 'Faol' : 'Oflayn';
-                    const glow = isOnline ? 'box-shadow: 0 0 8px #4ade80;' : '';
-
-                    return `
-                        <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <div style="width: 28px; height: 28px; border-radius: 50%; background: ${bg}; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: #fff; font-family: sans-serif;">${initials}</div>
-                                <span style="color: ${isOnline ? '#fff' : 'rgba(255,255,255,0.6)'}; font-weight: 600;">${op.name}</span>
-                            </div>
-                            <span style="color: ${color}; font-size: 12px; display: flex; align-items: center; gap: 4px; font-weight: 600;">
-                                <span style="width: 6px; height: 6px; border-radius: 50%; background: ${color}; display: inline-block; ${glow}"></span>
-                                ${statusText}
-                            </span>
-                        </div>
-                    `;
-                }).join('');
-            } catch (e) {
-                // Fallback to beautiful static operator list if server is offline or absent
-                container.innerHTML = `
-                    <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(99,102,241,0.15); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: #fff; font-family: sans-serif;">SM</div>
-                            <span style="color: #fff; font-weight: 600;">Sardor M.</span>
-                        </div>
-                        <span style="color: #4ade80; font-size: 12px; display: flex; align-items: center; gap: 4px; font-weight: 600;">
-                            <span style="width: 6px; height: 6px; border-radius: 50%; background: #4ade80; display: inline-block; box-shadow: 0 0 8px #4ade80;"></span>
-                            Faol
-                        </span>
-                    </div>
-                    <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px; margin-top: 10px;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(217,70,239,0.15); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: #fff; font-family: sans-serif;">MA</div>
-                            <span style="color: #fff; font-weight: 600;">Madina A.</span>
-                        </div>
-                        <span style="color: #4ade80; font-size: 12px; display: flex; align-items: center; gap: 4px; font-weight: 600;">
-                            <span style="width: 6px; height: 6px; border-radius: 50%; background: #4ade80; display: inline-block; box-shadow: 0 0 8px #4ade80;"></span>
-                            Faol
-                        </span>
-                    </div>
-                    <div style="display: flex; align-items: center; justify-content: space-between; font-size: 13px; margin-top: 10px;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <div style="width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; color: #aaa; font-family: sans-serif;">AK</div>
-                            <span style="color: rgba(255,255,255,0.6); font-weight: 600;">Akmal K.</span>
-                        </div>
-                        <span style="color: var(--text-hint); font-size: 12px; display: flex; align-items: center; gap: 4px; font-weight: 600;">
-                            <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--text-hint); display: inline-block;"></span>
-                            Oflayn
-                        </span>
-                    </div>
-                `;
-            }
-        }
-        
-        function showPartnerModal() {
-            document.getElementById('partner-modal').classList.add('open');
-            loadOperators();
-        }
-        function closePartnerModal() {
-            document.getElementById('partner-modal').classList.remove('open');
-        }
-
-        // Partner Form Submission
-        document.getElementById('partner-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btn-submit-partner');
-            const name = document.getElementById('partner-name').value;
-            const phone = document.getElementById('partner-phone').value;
-            const business = document.getElementById('partner-business').value;
-
-            btn.setAttribute('disabled', 'true');
-            btn.textContent = 'Yuborilmoqda...';
-
-            try {
-                // Route through unified helper script with direct Telegram API fallback
-                await window.sendTelegramNotification('partner', { name, phone, business });
-                
-                btn.textContent = 'Muvaffaqiyatli yuborildi! ✅';
-                setTimeout(() => {
-                    closePartnerModal();
-                    // Reset form
-                    document.getElementById('partner-form').reset();
-                    btn.removeAttribute('disabled');
-                    btn.textContent = 'Yuborish';
-                }, 1500);
-            } catch {
-                btn.textContent = 'Xatolik yuz berdi ❌';
-                btn.removeAttribute('disabled');
-            }
-        });
-    </script>
-
     <!-- Main Footer -->
     <footer class="main-footer">
         <div class="container footer-container">
@@ -1560,20 +1350,18 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Dynamically load Socket.io only if on localhost (dev), skip on production
+        // Dynamically load Socket.io from live server
         (function() {
-            const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-            if (isLocal) {
-                const s = document.createElement('script');
-                s.src = 'http://localhost:3000/socket.io/socket.io.js';
-                s.onerror = () => console.warn('Socket.io not available — offline mode active');
-                document.head.appendChild(s);
-            }
+            const s = document.createElement('script');
+            s.src = 'https://api.orbitago.uz/socket.io/socket.io.js';
+            s.onerror = () => console.warn('Socket.io not available — offline mode active');
+            document.head.appendChild(s);
         })();
     </script>
-    <script src="translations.js?v=1.2.0"></script>
-    <script src="telegram-gateway.js?v=1.2.0"></script>
-    <script src="app.js?v=1.2.0"></script>
+    <script src="game-demos.min.js?v=1.3.0" defer></script>
+    <script src="translations.min.js?v=1.3.0" defer></script>
+    <script src="telegram-gateway.min.js?v=1.3.0" defer></script>
+    <script src="app.min.js?v=1.3.0" defer></script>
     <script>
         // Register Service Worker
         if ('serviceWorker' in navigator) {

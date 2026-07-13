@@ -3,21 +3,26 @@
    Offline caching strategy: Cache-first for assets, Network-first for API
    ========================================================================== */
 
-const CACHE_NAME = 'orbita-go-v2';
+const CACHE_NAME = 'orbita-go-v3';
 const STATIC_ASSETS = [
     '/',
     '/index.html',
-    '/style.css',
-    '/app.js',
-    '/translations.js',
+    '/style.min.css',
+    '/app.min.js',
+    '/translations.min.js',
+    '/game-demos.min.js',
+    '/telegram-gateway.min.js',
     '/manifest.json',
-    '/pages/page.css',
+    '/pages/page.min.css',
     '/pages/taxi.html',
     '/pages/walk.html',
     '/pages/games.html',
     '/pages/cafe.html',
     '/pages/market.html',
     '/pages/delivery.html',
+    '/pages/developer.html',
+    '/pages/terms.html',
+    '/pages/privacy.html',
 ];
 
 // Install — cache all static assets
@@ -83,9 +88,9 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    // Static assets: cache-first
+    // Static assets: cache-first (query-string cache-busters, e.g. ?v=1.3.0, are ignored on match)
     event.respondWith(
-        caches.match(event.request).then(cached => {
+        caches.match(event.request, { ignoreSearch: true }).then(cached => {
             if (cached) return cached;
             return fetch(event.request).then(response => {
                 if (event.request.method === 'GET' && response.status === 200) {
