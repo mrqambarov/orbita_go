@@ -517,6 +517,14 @@ io.on('connection', (socket) => {
     io.to(`client_${data.opponentId}`).emit('opponent_finished', { score: data.score });
   });
 
+  // --- ORBITA CLASH (real-time PvP) ---
+  // Bir o'yinchining harakatini (jangchi qo'yish / natija) raqibga uzatadi
+  socket.on('clash_action', (data: { to: string; [key: string]: any }) => {
+    if (data && data.to) {
+      io.to(`client_${data.to}`).emit('clash_action', data);
+    }
+  });
+
   socket.on('error', (err) => {
     console.error(`Socket xatosi ${socket.id}:`, err);
   });

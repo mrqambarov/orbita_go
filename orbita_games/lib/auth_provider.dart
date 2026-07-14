@@ -14,6 +14,7 @@ class AuthState {
   final bool isIdentifierChecked;
   final bool identifierExists;
   final String? identifier;
+  final bool otpSent; // telefon uchun OTP yuborildimi
 
   AuthState({
     required this.status,
@@ -22,6 +23,7 @@ class AuthState {
     this.isIdentifierChecked = false,
     this.identifierExists = false,
     this.identifier,
+    this.otpSent = false,
   });
 
   AuthState copyWith({
@@ -31,6 +33,7 @@ class AuthState {
     bool? isIdentifierChecked,
     bool? identifierExists,
     String? identifier,
+    bool? otpSent,
     bool clearError = false,
   }) {
     return AuthState(
@@ -40,6 +43,7 @@ class AuthState {
       isIdentifierChecked: isIdentifierChecked ?? this.isIdentifierChecked,
       identifierExists: identifierExists ?? this.identifierExists,
       identifier: identifier ?? this.identifier,
+      otpSent: otpSent ?? this.otpSent,
     );
   }
 }
@@ -151,6 +155,67 @@ class AuthNotifier extends StateNotifier<AuthState> {
       state = state.copyWith(
         status: AuthStatus.error,
         error: 'Tizimga ulanib bo\'lmadi. Internetni tekshiring.',
+      );
+      return false;
+    }
+  }
+
+  String _normalizePhone(String phone) {
+    final digits = phone.replaceAll(RegExp(r'\D'), '');
+    if (digits.startsWith('998') && digits.length == 12) return '+$digits';
+    if (digits.length == 9) return '+998$digits';
+    return phone;
+  }
+
+  /// Telefon uchun SMS-kod (OTP) yuborish
+  Future<bool> sendOtp(String phone) async {
+    state = state.copyWith(status: AuthStatus.loading, clearError: true);
+    try {
+      final normalized = _normalizePhone(phone);
+      final res = await _api.sendOtp(normalized);
+      if (res.data['success'] == true) {
+        state = state.copyWith(
+          status: AuthStatus.unauthenticated,
+          otpSent: true,
+          isIdentifierChecked: true,
+          identifier: normalized,
+        );
+        return true;
+      }
+      state = state.copyWith(
+        status: AuthStatus.error,
+        error: res.data['message'] ?? 'Kod yuborishda xatolik',
+      );
+      return false;
+    } catch (e) {
+      state = state.copyWith(
+        status: AuthStatus.error,
+        error: 'Serverga ulanib bo\'lmadi. Internetni tekshiring.',
+      );
+      return false;
+    }
+  }
+
+  /// OTP kodni tekshirib kirish/ro'yxatdan o'tish
+  Future<bool> verifyOtp(String phone, String code, {String? fullName, String? referredByCode}) async {
+    state = state.copyWith(status: AuthStatus.loading, clearError: true);
+    try {
+      final normalized = _normalizePhone(phone);
+      final res = await _api.verifyOtp(normalized, code, fullName: fullName, referredByCode: referredByCode);
+      if (res.data['success'] == true) {
+        await _storage.write(key: 'auth_token', value: res.data['token']);
+        state = AuthState(status: AuthStatus.authenticated, user: res.data['user']);
+        return true;
+      }
+      state = state.copyWith(
+        status: AuthStatus.error,
+        error: res.data['message'] ?? 'Kod noto\'g\'ri',
+      );
+      return false;
+    } catch (e) {
+      state = state.copyWith(
+        status: AuthStatus.error,
+        error: 'Kodni tekshirishda xatolik. Internetni tekshiring.',
       );
       return false;
     }

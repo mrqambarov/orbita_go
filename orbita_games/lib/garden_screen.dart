@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -129,11 +130,14 @@ class _GardenScreenState extends ConsumerState<GardenScreen> with TickerProvider
                         ),
                       );
                     }
-                  } catch (err: any) {
+                  } catch (e) {
                     setDialogState(() => processing = false);
-                    final msg = err.response?.data['message'] ?? 'Xatolik yuz berdi';
+                    final data = e is DioException ? e.response?.data : null;
+                    final msg = (data is Map && data['message'] != null)
+                        ? data['message'] as String
+                        : 'Xatolik yuz berdi';
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(msg), backgroundColor: GamesTheme.error),
+                      SnackBar(content: Text(msg), backgroundColor: Colors.redAccent),
                     );
                   }
                 }

@@ -4,8 +4,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class ApiService {
   final Dio _dio = Dio(BaseOptions(
     baseUrl: 'https://api.orbitago.uz',
-    connectTimeout: const Duration(seconds: 15),
-    receiveTimeout: const Duration(seconds: 15),
+    // Server/tunnel ba'zan 8-20s javob beradi — timeout balandroq bo'lsin
+    connectTimeout: const Duration(seconds: 30),
+    receiveTimeout: const Duration(seconds: 30),
   ));
 
   final _storage = const FlutterSecureStorage();
@@ -40,6 +41,21 @@ class ApiService {
       'identifier': identifier,
       'password': password,
       'fullName': fullName,
+      if (referredByCode != null && referredByCode.isNotEmpty) 'referredByCode': referredByCode,
+    });
+  }
+
+  // OTP — taksi ilovasi bilan bir xil (yagona SSO)
+  Future<Response> sendOtp(String phoneNumber) async {
+    return _dio.post('/api/auth/otp/send', data: {'phoneNumber': phoneNumber});
+  }
+
+  Future<Response> verifyOtp(String phoneNumber, String code,
+      {String? fullName, String? referredByCode}) async {
+    return _dio.post('/api/auth/otp/verify', data: {
+      'phoneNumber': phoneNumber,
+      'code': code,
+      if (fullName != null && fullName.isNotEmpty) 'fullName': fullName,
       if (referredByCode != null && referredByCode.isNotEmpty) 'referredByCode': referredByCode,
     });
   }

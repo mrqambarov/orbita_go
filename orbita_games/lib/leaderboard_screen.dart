@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'auth_provider.dart';
 import 'theme.dart';
+import 'widgets/galaxy_background.dart';
 
 class LeaderboardScreen extends ConsumerStatefulWidget {
   const LeaderboardScreen({super.key});
@@ -50,23 +51,25 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> with Sing
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: GamesTheme.background,
-      appBar: AppBar(
+    return GalaxyBackground(
+      child: Scaffold(
         backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text('PESHQADAMLAR', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: GamesTheme.primary,
-          labelColor: GamesTheme.primary,
-          unselectedLabelColor: GamesTheme.textSecondary,
-          tabs: _gameTypes.map((t) => Tab(text: t['name'])).toList(),
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          title: Text('PESHQADAMLAR', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+          bottom: TabBar(
+            controller: _tabController,
+            indicatorColor: GamesTheme.primary,
+            labelColor: GamesTheme.primary,
+            unselectedLabelColor: GamesTheme.textSecondary,
+            tabs: _gameTypes.map((t) => Tab(text: t['name'])).toList(),
+          ),
         ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: _gameTypes.map((t) => _buildLeaderboardList(t['id']!)).toList(),
+        body: TabBarView(
+          controller: _tabController,
+          children: _gameTypes.map((t) => _buildLeaderboardList(t['id']!)).toList(),
+        ),
       ),
     );
   }

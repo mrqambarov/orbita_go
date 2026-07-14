@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'auth_provider.dart';
 import 'theme.dart';
+import 'widgets/galaxy_background.dart';
 
 class ShopScreen extends ConsumerStatefulWidget {
   const ShopScreen({super.key});
@@ -62,8 +63,9 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
   Widget build(BuildContext context) {
     final balance = (ref.watch(authProvider).user?['walletBalance'] ?? 0.0) as num;
 
-    return Scaffold(
-      backgroundColor: GamesTheme.background,
+    return GalaxyBackground(
+      child: Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -160,6 +162,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                 );
               },
             ),
+      ),
     );
   }
 }

@@ -14,6 +14,8 @@ import 'shop_screen.dart';
 import 'leaderboard_screen.dart';
 import 'garden_screen.dart';
 import 'duel_lobby_screen.dart';
+import 'clash/clash_screen.dart';
+import 'clash/clash_lobby.dart';
 import 'settings_screen.dart';
 import 'theme.dart';
 import 'widgets/premium_card.dart';
@@ -206,6 +208,64 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     }
   }
 
+  void _openClashChooser() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: GamesTheme.card,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 22, 20, 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('⚔️ ORBITA CLASH', style: GoogleFonts.outfit(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900)),
+            const SizedBox(height: 4),
+            const Text('Jang rejimini tanlang', style: TextStyle(color: GamesTheme.textSecondary, fontSize: 12)),
+            const SizedBox(height: 22),
+            _modeBtn('🤖  Bot bilan', 'Mashq va o\'rganish', Colors.blueGrey, () {
+              Navigator.pop(ctx);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const ClashScreen()));
+            }),
+            const SizedBox(height: 12),
+            _modeBtn('🌐  Online raqib', 'Real o\'yinchi bilan jang', const Color(0xFF7C4DFF), () {
+              Navigator.pop(ctx);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const ClashLobbyScreen()));
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _modeBtn(String title, String subtitle, Color color, VoidCallback onTap) {
+    return BouncyButton(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(colors: [color.withOpacity(0.35), color.withOpacity(0.12)]),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withOpacity(0.5)),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 15)),
+                  Text(subtitle, style: const TextStyle(color: Colors.white60, fontSize: 11)),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: Colors.white54),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
@@ -317,6 +377,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       ),
                     ),
                     
+                    const SizedBox(height: 32),
+                    _SectionHeader(title: 'FLAGMAN O\'YIN'),
+                    const SizedBox(height: 16),
+                    _ClashHeroBanner(onPlay: _openClashChooser),
+
                     const SizedBox(height: 32),
                     _SectionHeader(title: 'TEZKOR AMALLAR'),
                     const SizedBox(height: 16),
@@ -581,6 +646,134 @@ class _MissionItem extends StatelessWidget {
       ),
     );
   }
+}
+
+class _ClashHeroBanner extends StatefulWidget {
+  final VoidCallback onPlay;
+  const _ClashHeroBanner({required this.onPlay});
+  @override
+  State<_ClashHeroBanner> createState() => _ClashHeroBannerState();
+}
+
+class _ClashHeroBannerState extends State<_ClashHeroBanner> with SingleTickerProviderStateMixin {
+  late final AnimationController _c;
+  @override
+  void initState() {
+    super.initState();
+    _c = AnimationController(vsync: this, duration: const Duration(seconds: 3))..repeat();
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _c,
+      builder: (context, _) {
+        final glow = 0.35 + 0.35 * (0.5 - (_c.value - 0.5).abs()) * 2; // 0.35..0.70 pulse
+        return GestureDetector(
+          onTap: widget.onPlay,
+          child: Container(
+            height: 172,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFF3A2A7A), Color(0xFF1E163F), Color(0xFF120C24)],
+              ),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: const Color(0xFF7C4DFF).withOpacity(0.6), width: 1.4),
+              boxShadow: [BoxShadow(color: const Color(0xFF7C4DFF).withOpacity(glow), blurRadius: 26, spreadRadius: 1)],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: Stack(
+                children: [
+                  // Fon bezaklari
+                  Positioned(right: -14, bottom: -22, child: Text('⚔️', style: TextStyle(fontSize: 130, color: Colors.white.withOpacity(0.06)))),
+                  Positioned(right: 96, top: -26, child: Text('🏰', style: TextStyle(fontSize: 78, color: Colors.white.withOpacity(0.05)))),
+                  // Harakatlanuvchi shimmer
+                  Positioned.fill(
+                    child: FractionallySizedBox(
+                      widthFactor: 0.4,
+                      alignment: Alignment(-1.4 + 2.8 * _c.value, 0),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(colors: [
+                            Colors.transparent,
+                            Colors.white.withOpacity(0.06),
+                            Colors.transparent,
+                          ]),
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Kontent
+                  Padding(
+                    padding: const EdgeInsets.all(18),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(color: GamesTheme.accent.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
+                          child: Text('⭐ FLAGMAN O\'YIN', style: GoogleFonts.outfit(color: GamesTheme.accent, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1)),
+                        ),
+                        const SizedBox(height: 10),
+                        Text('ORBITA CLASH',
+                            style: GoogleFonts.outfit(
+                              color: Colors.white,
+                              fontSize: 28,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1,
+                              shadows: [Shadow(color: const Color(0xFF7C4DFF).withOpacity(0.9), blurRadius: 16)],
+                            )),
+                        const SizedBox(height: 2),
+                        const Text('Real-time arena jang — mahallang uchun kurash',
+                            style: TextStyle(color: Colors.white70, fontSize: 11)),
+                        const Spacer(),
+                        Row(
+                          children: [
+                            _heroChip('🏆 PvP'),
+                            const SizedBox(width: 8),
+                            _heroChip('⚡ 3 daqiqa'),
+                            const Spacer(),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(colors: [GamesTheme.primary, Color(0xFF7C4DFF)]),
+                                borderRadius: BorderRadius.circular(14),
+                                boxShadow: [BoxShadow(color: GamesTheme.primary.withOpacity(0.5), blurRadius: 12)],
+                              ),
+                              child: Row(mainAxisSize: MainAxisSize.min, children: const [
+                                Text('JANGGA KIRISH', style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 12)),
+                                SizedBox(width: 6),
+                                Icon(Icons.sports_kabaddi_rounded, color: Colors.black, size: 16),
+                              ]),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _heroChip(String text) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(color: Colors.white.withOpacity(0.08), borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.white12)),
+        child: Text(text, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+      );
 }
 
 class _GameTile extends StatelessWidget {

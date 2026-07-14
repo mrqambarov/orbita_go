@@ -35,6 +35,12 @@ class _DuelLobbyScreenState extends ConsumerState<DuelLobbyScreen> {
 
     _socket!.onConnect((_) {
       print('Socket connected');
+      // Muhim: server duel signallarini `client_<userId>` xonasiga yuboradi.
+      // Shu xonaga qo'shilmasak, duel_start/opponent_* hodisalari yetib kelmaydi.
+      if (userId != null) {
+        _socket!.emit('join_client_room', userId);
+        _socket!.emit('join_user_room', userId);
+      }
     });
 
     _socket!.on('duel_start', (data) {

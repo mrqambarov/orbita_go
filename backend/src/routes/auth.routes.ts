@@ -161,6 +161,15 @@ router.post('/login', async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: 'Foydalanuvchi topilmadi' });
     }
 
+    // OTP orqali ro'yxatdan o'tgan foydalanuvchilarda parol yo'q — null crash oldini olamiz
+    if (!user.password) {
+      return res.status(400).json({
+        success: false,
+        needsOtp: true,
+        message: 'Bu hisob SMS-kod (OTP) orqali ochilgan. Iltimos, telefon raqami va tasdiqlash kodi bilan kiring.',
+      });
+    }
+
     // Bcrypt bilan parolni tekshirish (legacy plain-text fallback ham qo'llab-quvvatlash)
     let passwordMatch = false;
     if (user.password.startsWith('$2')) {
